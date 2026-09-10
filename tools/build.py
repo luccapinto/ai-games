@@ -60,8 +60,8 @@ def tabela_do_readme(jogos):
         '| --- | --- | --- | --- | --- |'
     ]
     for j in jogos:
-        titulo = j.get('título', j['_slug'])
-        genero = j.get('gênero', '')
+        titulo = j.get('titulo', j['_slug'])
+        genero = j.get('genero', '')
         ia = j.get('ia', {})
         modelo = ia.get('modelo', '')
         custo = moeda((j.get('custo') or {}).get('usd_estimado'))
