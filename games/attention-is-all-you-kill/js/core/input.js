@@ -19,7 +19,7 @@ export class Input {
       // e.repeat vem true quando o sistema repete a tecla por ela estar
       // pressionada. Sem esse filtro o pulo dispara em rajada.
       if (k === 'Space' && !e.repeat) this.jumpAskedAt = performance.now();
-      // evita scroll da pagina com espaco e setas
+      // evita scroll da página com espaço e setas
       if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(k)) e.preventDefault();
     };
     this._onKeyUp = (e) => { this.keys[e.code] = false; };
@@ -85,9 +85,9 @@ export class Input {
   isSprinting() { return this.isDown('ShiftLeft') || this.isDown('ShiftRight'); }
 
   consumeJump() {
-    // Janela de 150ms: o pulo pedido um pouco antes de tocar o chao ainda vale,
-    // e cada aperto conta uma vez so. Antes a tecla era lida como estado, e o
-    // auto-repeat do teclado rearmava ela: segurar espaco dava 6 pulos em 3s.
+    // Janela de 150ms: o pulo pedido um pouco antes de tocar o chão ainda vale,
+    // e cada aperto conta uma vez só. Antes a tecla era lida como estado, e o
+    // auto-repeat do teclado rearmava ela: segurar espaço dava 6 pulos em 3s.
     if (this.jumpAskedAt && performance.now() - this.jumpAskedAt < 150) {
       this.jumpAskedAt = 0;
       return true;

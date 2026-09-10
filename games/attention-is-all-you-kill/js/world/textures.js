@@ -1,5 +1,5 @@
 // textures.js — texturas procedurais geradas em canvas.
-// Decisao de design: zero arquivo de imagem. O jogo nao baixa nada.
+// Decisão de design: zero arquivo de imagem. O jogo não baixa nada.
 
 import * as THREE from '../../vendor/three.module.js';
 import { LOGOS, VIEWBOX } from './logos.js';
@@ -102,7 +102,7 @@ export function wallTexture(theme, repeat = 8) {
     g.fillRect(Math.random() * S, Math.random() * S, 3, 3);
   }
 
-  // divisao de paineis
+  // divisão de paineis
   g.strokeStyle = 'rgba(0,0,0,0.5)';
   g.lineWidth = 3;
   g.strokeRect(4, 4, S - 8, S - 8);
@@ -220,7 +220,7 @@ export function glowTexture(colorHex = 0xffffff) {
 }
 
 // ------------------------------------------------------------------
-// Sombra falsa: mancha radial escura no chao. Substitute barato de shadow map.
+// Sombra falsa: mancha radial escura no chão. Substitute barato de shadow map.
 // ------------------------------------------------------------------
 export function blobShadowTexture() {
   const S = 64;
@@ -269,9 +269,9 @@ export function signTexture(text, accentHex = 0x35f0d8) {
 }
 
 // ------------------------------------------------------------------
-// Decalque de marca: patch circular escuro com a logo da faccao, usado no
+// Decalque de marca: patch circular escuro com a logo da facção, usado no
 // peito do inimigo. Sem o fundo escuro a logo clara se perde na cor do corpo,
-// que ja e a cor da propria faccao.
+// que já e a cor da própria facção.
 // ------------------------------------------------------------------
 const DECAL_CACHE = new Map();
 
@@ -323,14 +323,14 @@ export function solidTexture() {
 }
 
 // ------------------------------------------------------------------
-// Placa de identificacao do inimigo: emblema da faccao + nome do modelo.
-// Sem isso o jogador nao sabe contra quem esta lutando, e num jogo em que a
-// identidade do modelo define o comportamento isso e informacao de combate.
+// Placa de identificacao do inimigo: emblema da facção + nome do modelo.
+// Sem isso o jogador não sabe contra quem esta lutando, e num jogo em que a
+// identidade do modelo define o comportamento isso é informação de combate.
 // ------------------------------------------------------------------
 const PLATE_CACHE = new Map();
 const PLATE_FONTE = 'bold 40px ui-monospace, monospace';
 
-// Canvas reaproveitado so para medir texto: a largura da placa depende do nome.
+// Canvas reaproveitado só para medir texto: a largura da placa depende do nome.
 let _medidor = null;
 function medirTexto(texto) {
   if (!_medidor) _medidor = document.createElement('canvas').getContext('2d');
@@ -348,7 +348,7 @@ export function nameplateTexture(name, faction, accentHex) {
   const GAP = 16;
 
   // A largura do painel e medida a partir do nome. Antes era sempre 512, com o
-  // texto ocupando so a metade esquerda, e como o sprite e centralizado no
+  // texto ocupando só a metade esquerda, e como o sprite e centralizado no
   // inimigo a placa aparecia deslocada para o lado do corpo.
   const label = String(name).toUpperCase();
   const texto = label.length > 20 ? label.slice(0, 19) + '.' : label;
@@ -367,8 +367,8 @@ export function nameplateTexture(name, faction, accentHex) {
   g.lineWidth = 4;
   g.strokeRect(3, 3, W - 6, H - 6);
 
-  // Emblema: a logo real da marca, reduzida a path data. Cada faccao carrega o
-  // simbolo de quem ela representa, que e a informacao mais rapida que o
+  // Emblema: a logo real da marca, reduzida a path data. Cada facção carrega o
+  // simbolo de quem ela representa, que é a informação mais rápida que o
   // jogador tem para saber contra o que esta lutando.
   const cx = PAD + TAM_EMBLEMA / 2;
   const cy = H / 2;
@@ -382,7 +382,7 @@ export function nameplateTexture(name, faction, accentHex) {
     for (const d of paths) g.fill(new Path2D(d));
     g.restore();
   } else {
-    // Faccao sem marca registrada (os Sentinelas de Sistema): simbolo proprio.
+    // Facção sem marca registrada (os Sentinelas de Sistema): simbolo próprio.
     const r = 24;
     g.lineWidth = 6;
     g.strokeStyle = accent;
@@ -405,7 +405,7 @@ export function nameplateTexture(name, faction, accentHex) {
   const tex = new THREE.CanvasTexture(c);
   tex.colorSpace = THREE.SRGBColorSpace;
 
-  // o cache nao pode crescer sem limite: nomes de fine-tune sao infinitos
+  // o cache não pode crescer sem limite: nomes de fine-tune são infinitos
   if (PLATE_CACHE.size > 48) {
     const first = PLATE_CACHE.keys().next().value;
     const old = PLATE_CACHE.get(first);

@@ -1,5 +1,5 @@
 // themes.js — identidade visual por andar.
-// Cada andar tem paleta, densidade de nevoa e uma regra de luz propria.
+// Cada andar tem paleta, densidade de nevoa e uma regra de luz própria.
 
 export const THEMES = {
   1: {
@@ -58,7 +58,7 @@ export const THEMES = {
     dangerAmbient: 0x6a1a18,
     dangerFog: 0x180d08,
     dangerHemi: 0x4a1114,
-    hint: 'O chao e um grafico de candles. Ele mente para voce.'
+    hint: 'O chão é um gráfico de candles. Ele mente para você.'
   },
   4: {
     id: 4,

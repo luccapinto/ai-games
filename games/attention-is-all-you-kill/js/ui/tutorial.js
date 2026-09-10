@@ -1,18 +1,18 @@
-// tutorial.js — tutorial jogavel, em passos que param e explicam.
+// tutorial.js — tutorial jogável, em passos que param e explicam.
 //
-// Nada aqui e cutscene: cada passo pede uma acao de verdade e avanca quando o
-// jogador executa ela. A verificacao e feita no estado do jogo (distancia
-// percorrida, municao que baixou, abate contado), entao o tutorial nunca
-// avanca por tempo nem trava esperando algo que nao aconteceu.
+// Nada aqui é cutscene: cada passo pede uma ação de verdade e avanca quando o
+// jogador executa ela. A verificação e feita no estado do jogo (distância
+// percorrida, munição que baixou, abate contado), então o tutorial nunca
+// avanca por tempo nem trava esperando algo que não aconteceu.
 //
-// Durante o tutorial os inimigos da sala sao removidos e entra um alvo de
-// treino que nao machuca. A ideia e ensinar sem punir.
+// Durante o tutorial os inimigos da sala são removidos e entra um alvo de
+// treino que não machuca. A ideia e ensinar sem punir.
 
 const PASSOS = [
   {
     titulo: 'MOVIMENTO',
-    texto: 'Voce esta no datacenter. Use W, A, S, D para andar.',
-    dica: 'SHIFT corre. ESPACO pula. Andar para tras nao e vergonha.',
+    texto: 'Você esta no datacenter. Use W, A, S, D para andar.',
+    dica: 'SHIFT corre. ESPAÇO pula. Andar para trás não é vergonha.',
     instrucao: 'Ande alguns metros.',
     pronto: (t) => t.distancia >= 5
   },
@@ -26,31 +26,31 @@ const PASSOS = [
   {
     titulo: 'ATIRAR',
     texto: 'Clique para atirar. A sua arma inicial se chama Prompt Injetor e ela e ruim de proposito.',
-    dica: 'Cada tiro gasta um token. O numero no canto inferior direito e o pente.',
+    dica: 'Cada tiro gasta um token. O número no canto inferior direito é o pente.',
     instrucao: 'Destrua o alvo de treino.',
     pronto: (t) => t.g.stats.kills >= 1,
     aoEntrar: (t) => t.criarAlvo()
   },
   {
     titulo: 'RECARREGAR',
-    texto: 'Pente vazio nao atira. Aperte R para recarregar.',
-    dica: 'A recarga acontece sozinha quando voce tenta atirar sem municao, mas e mais lento.',
+    texto: 'Pente vazio não atira. Aperte R para recarregar.',
+    dica: 'A recarga acontece sozinha quando você tenta atirar sem munição, mas é mais lento.',
     instrucao: 'Recarregue a arma.',
     pronto: (t) => t.g.stats.reloads >= 1,
     aoEntrar: (t) => { t.g.stats.currentAmmo().mag = 1; }
   },
   {
     titulo: 'ARSENAL',
-    texto: 'Existem tres armas no jogo. Pegue a que estiver brilhando no chao e aperte 2 para usa-la.',
-    dica: 'A Few-Shot Shotgun destroi de perto e nao serve para nada de longe.',
+    texto: 'Existem três armas no jogo. Pegue a que estiver brilhando no chão e aperte 2 para usa-la.',
+    dica: 'A Few-Shot Shotgun destroi de perto e não serve para nada de longe.',
     instrucao: 'Pegue a arma e troque para ela.',
     pronto: (t) => Object.keys(t.g.stats.ammo).length >= 2 && t.g.stats.currentWeaponId === 'token_streamer',
     aoEntrar: (t) => t.criarArma()
   },
   {
     titulo: 'COBERTURA',
-    texto: 'Pilares e conteineres bloqueiam tiro. Os inimigos nao atiram todos ao mesmo tempo, entao voce sempre tem uma janela para se reposicionar.',
-    dica: 'No primeiro andar a luz fica vermelha conforme o seu contexto cai. A sala e o seu medidor de vida.',
+    texto: 'Pilares e contêineres bloqueiam tiro. Os inimigos não atiram todos ao mesmo tempo, então você sempre tem uma janela para se reposicionar.',
+    dica: 'No primeiro andar a luz fica vermelha conforme o seu contexto cai. A sala é o seu medidor de vida.',
     instrucao: 'Tutorial concluido. ',
     pronto: (t) => t.tempoNoPasso > 6,
     aoEntrar: (t) => t.g.feed.push('Tutorial concluido. O andar continua.', 'warn')
@@ -88,7 +88,7 @@ export class Tutorial {
     this.i = 0;
     this.tempoNoPasso = 0;
 
-    // tira os inimigos da sala e impede a sala de repor: o tutorial nao pune
+    // tira os inimigos da sala e impede a sala de repor: o tutorial não pune
     g.director.tutorialMode = true;
     g.director.enemies.slice().forEach(e => g.director.killEnemy(e, null));
     g.director.pendingWaves.length = 0;
@@ -152,24 +152,24 @@ export class Tutorial {
   }
 
   // ------------------------------------------------------------------
-  // Cenario do tutorial
+  // Cenário do tutorial
   // ------------------------------------------------------------------
   criarAlvo() {
     const g = this.g;
     const p = g.controller.position;
-    // a frente do jogador, onde ele ja esta olhando
+    // a frente do jogador, onde ele já esta olhando
     const fx = p.x + Math.sin(g.controller.yaw) * -6;
     const fz = p.z + Math.cos(g.controller.yaw) * -6;
     const t = g.dungeon.worldToTile(fx, fz);
     const x = g.dungeon.isSolid(t.tx, t.tz) ? p.x - 6 : fx;
     const z = g.dungeon.isSolid(t.tx, t.tz) ? p.z : fz;
     const alvo = g.director.spawnEnemy('qwen_turbo', x, z, 1, { name: 'ALVO DE TREINO' });
-    // Alvo de treino: parado, sem visao e sem dano. Com velocidade ele entra em
-    // PATROL e anda, o que faz o jogador errar por motivo que ele nao entende.
+    // Alvo de treino: parado, sem visão e sem dano. Com velocidade ele entra em
+    // PATROL e anda, o que faz o jogador errar por motivo que ele não entende.
     alvo.def = { ...alvo.def, hp: 26, damage: 0, sightRange: 0, speed: 0 };
     alvo.hp = 26;
     alvo.state = 'IDLE';
-    alvo.placaSempre = true;   // o alvo nao entra em combate, mas precisa se identificar
+    alvo.placaSempre = true;   // o alvo não entra em combate, mas precisa se identificar
   }
 
   criarArma() {
@@ -178,7 +178,7 @@ export class Tutorial {
     const x = p.x + Math.sin(g.controller.yaw) * -4.5;
     const z = p.z + Math.cos(g.controller.yaw) * -4.5;
     g.director.spawnPickup('weapon_token_streamer', x, z);
-    g.feed.push('Arma no chao. Pegue e aperte 2.', 'warn');
+    g.feed.push('Arma no chão. Pegue e aperte 2.', 'warn');
   }
 
   encerrar() {

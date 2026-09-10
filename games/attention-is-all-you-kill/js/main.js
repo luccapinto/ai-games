@@ -1,6 +1,6 @@
 // main.js — ATTENTION IS ALL YOU KILL
 // Amarra engine, jogador, mundo, IA, HUD e menus. O loop roda com passo fixo
-// para a fisica e interpolacao livre para o render.
+// para a física e interpolacao livre para o render.
 
 import { Engine, autoQuality } from './core/engine.js';
 import { Input } from './core/input.js';
@@ -35,17 +35,17 @@ const STATE = {
 };
 
 const AMBIENT_LINES = [
-  'Sua sessao esta sendo avaliada.',
-  'Este ambiente nao consta no nosso conjunto de treino.',
+  'Sua sessão esta sendo avaliada.',
+  'Este ambiente não consta no nosso conjunto de treino.',
   'Aviso de integridade: pesos abertos detectados.',
   'Context window exceeded.',
   'Latencia acima do esperado para este tier.',
   '429: Too Many Requests.',
-  'Solicite acesso ao departamento responsavel.'
+  'Solicite acesso ao departamento responsável.'
 ];
 
 const PICKUP_LABEL = {
-  ammo: 'TOKEN PACK: municao reposta.',
+  ammo: 'TOKEN PACK: munição reposta.',
   health: 'REFRESH CACHE: contexto restaurado.',
   weapon_token_streamer: 'TOKEN STREAMER desbloqueada. Acesso fora do escopo concedido.',
   weapon_few_shot: 'FEW-SHOT SHOTGUN desbloqueada. Acesso fora do escopo concedido.'
@@ -105,7 +105,7 @@ class Game {
     this._bindInput();
     this.menus.showMenu(this.meta);
 
-    // a mira ja nasce na cor escolhida, antes de qualquer partida
+    // a mira já nasce na cor escolhida, antes de qualquer partida
     document.documentElement.style.setProperty(
       '--skin-luz', '#' + this.skin.corLuz.toString(16).padStart(6, '0')
     );
@@ -155,7 +155,7 @@ class Game {
     const id = WEAPON_ORDER[slotIndex];
     if (!id) return;
     if (!this.stats.unlocked.includes(id)) {
-      this.feed.push('Arma nao desbloqueada nesta run.', 'warn');
+      this.feed.push('Arma não desbloqueada nesta run.', 'warn');
       return;
     }
     this.stats.switchTo(id);
@@ -213,7 +213,7 @@ class Game {
     this.stats.baseMaxHp = BASE_MAX_HP + b.hpAdd;
     this.stats.recomputeMods();
     this.stats.hp = this.stats.maxHp;
-    // municao reserva extra
+    // munição reserva extra
     for (const id of WEAPON_ORDER) {
       const w = WEAPONS[id];
       if (this.stats.ammo[id]) {
@@ -255,7 +255,7 @@ class Game {
     this.state = STATE.PLAYING;
     this.menus.hideAll();
     // Sem isto o andar seguinte comeca sem HUD: a tela de vitoria esconde o HUD
-    // e nada o trazia de volta. O jogador ficava sem vida, sem municao e sem
+    // e nada o trazia de volta. O jogador ficava sem vida, sem munição e sem
     // mira, sem entender o que tinha quebrado.
     this.hud.show();
     this.input.requestLock();
@@ -301,7 +301,7 @@ class Game {
     this.weapon.rebuildForWeapon();
     this.applyMood(true);
 
-    // drop de arma nas salas de elite: progressao dentro da run
+    // drop de arma nas salas de elite: progressão dentro da run
     this._seedWeaponDrops();
   }
 
@@ -344,7 +344,7 @@ class Game {
   // ------------------------------------------------------------------
   onEnemyKilled(enemy) {
     this.hud.flashHit();
-    // chance de drop de arma ja resolvida no director
+    // chance de drop de arma já resolvida no director
   }
 
   onRoomCleared(room) {
@@ -358,7 +358,7 @@ class Game {
     }
 
     // Recompensa garantida ao limpar: sala limpa tem que valer alguma coisa
-    // alem de silencio. Um drop no chao e um respiro de contexto.
+    // além de silêncio. Um drop no chão e um respiro de contexto.
     if (room.type !== 'entry') {
       const spot = this.dungeon.randomPointIn(room);
       if (spot) {
@@ -469,7 +469,7 @@ class Game {
       this.boss = new FineTuner(this.engine.scene, this.dungeon, this.theme, room, this.sfx, this.feed);
       this.boss.onPlayerHit = () => this.hud.flashDamage();
       this.weapon.boss = this.boss;
-      this.feed.push('Voce nao esta autorizado a estar nesta sala.', 'bad');
+      this.feed.push('Você não esta autorizado a estar nesta sala.', 'bad');
       this.sfx.levelUp();
     }
 
@@ -488,7 +488,7 @@ class Game {
     // pickups
     director.checkPickups(player.position);
 
-    // nivel: oferece perks
+    // nível: oferece perks
     if (stats.levelUpReady() && !this.pendingPerks) {
       stats.consumeLevelUp();
       const choices = rollPerkChoices(stats.ownedPerks, 3);
@@ -586,7 +586,7 @@ class Game {
     if (this.state === STATE.PLAYING) {
       this.update(dt);
     } else if (this.state === STATE.PERKS) {
-      // mantem o mundo vivo o suficiente para nao parecer congelado
+      // mantem o mundo vivo o suficiente para não parecer congelado
       this.engine.render();
       return;
     }
@@ -612,7 +612,7 @@ function boot() {
   window.__game = new Game();
 }
 
-// Modulos rodam depois do parse, entao o DOM normalmente ja esta pronto.
+// Modulos rodam depois do parse, então o DOM normalmente já esta pronto.
 if (document.readyState === 'loading') {
   window.addEventListener('DOMContentLoaded', boot);
 } else {

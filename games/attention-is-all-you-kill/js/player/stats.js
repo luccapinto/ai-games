@@ -1,12 +1,12 @@
-// stats.js — estado do jogador: contexto, tokens, perks, progressao.
-// O nome dos recursos e o sistema: contexto e vida, token e municao.
+// stats.js — estado do jogador: contexto, tokens, perks, progressão.
+// O nome dos recursos e o sistema: contexto e vida, token e munição.
 
 import { resolveWeapon, WEAPON_ORDER, WEAPONS } from '../data/weapons.js';
 import { combineMods, PERKS } from '../data/perks.js';
 
 // 128 e tematico (janela de contexto) e da margem de erro para o jogador
 // aprender o andar sem morrer na segunda sala.
-// Exportado porque o main.js tambem precisa da base: antes ele tinha um 100
+// Exportado porque o main.js também precisa da base: antes ele tinha um 100
 // hardcoded que sobrescrevia este valor e anulava qualquer ajuste feito aqui.
 export const BASE_MAX_HP = 128;
 const XP_BASE = 100;
@@ -40,7 +40,7 @@ export class PlayerStats {
     this.lastKilledFaction = null;
     this.silencedTimer = 0;  // ataque Recusa
     this.throttleTimer = 0;  // ataque Rate Limiter
-    this.invulnTimer = 0;    // imunidade curta apos levar dano
+    this.invulnTimer = 0;    // imunidade curta após levar dano
 
     this._initAmmo();
   }
@@ -60,7 +60,7 @@ export class PlayerStats {
     this.recomputeMods();
   }
 
-  // Chance total de disparo duplo: perks da run mais progressao permanente.
+  // Chance total de disparo duplo: perks da run mais progressão permanente.
   doubleShotChance() {
     return Math.min(0.6, (this.mods.doubleShot || 0) + (this.metaBonus.doubleShot || 0));
   }
@@ -75,7 +75,7 @@ export class PlayerStats {
     this.mods = combineMods(this.ownedPerks);
     const prevMax = this.maxHp;
     this.maxHp = Math.round((this.baseMaxHp + (this.mods.maxHpAdd || 0)) * (this.mods.maxHpMul || 1));
-    // ganhar vida maxima cura a diferenca; perder vida maxima corta o excedente
+    // ganhar vida máxima cura a diferença; perder vida máxima corta o excedente
     const delta = this.maxHp - prevMax;
     if (delta > 0) this.hp += delta;
     this.hp = Math.min(this.hp, this.maxHp);
@@ -98,7 +98,7 @@ export class PlayerStats {
 
   unlockWeapon(id) {
     if (!this.unlocked.includes(id)) this.unlocked.push(id);
-    // ao achar uma arma nova, ja equipa: recompensa imediata
+    // ao achar uma arma nova, já equipa: recompensa imediata
     this.currentWeaponId = id;
   }
 
@@ -158,8 +158,8 @@ export class PlayerStats {
   takeDamage(amount) {
     if (amount <= 0) return 0;
 
-    // imunidade curta apos levar dano: sem isso, dois inimigos fracos
-    // derretem o jogador em segundos e o inicio do jogo fica injusto
+    // imunidade curta após levar dano: sem isso, dois inimigos fracos
+    // derretem o jogador em segundos e o início do jogo fica injusto
     if (this.invulnTimer > 0) return 0;
 
     // dropout: parte dos projeteis inimigos simplesmente atravessa
@@ -196,7 +196,7 @@ export class PlayerStats {
   hpRatio() { return this.maxHp > 0 ? this.hp / this.maxHp : 0; }
 
   // ------------------------------------------------------------------
-  // Progressao
+  // Progressão
   // ------------------------------------------------------------------
   addKill(enemy) {
     this.kills++;
@@ -204,7 +204,7 @@ export class PlayerStats {
     const gain = enemy.xp || 10;
     this.xp += gain;
     // O loot do inimigo e a base do compute da run. Triplicado: no valor
-    // original uma run inteira nao pagava nem o primeiro upgrade de LoRA.
+    // original uma run inteira não pagava nem o primeiro upgrade de LoRA.
     this.computeEarned += (enemy.loot || 4) * 3;
 
     // fine_tune: cada abate afina os pesos
@@ -258,7 +258,7 @@ export class PlayerStats {
   }
 
   // ------------------------------------------------------------------
-  // Reset entre runs (perks e armas voltam ao zero; meta-progressao nao)
+  // Reset entre runs (perks e armas voltam ao zero; meta-progressão não)
   // ------------------------------------------------------------------
   reset() {
     this.ownedPerks = [];

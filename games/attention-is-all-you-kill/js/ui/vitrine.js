@@ -1,11 +1,11 @@
 // vitrine.js — desenha modelos 3D dentro das telas de interface.
 //
-// O manual e a personalizacao mostram os modelos de verdade, e nao desenhos ou
+// O manual e a personalizacao mostram os modelos de verdade, e não desenhos ou
 // icones: e a mesma silhueta que o jogador enfrenta no jogo, com o mesmo path
 // data de logo. Assim a vitrine nunca fica desatualizada em relacao ao jogo.
 //
-// Um unico renderer WebGL offscreen e reaproveitado, e o resultado e copiado
-// para um canvas 2D por cartao. Criar um contexto WebGL por cartao estoura o
+// Um único renderer WebGL offscreen e reaproveitado, e o resultado e copiado
+// para um canvas 2D por cartão. Criar um contexto WebGL por cartão estoura o
 // limite do navegador (por volta de 16 contextos) e o manual tem cinco.
 
 import * as THREE from '../../vendor/three.module.js';
@@ -28,9 +28,9 @@ function inicializar() {
   _cena = new THREE.Scene();
   _camera = new THREE.PerspectiveCamera(32, 1, 0.1, 60);
 
-  // Iluminacao de estudio: chave frontal, recorte por tras e um preenchimento
-  // de baixo. Com so uma luz direcional os trajes escuros viravam um borrao
-  // preto na vitrine e nao dava para ver a forma.
+  // Iluminacao de estudio: chave frontal, recorte por trás e um preenchimento
+  // de baixo. Com só uma luz direcional os trajes escuros viravam um borrao
+  // preto na vitrine e não dava para ver a forma.
   const frontal = new THREE.DirectionalLight(0xdfefff, 3.1);
   frontal.position.set(2.4, 3.2, 3.4);
   _cena.add(frontal);
@@ -91,7 +91,7 @@ function enquadrar(altura, angulo) {
   _camera.lookAt(0, altura * 0.50, 0);
 }
 
-// Desenha na vitrine e copia o resultado para o canvas de destino.
+// Desenha na vitrine e cópia o resultado para o canvas de destino.
 function copiarPara(destino) {
   const origem = _renderer.domElement;
   const ctx = destino.getContext('2d');
@@ -140,7 +140,7 @@ export function retratarItem(modelo, destino, angulo = 0.6) {
   const anterior = _cena.children.filter(c => c.userData.vitrine);
   for (const c of anterior) _cena.remove(c);
 
-  // os itens sao construidos baixos (no chao); a vitrine enquadra pelo centro
+  // os itens são construidos baixos (no chão); a vitrine enquadra pelo centro
   modelo.position.y -= 0.72;
   modelo.userData.vitrine = true;
   _cena.add(modelo);

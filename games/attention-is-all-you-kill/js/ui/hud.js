@@ -61,7 +61,7 @@ export class Hud {
       ? `ESCUDO ${Math.ceil(stats.shield)}`
       : (stats.isSilenced() ? 'ARMA TRAVADA' : '');
 
-    // tokens (municao)
+    // tokens (munição)
     const ammo = stats.currentAmmo();
     const w = stats.weapon();
     if (w && ammo) {
@@ -173,7 +173,7 @@ export class Hud {
       }
     }
 
-    // salas ativadas sao reveladas com contorno
+    // salas ativadas são reveladas com contorno
     for (const room of dungeon.rooms) {
       const rx = (room.x1 - originX) * scale;
       const rz = (room.z1 - originZ) * scale;
@@ -202,7 +202,7 @@ export class Hud {
       c.fillRect(px - 1.5, pz - 1.5, 4, 4);
     }
 
-    // inimigos: radar mostra todos, senao so os com linha de visao
+    // inimigos: radar mostra todos, senao só os com linha de visão
     for (const e of director.enemies) {
       if (!e.alive) continue;
       const visible = stats.mods.radar || dungeon.hasLineOfSight(
@@ -238,7 +238,7 @@ export class Hud {
     c.arc(px, pz, 3.2, 0, Math.PI * 2);
     c.fill();
 
-    // direcao da mira
+    // direção da mira
     const yaw = player.yaw;
     c.strokeStyle = '#35f0d8';
     c.lineWidth = 1.5;

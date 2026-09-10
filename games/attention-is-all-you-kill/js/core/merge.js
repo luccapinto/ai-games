@@ -1,11 +1,11 @@
-// merge.js — junta varias geometrias num unico BufferGeometry.
+// merge.js — junta varias geometrias num único BufferGeometry.
 //
 // Por que existe: cada peca de um inimigo era um Mesh separado, e um inimigo
 // detalhado tem 15 pecas. Com uma sala cheia isso passava de 400 chamadas de
 // desenho, o que derruba o FPS em celular. Juntando as pecas que compartilham
 // material, o mesmo inimigo passa a custar 3.
 //
-// Nao usa BufferGeometryUtils porque o projeto nao tem o addon do Three: em
+// Não usa BufferGeometryUtils porque o projeto não tem o addon do Three: em
 // vendor/ existe apenas o modulo principal.
 
 import * as THREE from '../../vendor/three.module.js';
@@ -41,12 +41,12 @@ export function mergeParts(parts) {
     const m = p.matrix;
     normalMatrix.getNormalMatrix(m);
 
-    const aPos = g.attributes.position;
+    const apos = g.attributes.position;
     const aNor = g.attributes.normal;
     const aUv = g.attributes.uv;
 
-    for (let i = 0; i < aPos.count; i++) {
-      v.fromBufferAttribute(aPos, i).applyMatrix4(m);
+    for (let i = 0; i < apos.count; i++) {
+      v.fromBufferAttribute(apos, i).applyMatrix4(m);
       const o3 = (vOffset + i) * 3;
       posicoes[o3] = v.x;
       posicoes[o3 + 1] = v.y;
@@ -72,11 +72,11 @@ export function mergeParts(parts) {
       }
       iOffset += g.index.count;
     } else {
-      for (let i = 0; i < aPos.count; i++) indices[iOffset + i] = vOffset + i;
-      iOffset += aPos.count;
+      for (let i = 0; i < apos.count; i++) indices[iOffset + i] = vOffset + i;
+      iOffset += apos.count;
     }
 
-    vOffset += aPos.count;
+    vOffset += apos.count;
   }
 
   const merged = new THREE.BufferGeometry();

@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
-"""Gera o indice do hub a partir dos metadados de cada jogo.
+"""Gera o índice do hub a partir dos metadados de cada jogo.
 
-Cada jogo vive em games/<slug>/ e traz um meta.json. Esse arquivo e a unica
-fonte da verdade sobre o jogo: titulo, genero, qual IA escreveu, quanto custou,
-numeros medidos. O README da raiz e o hub navegavel sao GERADOS a partir dele.
+Cada jogo vive em games/<slug>/ e traz um meta.json. Esse arquivo e a única
+fonte da verdade sobre o jogo: título, gênero, qual IA escreveu, quanto custou,
+números medidos. O README da raiz e o hub navegavel são GERADOS a partir dele.
 
 A regra que isso protege: adicionar um jogo novo e criar a pasta com o meta.json
-e rodar este script. Nao existe lista paralela para manter em sincronia, entao
-o indice nunca fica desatualizado em relacao aos jogos.
+e rodar este script. Não existe lista paralela para manter em sincronia, então
+o índice nunca fica desatualizado em relacao aos jogos.
 
 Uso:
     python3 tools/build.py
@@ -41,14 +41,14 @@ def carregar_jogos():
 
 
 def moeda(usd):
-    """Custo em dolar, com decimal e milhar no padrao brasileiro."""
+    """Custo em dólar, com decimal e milhar no padrão brasileiro."""
     if usd is None:
         return 'n/d'
     return 'US$ ' + f'{usd:,.2f}'.replace(',', '\x00').replace('.', ',').replace('\x00', '.')
 
 
 def milhar(n):
-    """Separador de milhar brasileiro: 7.653, nao 7,653."""
+    """Separador de milhar brasileiro: 7.653, não 7,653."""
     if n is None:
         return 'n/d'
     return f'{n:,}'.replace(',', '.')
@@ -56,16 +56,16 @@ def milhar(n):
 
 def tabela_do_readme(jogos):
     linhas = [
-        '| Jogo | Genero | IA | Custo | Jogar |',
+        '| Jogo | Gênero | IA | Custo | Jogar |',
         '| --- | --- | --- | --- | --- |'
     ]
     for j in jogos:
-        titulo = j.get('titulo', j['_slug'])
-        genero = j.get('genero', '')
+        titulo = j.get('título', j['_slug'])
+        genero = j.get('gênero', '')
         ia = j.get('ia', {})
         modelo = ia.get('modelo', '')
         custo = moeda((j.get('custo') or {}).get('usd_estimado'))
-        # O link de jogar aponta para a pasta do jogo dentro do proprio repo, e
+        # O link de jogar aponta para a pasta do jogo dentro do próprio repo, e
         # nao para um endereco externo: assim o hub funciona sozinho, servido de
         # qualquer lugar (GitHub Pages inclusive), sem depender de outro host.
         link = f'[jogar](games/{j["_slug"]}/)'
@@ -105,7 +105,7 @@ def detalhes_do_readme(jogos):
         if tamanho:
             mb = tamanho.get('mb')
             mb = f'{mb:.1f}'.replace('.', ',') if isinstance(mb, (int, float)) else 'n/d'
-            linhas.append(f'- **Tamanho:** {milhar(tamanho.get("linhas_proprias"))} linhas de codigo proprio, '
+            linhas.append(f'- **Tamanho:** {milhar(tamanho.get("linhas_proprias"))} linhas de código próprio, '
                           f'{mb} MB')
         linhas.append(f'- **Pasta:** [`games/{j["_slug"]}/`](games/{j["_slug"]}/README.md)')
         linhas.append('')
@@ -120,36 +120,36 @@ def gerar_readme(jogos):
 
     conteudo = f"""# ai-games
 
-Jogos que fiz conversando com IA. Cada um vive numa pasta propria, autocontido e
-jogavel sozinho, com o modelo que escreveu e quanto custou registrados ao lado.
+Jogos que fiz conversando com IA. Cada um vive numa pasta própria, autocontido e
+jogável sozinho, com o modelo que escreveu e quanto custou registrados ao lado.
 
 *Games I built by talking to AI. Each one lives in its own folder, self-contained
 and playable, with the model that wrote it and what it cost recorded next to it.*
 
-{f'**{len(jogos)} jogos**' if len(jogos) != 1 else '**1 jogo**'} ate agora, \
-{milhar(total_linhas)} linhas de codigo proprio, {moeda(total_usd)} de API no total.
+{f'**{len(jogos)} jogos**' if len(jogos) != 1 else '**1 jogo**'} até agora, \
+{milhar(total_linhas)} linhas de código próprio, {moeda(total_usd)} de API no total.
 
 ## Os jogos
 
 {tabela_do_readme(jogos)}
 
-## Como este repositorio se organiza
+## Como este repositório se organiza
 
 ```
-games/<slug>/          o jogo inteiro: codigo, documentacao, capa e meta.json
+games/<slug>/          o jogo inteiro: código, documentação, capa e meta.json
 tools/build.py         gera este README e o hub index.html
-index.html             hub navegavel, tambem gerado
+index.html             hub navegavel, também gerado
 ```
 
-Cada jogo e uma pasta fechada. Nao ha dependencia entre eles, nem pacote
-compartilhado, nem build. Voce pode copiar uma pasta dessas para qualquer
+Cada jogo e uma pasta fechada. Não ha dependência entre eles, nem pacote
+compartilhado, nem build. Você pode copiar uma pasta dessas para qualquer
 servidor de arquivos estaticos e ela funciona.
 
 ### O meta.json manda
 
-O `meta.json` dentro de cada jogo e a fonte da verdade: titulo, genero, modelo
-que escreveu, custo medido com os numeros reais da sessao, destaques e tamanho.
-Este README e o `index.html` sao gerados dele.
+O `meta.json` dentro de cada jogo e a fonte da verdade: título, gênero, modelo
+que escreveu, custo medido com os números reais da sessão, destaques e tamanho.
+Este README e o `index.html` são gerados dele.
 
 Para somar um jogo novo:
 
@@ -157,19 +157,19 @@ Para somar um jogo novo:
 2. Escreva o `meta.json` dessa pasta
 3. Rode `python3 tools/build.py`
 
-Nao existe lista paralela de jogos para manter em sincronia, entao o indice
+Não existe lista paralela de jogos para manter em sincronia, então o índice
 nunca fica desatualizado.
 
 ### De onde vem o custo
 
-O agente que escreve estes jogos registra o consumo de cada sessao: chamadas de
-API, tokens de entrada e saida e leitura de cache. O valor no `meta.json` sai
-dai, calculado com a tabela de precos do provider. E uma estimativa fiel, nao a
+O agente que escreve estes jogos registra o consumo de cada sessão: chamadas de
+API, tokens de entrada e saída e leitura de cache. O valor no `meta.json` sai
+dai, calculado com a tabela de preços do provider. E uma estimativa fiel, não a
 fatura.
 
-O numero que costuma assustar e o de leitura de cache, e ele e normal: numa
-sessao longa de programacao, cada turno reenvia o contexto acumulado, e o cache
-evita pagar preco cheio por ele outra vez. Sem cache, o custo destes jogos seria
+O número que costuma assustar e o de leitura de cache, e ele e normal: numa
+sessão longa de programação, cada turno reenvia o contexto acumulado, e o cache
+evita pagar preço cheio por ele outra vez. Sem cache, o custo destes jogos seria
 uma ordem de grandeza maior.
 
 ## Os jogos por dentro
@@ -177,7 +177,7 @@ uma ordem de grandeza maior.
 {detalhes_do_readme(jogos)}
 ---
 
-Gerado por `tools/build.py`. Ultima atualizacao: {datetime.now().strftime('%d/%m/%Y')}.
+Gerado por `tools/build.py`. Última atualização: {datetime.now().strftime('%d/%m/%Y')}.
 """
 
     (RAIZ / 'README.md').write_text(conteudo, encoding='utf-8')
@@ -265,9 +265,9 @@ def gerar_hub(jogos):
   .marca {{ font-size: 12px; letter-spacing: 6px; color: var(--neon); }}
   h1 {{ font-size: clamp(30px, 6vw, 52px); margin: 12px 0 10px; letter-spacing: -1px; }}
   .sub {{ color: var(--muted); max-width: 62ch; font-size: 14px; }}
-  .numeros {{ display: flex; flex-wrap: wrap; gap: 30px; margin-top: 26px; }}
-  .numeros div span {{ display: block; color: var(--muted); font-size: 10px; letter-spacing: 2px; }}
-  .numeros div strong {{ font-size: 22px; color: var(--ambar); }}
+  .números {{ display: flex; flex-wrap: wrap; gap: 30px; margin-top: 26px; }}
+  .números div span {{ display: block; color: var(--muted); font-size: 10px; letter-spacing: 2px; }}
+  .números div strong {{ font-size: 22px; color: var(--ambar); }}
 
   .jogo {{
     display: grid; grid-template-columns: minmax(0, 380px) 1fr; gap: 26px;
@@ -277,7 +277,7 @@ def gerar_hub(jogos):
   .capa {{ width: 100%; display: block; border: 1px solid var(--linha); background: #000; }}
   .capa.vazia {{ aspect-ratio: 16/9; display: grid; place-items: center; color: var(--muted); font-size: 12px; }}
   .corpo h2 {{ margin: 0 0 4px; font-size: 21px; letter-spacing: .5px; }}
-  .genero {{ color: var(--neon); font-size: 11px; letter-spacing: 2px; }}
+  .gênero {{ color: var(--neon); font-size: 11px; letter-spacing: 2px; }}
   .resumo {{ color: #a9c0bd; font-size: 13px; margin: 14px 0; }}
   .destaques {{ margin: 0 0 18px; padding-left: 18px; color: var(--muted); font-size: 12px; }}
   .destaques li {{ margin-bottom: 5px; }}
@@ -295,7 +295,7 @@ def gerar_hub(jogos):
   footer.rodape {{ border-top: 1px solid var(--linha); margin-top: 50px; padding-top: 22px;
                    color: var(--muted); font-size: 11px; }}
   footer.rodape a {{ color: var(--neon); }}
-  @media (max-width: 760px) {{
+  @média (max-width: 760px) {{
     .jogo {{ grid-template-columns: 1fr; }}
     .envelope {{ padding: 40px 16px 70px; }}
   }}
@@ -306,7 +306,7 @@ def gerar_hub(jogos):
   <header class="topo">
     <div class="marca">AI-GAMES</div>
     <h1>Jogos que fiz conversando com IA</h1>
-    <p class="sub">Cada jogo vive numa pasta propria e roda sozinho no navegador. Ao lado de cada um
+    <p class="sub">Cada jogo vive numa pasta própria e roda sozinho no navegador. Ao lado de cada um
       esta o modelo que escreveu, quantas chamadas de API levou e quanto custou de verdade.</p>
     <div class="numeros">
       <div><span>JOGOS</span><strong>{len(jogos)}</strong></div>
@@ -318,8 +318,8 @@ def gerar_hub(jogos):
 {chr(10).join(cartoes)}
 
   <footer class="rodape">
-    Repositorio gerado por <code>tools/build.py</code> a partir dos <code>meta.json</code> de cada jogo.
-    Todo jogo aqui e jogavel a partir desta pasta, sem depender de outro servidor.
+    Repositório gerado por <code>tools/build.py</code> a partir dos <code>meta.json</code> de cada jogo.
+    Todo jogo aqui e jogável a partir desta pasta, sem depender de outro servidor.
   </footer>
 </div>
 </body>
@@ -331,7 +331,7 @@ def gerar_hub(jogos):
 
 def main():
     if not PASTA_JOGOS.exists():
-        print('nao ha pasta games/', file=sys.stderr)
+        print('não ha pasta games/', file=sys.stderr)
         return 1
 
     jogos = carregar_jogos()

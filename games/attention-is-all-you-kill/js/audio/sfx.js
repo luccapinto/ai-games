@@ -1,5 +1,5 @@
-// sfx.js — audio 100% sintetizado em WebAudio.
-// Decisao de design: o jogo nao baixa nenhum arquivo de som.
+// sfx.js — áudio 100% sintetizado em WebAudio.
+// Decisão de design: o jogo não baixa nenhum arquivo de som.
 
 export class Sfx {
   constructor() {
@@ -29,7 +29,7 @@ export class Sfx {
 
   // Buffer de ruido reaproveitado por todos os tiros.
   // Nome do cache e _noiseBuf de proposito: this._noise e um metodo da classe,
-  // entao usar o mesmo nome aqui retornaria a funcao em vez do buffer.
+  // então usar o mesmo nome aqui retornaria a função em vez do buffer.
   _noiseBuffer(duration = 0.5) {
     if (!this._noiseBuf) {
       const len = Math.floor(this.ctx.sampleRate * duration);
@@ -230,7 +230,7 @@ export class Sfx {
       this.ambientNodes.o2.stop();
       this.ambientNodes.fan.stop();
       this.ambientNodes.lfo.stop();
-    } catch (e) { /* ja parado */ }
+    } catch (e) { /* já parado */ }
     this.ambientNodes = null;
   }
 }

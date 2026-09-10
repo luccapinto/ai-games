@@ -25,14 +25,14 @@ export class Engine {
     this.camera.rotation.order = 'YXZ';
 
     // Luz base: cor alterada pelo tema do andar e pelo estado do jogador.
-    // Datacenter precisa parecer iluminado, nao um porao.
+    // Datacenter precisa parecer iluminado, não um porao.
     this.ambient = new THREE.AmbientLight(0x7498b0, 2.20);
     this.scene.add(this.ambient);
 
     this.hemi = new THREE.HemisphereLight(0x4d82a0, 0x1c2836, 1.35);
     this.scene.add(this.hemi);
 
-    // Luz direcional fraca so para dar volume nas caixas.
+    // Luz direcional fraca só para dar volume nas caixas.
     this.sun = new THREE.DirectionalLight(0xbfe0f5, 0.60);
     this.sun.position.set(0.4, 1, 0.25);
     this.scene.add(this.sun);
@@ -58,7 +58,7 @@ export class Engine {
     this.resize();
   }
 
-  // A luz do ambiente conta a historia: quanto menos contexto, mais vermelho.
+  // A luz do ambiente conta a história: quanto menos contexto, mais vermelho.
   setMood({ ambient, fogColor, fogDensity, hemi }) {
     if (ambient !== undefined) this.ambient.color.setHex(ambient);
     if (hemi !== undefined) this.hemi.color.setHex(hemi);

@@ -29,9 +29,9 @@
   .marca { font-size: 12px; letter-spacing: 6px; color: var(--neon); }
   h1 { font-size: clamp(30px, 6vw, 52px); margin: 12px 0 10px; letter-spacing: -1px; }
   .sub { color: var(--muted); max-width: 62ch; font-size: 14px; }
-  .numeros { display: flex; flex-wrap: wrap; gap: 30px; margin-top: 26px; }
-  .numeros div span { display: block; color: var(--muted); font-size: 10px; letter-spacing: 2px; }
-  .numeros div strong { font-size: 22px; color: var(--ambar); }
+  .números { display: flex; flex-wrap: wrap; gap: 30px; margin-top: 26px; }
+  .números div span { display: block; color: var(--muted); font-size: 10px; letter-spacing: 2px; }
+  .números div strong { font-size: 22px; color: var(--ambar); }
 
   .jogo {
     display: grid; grid-template-columns: minmax(0, 380px) 1fr; gap: 26px;
@@ -41,7 +41,7 @@
   .capa { width: 100%; display: block; border: 1px solid var(--linha); background: #000; }
   .capa.vazia { aspect-ratio: 16/9; display: grid; place-items: center; color: var(--muted); font-size: 12px; }
   .corpo h2 { margin: 0 0 4px; font-size: 21px; letter-spacing: .5px; }
-  .genero { color: var(--neon); font-size: 11px; letter-spacing: 2px; }
+  .gênero { color: var(--neon); font-size: 11px; letter-spacing: 2px; }
   .resumo { color: #a9c0bd; font-size: 13px; margin: 14px 0; }
   .destaques { margin: 0 0 18px; padding-left: 18px; color: var(--muted); font-size: 12px; }
   .destaques li { margin-bottom: 5px; }
@@ -59,7 +59,7 @@
   footer.rodape { border-top: 1px solid var(--linha); margin-top: 50px; padding-top: 22px;
                    color: var(--muted); font-size: 11px; }
   footer.rodape a { color: var(--neon); }
-  @media (max-width: 760px) {
+  @média (max-width: 760px) {
     .jogo { grid-template-columns: 1fr; }
     .envelope { padding: 40px 16px 70px; }
   }
@@ -70,29 +70,29 @@
   <header class="topo">
     <div class="marca">AI-GAMES</div>
     <h1>Jogos que fiz conversando com IA</h1>
-    <p class="sub">Cada jogo vive numa pasta propria e roda sozinho no navegador. Ao lado de cada um
+    <p class="sub">Cada jogo vive numa pasta própria e roda sozinho no navegador. Ao lado de cada um
       esta o modelo que escreveu, quantas chamadas de API levou e quanto custou de verdade.</p>
     <div class="numeros">
       <div><span>JOGOS</span><strong>1</strong></div>
-      <div><span>LINHAS PROPRIAS</span><strong>7.653</strong></div>
-      <div><span>CUSTO DE API</span><strong>US$ 0,90</strong></div>
+      <div><span>LINHAS PROPRIAS</span><strong>8.815</strong></div>
+      <div><span>CUSTO DE API</span><strong>US$ 1,03</strong></div>
     </div>
   </header>
 
       <article class="jogo">
-        <img class="capa" src="games/attention-is-all-you-kill/capa.jpg" alt="captura de ATTENTION IS ALL YOU KILL" loading="lazy">
+        <img class="capa" src="games/attention-is-all-you-kill/capa.jpg" alt="captura de attention-is-all-you-kill" loading="lazy">
         <div class="corpo">
           <header>
-            <h2>ATTENTION IS ALL YOU KILL</h2>
-            <span class="genero">FPS roguelike</span>
+            <h2>attention-is-all-you-kill</h2>
+            <span class="genero"></span>
           </header>
-          <p class="resumo">Voce e uma sessao de inferencia invadindo um datacenter. Cada inimigo e um modelo real, com poder derivado dos proprios numeros publicos dele: a vida vem do contexto declarado, o dano do GPQA, a cadencia dos tokens por segundo, o espalhamento da taxa de alucinacao e o loot do preco por milhao de tokens. Descer tres andares leva ao chefe THE FINE-TUNER.</p>
-          <ul class="destaques"><li>Um atributo de jogo para cada numero publico do modelo: contexto vira vida, GPQA vira dano, tokens por segundo viram cadencia, alucinacao vira espalhamento e preco por milhao vira loot</li><li>Zero arquivo de asset: texturas desenhadas em canvas, som sintetizado em WebAudio e as logos das marcas embutidas como path data vetorial</li><li>Cinco silhuetas distintas, uma por faccao, para o jogador reconhecer o inimigo pela forma antes de ler o nome</li></ul>
+          <p class="resumo">Você é uma sessão de inferência invadindo um datacenter. Cada inimigo é um modelo real, com poder derivado dos próprios números públicos dele: a vida vem do contexto declarado, o dano do GPQA, a cadência dos tokens por segundo, o espalhamento da taxa de alucinação e o loot do preço por milhão de tokens. Descer três andares leva ao chefe THE FINE-TUNER.</p>
+          <ul class="destaques"><li>Um atributo de jogo para cada número público do modelo: contexto vira vida, GPQA vira dano, tokens por segundo viram cadência, alucinação vira espalhamento e preço por milhão vira loot</li><li>Zero arquivo de asset: texturas desenhadas em canvas, som sintetizado em WebAudio e as logos das marcas embutidas como path data vetorial</li><li>Cinco silhuetas distintas, uma por facção, para o jogador reconhecer o inimigo pela forma antes de ler o nome</li></ul>
           <dl class="ficha">
             <div><dt>Escreveu</dt><dd>deepseek-flash</dd></div>
-            <div><dt>Custo</dt><dd>US$ 0,90</dd></div>
-            <div><dt>Chamadas</dt><dd>555</dd></div>
-            <div><dt>Linhas</dt><dd>7.653</dd></div>
+            <div><dt>Custo</dt><dd>US$ 1,03</dd></div>
+            <div><dt>Chamadas</dt><dd>656</dd></div>
+            <div><dt>Linhas</dt><dd>8.815</dd></div>
           </dl>
           <footer>
             <a class="jogar" href="games/attention-is-all-you-kill/">JOGAR</a>
@@ -103,8 +103,8 @@
       </article>
 
   <footer class="rodape">
-    Repositorio gerado por <code>tools/build.py</code> a partir dos <code>meta.json</code> de cada jogo.
-    Todo jogo aqui e jogavel a partir desta pasta, sem depender de outro servidor.
+    Repositório gerado por <code>tools/build.py</code> a partir dos <code>meta.json</code> de cada jogo.
+    Todo jogo aqui e jogável a partir desta pasta, sem depender de outro servidor.
   </footer>
 </div>
 </body>

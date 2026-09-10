@@ -1,12 +1,12 @@
 // itens.js — a forma de cada drop.
 //
-// Antes todo drop era o mesmo octaedro girando com a cor trocada: no chao,
-// longe, cor nao diz o que a coisa e. Caixa de municao, capsula de contexto e
-// as armas em miniatura resolvem isso a distancia, antes de o jogador chegar
+// Antes todo drop era o mesmo octaedro girando com a cor trocada: no chão,
+// longe, cor não diz o que a coisa e. Caixa de munição, capsula de contexto e
+// as armas em miniatura resolvem isso a distância, antes de o jogador chegar
 // perto e ler o texto.
 //
-// Cada construtor devolve um grupo com um no interno que gira e flutua, entao
-// o director so precisa animar um objeto por drop.
+// Cada construtor devolve um grupo com um no interno que gira e flutua, então
+// o director só precisa animar um objeto por drop.
 
 import * as THREE from '../../vendor/three.module.js';
 
@@ -32,7 +32,7 @@ function luz(geo, cor) {
 }
 
 // ------------------------------------------------------------------
-// TOKEN PACK — caixa de municao com cartuchos aparecendo na tampa
+// TOKEN PACK — caixa de munição com cartuchos aparecendo na tampa
 // ------------------------------------------------------------------
 function municao(cor) {
   const g = new THREE.Group();
@@ -49,7 +49,7 @@ function municao(cor) {
   tampa.position.y = 0.32;
   g.add(tampa);
 
-  // cartuchos em fileira: o detalhe que faz ler como municao
+  // cartuchos em fileira: o detalhe que faz ler como munição
   const cart = new THREE.CylinderGeometry(0.045, 0.045, 0.17, 8);
   for (let i = 0; i < 4; i++) {
     const c = luz(cart, 0xd9a24a);
@@ -83,7 +83,7 @@ function contexto(cor) {
   vidro.position.y = 0.40;
   g.add(vidro);
 
-  // o liquido e o que da a leitura de "vida" a distancia
+  // o liquido e o que da a leitura de "vida" a distância
   const liquido = luz(new THREE.CylinderGeometry(0.145, 0.145, 0.26, 16), cor);
   liquido.position.y = 0.30;
   g.add(liquido);
@@ -170,7 +170,7 @@ const CONSTRUTORES = {
   weapon_few_shot: armaShotgun
 };
 
-// Devolve o grupo do item ja posicionado no chao, com o no que gira.
+// Devolve o grupo do item já posicionado no chão, com o no que gira.
 export function construirItem(kind, cor, x, z, haloTex) {
   const construtor = CONSTRUTORES[kind];
   const group = new THREE.Group();

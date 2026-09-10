@@ -1,8 +1,8 @@
 // personalizacao.js — tela de aparencia do jogador.
 //
 // Duas paletas e um retrato giratorio. A escolha aparece em dois lugares: nos
-// bracos que seguram a arma, dentro da partida, e no proprio retrato. Fica
-// salva entre sessoes (js/player/skin.js).
+// bracos que seguram a arma, dentro da partida, e no próprio retrato. Fica
+// salva entre sessões (js/player/skin.js).
 
 import { PALETA } from '../player/skin.js';
 import { retratarAvatar } from './vitrine.js';
@@ -75,8 +75,8 @@ export class Personalizacao {
     this.g.skin.definir(tipo, id);
     this.marcarSelecao();
     this.atualizarPreview();
-    // A cor vale na interface mesmo antes de existir partida: o weapon so nasce
-    // quando o andar e construido, e a mira precisa da cor certa ja no menu.
+    // A cor vale na interface mesmo antes de existir partida: o weapon só nasce
+    // quando o andar e construido, e a mira precisa da cor certa já no menu.
     document.documentElement.style.setProperty(
       '--skin-luz', '#' + this.g.skin.corLuz.toString(16).padStart(6, '0')
     );

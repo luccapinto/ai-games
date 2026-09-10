@@ -1,5 +1,5 @@
-// enemy.js — um inimigo: corpo, IA de cinco estados e movimento com colisao.
-// Comportamento por faccao e dado, nao codigo: a tabela de enemies.js manda.
+// enemy.js — um inimigo: corpo, IA de cinco estados e movimento com colisão.
+// Comportamento por facção e dado, não código: a tabela de enemies.js manda.
 
 import * as THREE from '../../vendor/three.module.js';
 import { ENEMIES, FACTIONS } from '../data/enemies.js';
@@ -10,7 +10,7 @@ import { construirSilhueta } from './silhuetas.js';
 
 const STATE = { IDLE: 'IDLE', PATROL: 'PATROL', ALERT: 'ALERT', COMBAT: 'COMBAT', FLEE: 'FLEE' };
 
-// Geometrias compartilhadas entre todas as instancias: uma alocacao por forma.
+// Geometrias compartilhadas entre todas as instâncias: uma alocacao por forma.
 // A contagem de segmentos subiu (capsula de 4/10 para 8/20, esferas de 10/8)
 // porque as silhuetas apareciam facetadas quando o inimigo chegava perto.
 const GEO = {
@@ -26,7 +26,7 @@ const GEO = {
   cinto: new THREE.BoxGeometry(0.76, 0.11, 0.28),
   // gola: anel que separa cabeca e tronco, da leitura mecanica
   gola: new THREE.CylinderGeometry(0.21, 0.24, 0.10, 16),
-  // suporte de arma na mao
+  // suporte de arma na mão
   cano: new THREE.CylinderGeometry(0.035, 0.045, 0.30, 8)
 };
 
@@ -36,7 +36,7 @@ function shadowTexture() {
   return SHADOW_TEX;
 }
 
-// Uma unica textura solida compartilhada por todas as barras de vida.
+// Uma única textura solida compartilhada por todas as barras de vida.
 let SOLID_TEX = null;
 function solid() {
   if (!SOLID_TEX) SOLID_TEX = solidTexture();
@@ -113,8 +113,8 @@ export class Enemy {
     });
     this.lightMat = new THREE.MeshBasicMaterial({ color: faction ? faction.glow : 0xffffff });
 
-    // As pecas sao declaradas por posicao e depois agrupadas por material: no
-    // fim cada grupo vira um unico mesh. Sem isso um inimigo detalhado custa
+    // As pecas são declaradas por posição e depois agrupadas por material: no
+    // fim cada grupo vira um único mesh. Sem isso um inimigo detalhado custa
     // ~15 chamadas de desenho, e uma sala cheia derruba o FPS em celular.
     const grupos = new Map();
     const peca = (mat, geo, x, y, z, rx = 0, ry = 0, rz = 0) => {
@@ -127,7 +127,7 @@ export class Enemy {
     };
 
     // A forma vem do modelo (js/enemies/silhuetas.js): cada inimigo tem a
-    // propria silhueta, porque no meio do tiroteio cor nao e informacao
+    // própria silhueta, porque no meio do tiroteio cor não é informação
     // suficiente para saber contra o que se esta lutando.
     const silhueta = construirSilhueta(this.id, peca, {
       corpo: this.bodyMat,
@@ -141,10 +141,10 @@ export class Enemy {
       if (geo) this.group.add(new THREE.Mesh(geo, mat));
     }
 
-    // Decalque da marca no corpo: e a identificacao mais rapida de quem e o
+    // Decalque da marca no corpo: e a identificacao mais rápida de quem e o
     // inimigo, antes mesmo de ler a placa. O ponto de encaixe vem da silhueta,
-    // porque cada corpo tem uma superficie diferente. Fica fora do merge porque
-    // tem textura propria.
+    // porque cada corpo tem uma superfície diferente. Fica fora do merge porque
+    // tem textura própria.
     const decal = logoDecalTexture(this.faction, faction ? faction.glow : 0xffffff);
     if (decal && silhueta.decalque) {
       const marca = new THREE.Mesh(
@@ -155,7 +155,7 @@ export class Enemy {
       this.group.add(marca);
     }
 
-    // sombra falsa no chao
+    // sombra falsa no chão
     const shadow = new THREE.Mesh(
       new THREE.PlaneGeometry(1.5, 1.5),
       new THREE.MeshBasicMaterial({
@@ -166,7 +166,7 @@ export class Enemy {
     shadow.position.y = 0.03;
     this.group.add(shadow);
 
-    // brilho da faccao: leitura instantanea de quem e o inimigo
+    // brilho da facção: leitura instantanea de quem e o inimigo
     this.glowMat = new THREE.SpriteMaterial({
       map: telegraphTexture(faction ? faction.glow : 0xffffff),
       color: faction ? faction.glow : 0xffffff,
@@ -181,7 +181,7 @@ export class Enemy {
     this.group.add(glow);
     this.glow = glow;
 
-    // indicador de reasoning: o balao de pensamento antes do tiro brutal
+    // indicador de reasoning: o balão de pensamento antes do tiro brutal
     if (this.def.telegraph > 0) {
       this.telegraphSprite = new THREE.Sprite(new THREE.SpriteMaterial({
         map: telegraphTexture(0xfff2b0),
@@ -207,8 +207,8 @@ export class Enemy {
     if (this.plate) scene.remove(this.plate);
   }
 
-  // Placa de identificacao: emblema da faccao, nome do modelo e barra de vida.
-  // Fica na cena (nao no grupo) para nao girar junto com o corpo do inimigo.
+  // Placa de identificacao: emblema da facção, nome do modelo e barra de vida.
+  // Fica na cena (não no grupo) para não girar junto com o corpo do inimigo.
   _buildPlate(scene) {
     const faction = FACTIONS[this.faction];
     const accent = faction ? faction.glow : 0xffffff;
@@ -221,7 +221,7 @@ export class Enemy {
       depthWrite: false
     });
     this.nomeSprite = new THREE.Sprite(nomeMat);
-    // a largura acompanha a textura, que agora tem a largura do proprio nome:
+    // a largura acompanha a textura, que agora tem a largura do próprio nome:
     // escala fixa distorcia o texto das placas curtas e longas
     const img = nomeMat.map.image;
     this.nomeSprite.scale.set(0.60 * (img.width / img.height), 0.60, 1);
@@ -260,7 +260,7 @@ export class Enemy {
   applyDamage(amount) {
     this.hp -= amount;
     this.hitFlash = 0.14;
-    this.hpBarTimer = 3.5;      // a barra aparece e fica visivel por um tempo
+    this.hpBarTimer = 3.5;      // a barra aparece e fica visível por um tempo
     if (this.hp <= 0) {
       this.alive = false;
       return true;
@@ -274,7 +274,7 @@ export class Enemy {
   }
 
   // ------------------------------------------------------------------
-  // Movimento com colisao no grid (mesma logica do jogador, mais simples)
+  // Movimento com colisão no grid (mesma lógica do jogador, mais simples)
   // ------------------------------------------------------------------
   _resolveCollisions() {
     const r = this.radius;
@@ -325,7 +325,7 @@ export class Enemy {
 
     if (hitX || hitZ) {
       this.stuckTimer += dt;
-      // sem LOS o inimigo contorna: escolhe uma direcao perpendicular por um tempo
+      // sem LOS o inimigo contorna: escolhe uma direção perpendicular por um tempo
       if (this.stuckTimer > 0.35 && this.avoidTimer <= 0) {
         this.avoidDir = Math.random() > 0.5 ? 1 : -1;
         this.avoidTimer = 0.7 + Math.random() * 0.6;
@@ -386,7 +386,7 @@ export class Enemy {
         break;
     }
 
-    // espelhamento visual: dano pisca, teleporte nao existe
+    // espelhamento visual: dano pisca, teleporte não existe
     const flash = this.hitFlash > 0;
     this.bodyMat.emissiveIntensity = flash ? 2.4 : 1;
     if (flash) this.bodyMat.emissive.setRGB(1, 1, 1);
@@ -403,13 +403,13 @@ export class Enemy {
     this._updatePlate(dt, dist);
   }
 
-  // Mantem a placa acima da cabeca: nome sempre, barra so quando importa.
+  // Mantem a placa acima da cabeca: nome sempre, barra só quando importa.
   _updatePlate(dt, dist) {
     if (!this.plate) return;
     this.hpBarTimer = Math.max(0, this.hpBarTimer - dt);
 
     // placaSempre: usada pelo alvo de treino do tutorial, que nunca entra em
-    // combate e por isso nunca mostraria o proprio nome
+    // combate e por isso nunca mostraria o próprio nome
     const visivel = dist < 26 && (this.placaSempre || this.state !== STATE.IDLE);
     this.plate.visible = visivel;
     if (!visivel) return;
@@ -434,7 +434,7 @@ export class Enemy {
   }
 
   _patrol(dt, speed) {
-    // anda em direcao fixa, virando quando bate
+    // anda em direção fixa, virando quando bate
     const moved = this._moveTowards(
       Math.sin(this.facing), Math.cos(this.facing), speed * 0.36, dt
     );
@@ -474,7 +474,7 @@ export class Enemy {
       this.fireCooldown -= dt;
       if (this.fireCooldown <= 0 && dist < this.def.sightRange) {
         const atirou = this._shoot(player, dist, director, 1);
-        // se o tiro foi negado, tenta de novo logo para pegar a proxima vez
+        // se o tiro foi negado, tenta de novo logo para pegar a próxima vez
         this.fireCooldown = atirou ? Math.max(0.9, 1 / this.def.fireRate) : 0.2;
       }
       return;
@@ -482,7 +482,7 @@ export class Enemy {
 
     let moveX = 0, moveZ = 0;
 
-    // mantem a distancia preferida: aproxima ou recua
+    // mantem a distância preferida: aproxima ou recua
     if (dist > prefer + 2) {
       moveX += nx; moveZ += nz;
     } else if (dist < prefer - 2) {
@@ -516,7 +516,7 @@ export class Enemy {
     }
   }
 
-  // Reasoning: para, pensa com o balao visivel, e o tiro seguinte e devastador.
+  // Reasoning: para, pensa com o balão visível, e o tiro seguinte e devastador.
   _telegraphedAttack(dt, player, dist, director) {
     if (this.telegraphCharge > 0) {
       this.telegraphCharge -= dt;
@@ -555,7 +555,7 @@ export class Enemy {
       ? def.damageMin + Math.random() * (def.damageMax - def.damageMin)
       : def.damage) * damageMul * this.damageMul;
 
-    // precisao: o desvio cai com a distancia e sobe com a imprecisao do modelo
+    // precisão: o desvio cai com a distância e sobe com a imprecisao do modelo
     const inaccuracy = (1 - def.accuracy) * 0.28;
     const jitterX = (Math.random() - 0.5) * inaccuracy;
     const jitterZ = (Math.random() - 0.5) * inaccuracy;
@@ -566,7 +566,7 @@ export class Enemy {
 
     const origin = new THREE.Vector3(this.position.x, 1.35, this.position.z);
 
-    // grok: chance de atirar no proprio aliado
+    // grok: chance de atirar no próprio aliado
     const chaos = Math.random() < (def.friendlyFire || 0);
     if (chaos) {
       const ally = director.nearestAlly(origin, this);

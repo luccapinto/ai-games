@@ -1,6 +1,6 @@
-// dungeon.js — geracao do andar.
+// dungeon.js — geração do andar.
 // Modelo: grid de tiles solidos/vazios. Salas retangulares conectadas por
-// corredores em L. Colisao, linha de visao e caminho de IA usam esse grid,
+// corredores em L. Colisão, linha de visão e caminho de IA usam esse grid,
 // o que mantem tudo coerente e barato.
 
 export const TILE = 3.0;          // tamanho do tile em unidades de mundo
@@ -48,7 +48,7 @@ export class Dungeon {
   }
 
   // ------------------------------------------------------------------
-  // Geracao
+  // Geração
   // ------------------------------------------------------------------
   generate() {
     const placed = [];
@@ -77,12 +77,12 @@ export class Dungeon {
       }
     }
 
-    // 2) ordena por distancia da origem e conecta em cadeia, mais alguns atalhos
+    // 2) ordena por distância da origem e conecta em cadeia, mais alguns atalhos
     placed.sort((a, b) => (a.cx + a.cz) - (b.cx + b.cz));
     for (let i = 1; i < placed.length; i++) {
       this._carveCorridor(placed[i - 1], placed[i]);
     }
-    // atalho extra para dar loop e evitar beco sem saida unico
+    // atalho extra para dar loop e evitar beco sem saída único
     for (let i = 0; i + 2 < placed.length; i += 3) {
       this._carveCorridor(placed[i], placed[i + 2]);
     }
@@ -106,7 +106,7 @@ export class Dungeon {
       for (let tz = room.z1 + 1; tz < room.z2 - 1; tz++) {
         for (let tx = room.x1 + 1; tx < room.x2 - 1; tx++) {
           if (this.isSolid(tx, tz)) continue;
-          // precisa ter espaco livre em volta: nao spawnar em gargalo
+          // precisa ter espaço livre em volta: não spawnar em gargalo
           let openNeighbors = 0;
           if (!this.isSolid(tx + 1, tz)) openNeighbors++;
           if (!this.isSolid(tx - 1, tz)) openNeighbors++;
@@ -153,7 +153,7 @@ export class Dungeon {
   // Consultas usadas por IA, tiro e minimapa
   // ------------------------------------------------------------------
 
-  // Linha de visao livre entre dois pontos do mundo (algoritmo de Bresenham no grid).
+  // Linha de visão livre entre dois pontos do mundo (algoritmo de Bresenham no grid).
   hasLineOfSight(x0, z0, x1, z1) {
     let { tx: x, tz: z } = this.worldToTile(x0, z0);
     const t = this.worldToTile(x1, z1);
@@ -174,7 +174,7 @@ export class Dungeon {
     return false;
   }
 
-  // Raycast no grid: retorna a distancia ate a primeira parede (ou maxDist).
+  // Raycast no grid: retorna a distância até a primeira parede (ou maxDist).
   raycastWall(x0, z0, dx, dz, maxDist) {
     let { tx, tz } = this.worldToTile(x0, z0);
     const stepX = dx > 0 ? 1 : -1;
@@ -215,7 +215,7 @@ export class Dungeon {
     return null;
   }
 
-  // Ponto livre aleatorio de uma sala, usado por spawner e drops.
+  // Ponto livre aleatório de uma sala, usado por spawner e drops.
   randomPointIn(room, avoid = null, minDist = 0) {
     if (!room.spawns || room.spawns.length === 0) return null;
     for (let i = 0; i < 12; i++) {

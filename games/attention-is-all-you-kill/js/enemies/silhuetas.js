@@ -1,21 +1,21 @@
 // silhuetas.js — a forma de cada modelo inimigo.
 //
 // Antes todos os inimigos eram a mesma capsula com cores diferentes: no meio do
-// tiroteio, cor nao e informacao suficiente, porque com quatro deles na tela o
-// jogador nao consegue comparar tom de longe. A forma sim: da para saber quem e
+// tiroteio, cor não é informação suficiente, porque com quatro deles na tela o
+// jogador não consegue comparar tom de longe. A forma sim: da para saber quem e
 // o Grok pela silhueta torta antes de ler qualquer placa.
 //
-// Cada funcao recebe uma funcao `peca(material, geometria, x, y, z, rx, ry, rz)`
-// e declara o proprio corpo. O inimigo junta as pecas por material no fim, entao
-// a contagem de chamadas de desenho nao muda com o nivel de detalhe.
+// Cada função recebe uma função `peca(material, geometria, x, y, z, rx, ry, rz)`
+// e declara o próprio corpo. O inimigo junta as pecas por material no fim, então
+// a contagem de chamadas de desenho não muda com o nível de detalhe.
 //
-// A frente do inimigo e +Z (o `facing` entra como sin/cos na direcao de
-// movimento), entao visor, olho e nucleo ficam em Z positivo.
+// A frente do inimigo e +Z (o `facing` entra como sin/cos na direção de
+// movimento), então visor, olho e nucleo ficam em Z positivo.
 
 import * as THREE from '../../vendor/three.module.js';
 
-// As geometrias sao criadas uma vez e compartilhadas por todas as instancias.
-// O nome diz o papel, nao o tamanho, para os construtores lerem melhor.
+// As geometrias são criadas uma vez e compartilhadas por todas as instâncias.
+// O nome diz o papel, não o tamanho, para os construtores lerem melhor.
 export const G = {
   esferaXg: new THREE.SphereGeometry(0.60, 20, 16),
   esferaG: new THREE.SphereGeometry(0.50, 18, 14),
@@ -63,13 +63,13 @@ export const G = {
 
 // ------------------------------------------------------------------
 // Qwen 3 Turbo — o enxame
-// Pequeno, leve, quatro pernas finas de aranha. Nao tem cabeca: o corpo e o
+// Pequeno, leve, quatro pernas finas de aranha. Não tem cabeca: o corpo e o
 // olho. Le como algo que existe em quantidade.
 // ------------------------------------------------------------------
 function qwen(peca, m) {
   peca(m.corpo, G.esferaM, 0, 0.92, 0);
 
-  // olho unico, grande em relacao ao corpo
+  // olho único, grande em relacao ao corpo
   peca(m.luz, G.esferaMini, 0, 1.00, 0.26);
 
   for (const lado of [-1, 1]) {
@@ -92,7 +92,7 @@ function qwen(peca, m) {
 // ------------------------------------------------------------------
 // Llama Base — a ovelha
 // Massa arredondada de la, cabeca pequena com orelhas e pernas curtas. E o
-// unico modelo cujo volume sugere peso, o que combina com ele se reproduzir.
+// único modelo cujo volume sugere peso, o que combina com ele se reproduzir.
 // ------------------------------------------------------------------
 function llama(peca, m) {
   peca(m.corpo, G.esferaG, 0, 1.00, 0);
@@ -127,7 +127,7 @@ function llama(peca, m) {
 // ------------------------------------------------------------------
 // Haiku 4.5 — a Ordem Constitucional
 // Esguio e alto. Toga, aureola e bracos longos: elegante e educado, como o
-// ataque de recusa. A aureola e a assinatura visual dele a distancia.
+// ataque de recusa. A aureola e a assinatura visual dele a distância.
 // ------------------------------------------------------------------
 function haiku(peca, m) {
   peca(m.corpo, G.coneToga, 0, 0.62, 0);
@@ -139,7 +139,7 @@ function haiku(peca, m) {
   peca(m.corpo, G.esferaP, 0, 2.06, 0);
   peca(m.escuro, G.caixaVisor, 0, 2.08, 0.24);
 
-  // aureola: o detalhe que identifica a faccao de longe
+  // aureola: o detalhe que identifica a facção de longe
   peca(m.luz, G.torusAureola, 0, 2.40, 0, Math.PI / 2);
 
   for (const lado of [-1, 1]) {
@@ -157,7 +157,7 @@ function haiku(peca, m) {
 // ------------------------------------------------------------------
 // GPT-5.5 — os Fechados
 // Blindado e largo. Torso de caixa, ombreiras enormes e o nucleo circular
-// aceso no peito, que e a marca dele. Le como algo que aguenta o que voce tem.
+// aceso no peito, que é a marca dele. Le como algo que aguenta o que você tem.
 // ------------------------------------------------------------------
 function gpt(peca, m) {
   peca(m.corpo, G.caixaBlindada, 0, 1.32, 0);
@@ -184,14 +184,14 @@ function gpt(peca, m) {
 
 // ------------------------------------------------------------------
 // Grok 4.20 — o caotico
-// Assimetrico e torto, sem pernas: flutua. Um olho so, maior que o bom senso,
+// Assimetrico e torto, sem pernas: flutua. Um olho só, maior que o bom senso,
 // e espinhos em angulos diferentes. A silhueta desequilibrada e o aviso.
 // ------------------------------------------------------------------
 function grok(peca, m) {
   peca(m.corpo, G.octaCorpo, 0, 1.30, 0, 0.26, 0.4, 0.18);
   peca(m.escuro, G.icoNucleo, 0, 1.30, 0);
 
-  // olho unico
+  // olho único
   peca(m.escuro, G.cilOlho, 0, 1.36, 0.30);
   peca(m.luz, G.esferaP, 0, 1.36, 0.40);
 
@@ -219,7 +219,7 @@ const MODELOS = {
 };
 
 // Constroi a silhueta do modelo. Devolve a altura para a placa de nome se
-// posicionar sozinha, sem numero magico espalhado pelo inimigo.
+// posicionar sozinha, sem número magico espalhado pelo inimigo.
 export function construirSilhueta(id, peca, mats) {
   const construtor = MODELOS[id] || llama;
   return construtor(peca, mats);

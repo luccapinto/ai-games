@@ -1,4 +1,4 @@
-// menus.js — telas de titulo, pausa, escolha de perk, morte e vitoria.
+// menus.js — telas de título, pausa, escolha de perk, morte e vitoria.
 
 import { META_UPGRADES } from '../roguelike/meta.js';
 

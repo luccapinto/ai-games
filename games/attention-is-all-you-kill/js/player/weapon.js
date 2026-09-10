@@ -1,5 +1,5 @@
 // weapon.js — viewmodel da arma, disparo hitscan e recarga.
-// O viewmodel e procedural: nenhum modelo externo, so geometria e cor.
+// O viewmodel e procedural: nenhum modelo externo, só geometria e cor.
 
 import * as THREE from '../../vendor/three.module.js';
 import { WEAPONS } from '../data/weapons.js';
@@ -94,7 +94,7 @@ export class WeaponSystem {
     }
 
     const bodyMat = new THREE.MeshLambertMaterial({ color: 0x1e2830 });
-    // A luz e o metal da arma guardam referencia: sao eles que a tela de
+    // A luz e o metal da arma guardam referência: são eles que a tela de
     // personalizacao recolore quando o jogador escolhe a aparencia.
     const luzDoJogador = this.skin ? this.skin.corLuz : w.color;
     const metalDoJogador = this.skin ? this.skin.corAcabamento : 0x39444f;
@@ -116,7 +116,7 @@ export class WeaponSystem {
 
     // Atalhos de geometria. Os cilindros tem 14 segmentos, o que arredonda o
     // cano de perto sem inflar a contagem de triangulos: cada arma fica na casa
-    // das centenas, nao dos milhares.
+    // das centenas, não dos milhares.
     const caixa = (a, b, c) => new THREE.BoxGeometry(a, b, c);
     const cil = (r, c) => new THREE.CylinderGeometry(r, r * 1.06, c, 14);
 
@@ -145,7 +145,7 @@ export class WeaponSystem {
       this.muzzleLocal = new THREE.Vector3(0, 0.012, -0.395);
     } else if (w.kind === 'smg') {
       add(caixa(0.095, 0.115, 0.44), bodyMat, 0, 0, -0.16);
-      // cano longo, boca e guarda-mao ventilado
+      // cano longo, boca e guarda-mão ventilado
       add(cil(0.020, 0.22), metalMat, 0, 0.005, -0.49, Math.PI / 2);
       add(new THREE.CylinderGeometry(0.032, 0.030, 0.045, 14), darkMat, 0, 0.005, -0.60, Math.PI / 2);
       add(caixa(0.07, 0.06, 0.24), darkMat, 0, -0.056, -0.36);
@@ -183,10 +183,10 @@ export class WeaponSystem {
       this.muzzleLocal = new THREE.Vector3(0, 0.01, -0.70);
     }
 
-    // arma automatica segura o gatilho; as outras exigem novo clique
+    // arma automática segura o gatilho; as outras exigem novo clique
     this.autoFire = w.kind === 'smg';
 
-    // posicao de repouso na tela: canto inferior direito
+    // posição de repouso na tela: canto inferior direito
     this.restPos = new THREE.Vector3(0.33, -0.30, -0.62);
     this.model.position.copy(this.restPos);
   }
@@ -195,9 +195,9 @@ export class WeaponSystem {
   // Recarga
   // ------------------------------------------------------------------
   // Troca as cores da arma sem reconstruir o viewmodel: a customizacao tem que
-  // refletir na hora, inclusive no menu, antes da partida comecar.
+  // refletir na hora, inclusive no menu, antes da partida começar.
   //
-  // A aparencia aparece na arma, e nao em bracos: com as maos na tela a leitura
+  // A aparencia aparece na arma, e não em bracos: com as mãos na tela a leitura
   // do combate piorava, porque um bloco grande ficava na frente da mira.
   aplicarSkin(skin) {
     if (!skin) return;
@@ -206,8 +206,8 @@ export class WeaponSystem {
     if (this.accentMat) this.accentMat.color.setHex(skin.corLuz);
     if (this.metalMat) this.metalMat.color.setHex(skin.corAcabamento);
 
-    // a mira e os acentos da interface seguem a mesma luz, entao a escolha
-    // vale para a tela inteira e nao so para o objeto
+    // a mira e os acentos da interface seguem a mesma luz, então a escolha
+    // vale para a tela inteira e não só para o objeto
     document.documentElement.style.setProperty('--skin-luz', '#' + skin.corLuz.toString(16).padStart(6, '0'));
   }
 
@@ -260,7 +260,7 @@ export class WeaponSystem {
     this.recoilRot = Math.min(0.34, this.recoilRot + w.kickBack * 0.7);
     this.muzzleFlashTimer = 0.05;
 
-    // raio de fogo da arma automatica
+    // raio de fogo da arma automática
     this.autoFire = w.kind === 'smg';
   }
 
@@ -271,7 +271,7 @@ export class WeaponSystem {
     const count = w.pellets + extra;
 
     for (let i = 0; i < count; i++) {
-      // spread: pequeno desvio aleatorio dentro de um cone
+      // spread: pequeno desvio aleatório dentro de um cone
       const spread = w.spread * (stats.mods.spreadMul || 1);
       const angleH = (Math.random() - 0.5) * spread * 2;
       const angleV = (Math.random() - 0.5) * spread * 2;
@@ -285,7 +285,7 @@ export class WeaponSystem {
     }
   }
 
-  // Hitscan: procura a parede, depois o inimigo mais proximo, depois o chefe.
+  // Hitscan: procura a parede, depois o inimigo mais próximo, depois o chefe.
   // O primeiro obstaculo no caminho e o que leva o dano.
   _castBullet(eye, dir, w, stats, player) {
     const flatLen = Math.hypot(dir.x, dir.z) || 1e-4;
@@ -306,11 +306,11 @@ export class WeaponSystem {
 
     // Inimigos comuns: o alvo e um cilindro vertical do tamanho do corpo.
     //
-    // A versao anterior media a distancia do raio ao centro do inimigo em
+    // A versão anterior média a distância do raio ao centro do inimigo em
     // y=1.0 e exigia menos de 0.52. Como a camera fica em y=1.69, um tiro
     // horizontal passava 0.69 acima do centro e era descartado mesmo com a mira
     // perfeitamente em cima do inimigo: o jogador via o tiro atravessar o corpo
-    // e nao entendia por que o dano nao entrava.
+    // e não entendia por que o dano não entrava.
     for (const e of this.director.enemies) {
       if (!e.alive) continue;
 
@@ -318,7 +318,7 @@ export class WeaponSystem {
       const oz = e.position.z - eye.z;
 
       // interseccao raio-cilindro no plano horizontal.
-      // Equacao: |t*D - P|^2 = r^2, com P = alvo - camera, o que da
+      // Equação: |t*D - P|^2 = r^2, com P = alvo - camera, o que da
       // a = D.D, b = -2*(D.P) e c = P.P - r^2. O sinal de b e negativo.
       const a = dir.x * dir.x + dir.z * dir.z;
       if (a < 1e-8) continue;
@@ -329,7 +329,7 @@ export class WeaponSystem {
 
       const raiz = Math.sqrt(disc);
       let t = (-b - raiz) / (2 * a);
-      if (t < 0) t = (-b + raiz) / (2 * a);   // camera ja dentro do cilindro
+      if (t < 0) t = (-b + raiz) / (2 * a);   // camera já dentro do cilindro
       if (t < 0 || t > hitDist) continue;
 
       // a altura do raio nesse ponto tem que cair dentro do corpo
@@ -346,7 +346,7 @@ export class WeaponSystem {
       );
     }
 
-    // chefe: as ancoras tem prioridade de alvo; o corpo so conta na janela aberta.
+    // chefe: as âncoras tem prioridade de alvo; o corpo só conta na janela aberta.
     // O alvo vai explicito para o chefe, sem deteccao por proximidade do ponto.
     let hitAnchor = null;
     if (this.boss && this.boss.alive) {
@@ -389,13 +389,13 @@ export class WeaponSystem {
       eye.z + dir.z * maxDist
     );
 
-    // tracer da boca da arma ate o ponto final
+    // tracer da boca da arma até o ponto final
     const muzzleWorld = new THREE.Vector3();
     this.muzzleFlash.getWorldPosition(muzzleWorld);
     this.director.spawnTracer(muzzleWorld, endPoint, w.tracerColor);
 
     if (hitBoss) {
-      // o chefe nao tem faccao: overfitting nao se aplica a ele
+      // o chefe não tem facção: overfitting não se aplica a ele
       const dmg = stats.finalDamage(w.damage, '__boss');
       stats.damageDealt += dmg;
       this.director.spawnSparks(endPoint, 0xffb347, 4, 0.3);
@@ -411,7 +411,7 @@ export class WeaponSystem {
     }
   }
 
-  // Interseccao raio-esfera. Retorna a distancia do primeiro toque, ou -1.
+  // Interseccao raio-esfera. Retorna a distância do primeiro toque, ou -1.
   _raySphere(origin, dir, center, radius) {
     return raySphere(origin, dir, center, radius);
   }
@@ -435,7 +435,7 @@ export class WeaponSystem {
       this.startReload();
     }
 
-    // fogo: arma automatica segura o gatilho, semi precisa de novo clique
+    // fogo: arma automática segura o gatilho, semi precisa de novo clique
     if (input.firing && (this.autoFire || !this._wasFiring)) {
       this.tryFire(player);
     }

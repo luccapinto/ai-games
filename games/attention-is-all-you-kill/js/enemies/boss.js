@@ -1,6 +1,6 @@
 // boss.js — THE FINE-TUNER, chefe do andar 1.
-// Regra da luta: enquanto as ancoras (os nos de ajuste) existirem, a mao esta
-// blindada. Destrua as ancoras para abrir a janela de dano. Tres fases.
+// Regra da luta: enquanto as âncoras (os nos de ajuste) existirem, a mão esta
+// blindada. Destrua as âncoras para abrir a janela de dano. Três fases.
 
 import * as THREE from '../../vendor/three.module.js';
 import { FACTIONS, finetuneName } from '../data/enemies.js';
@@ -25,9 +25,9 @@ export class FineTuner {
     this.feed = feed;
 
     this.name = 'THE FINE-TUNER';
-    // 420 e o total de dano que a luta pede: 4 ancoras de 38 na fase 1, mais
-    // tres janelas de dano. Com 900 o corpo sozinho pedia ~70 tiros de pistola
-    // depois das ancoras, e a luta virava exercicio de paciencia.
+    // 420 e o total de dano que a luta pede: 4 âncoras de 38 na fase 1, mais
+    // três janelas de dano. Com 900 o corpo sozinho pedia ~70 tiros de pistola
+    // depois das âncoras, e a luta virava exercício de paciencia.
     this.maxHp = 420;
     this.hp = this.maxHp;
     this.phase = 1;
@@ -62,7 +62,7 @@ export class FineTuner {
     });
     const darkMat = new THREE.MeshLambertMaterial({ color: 0x161d24 });
 
-    // palma da mao
+    // palma da mão
     this.palm = new THREE.Mesh(new THREE.BoxGeometry(4.2, 1.1, 4.6), palmMat);
     this.palm.position.y = 4.6;
     this.group.add(this.palm);
@@ -84,7 +84,7 @@ export class FineTuner {
     thumb.rotation.y = 0.5;
     this.group.add(thumb);
 
-    // nó de ajuste visivel no dorso: indicador do estado blindado
+    // nó de ajuste visível no dorso: indicador do estado blindado
     this.coreMat = new THREE.MeshBasicMaterial({ color: 0x35f0d8 });
     this.core = new THREE.Mesh(new THREE.IcosahedronGeometry(0.7, 1), this.coreMat);
     this.core.position.y = 5.3;
@@ -101,7 +101,7 @@ export class FineTuner {
     this.restY = 0;
     this.group.position.y = this.restY;
 
-    // sombra no chao
+    // sombra no chão
     this.shadow = new THREE.Mesh(
       new THREE.PlaneGeometry(9, 10),
       new THREE.MeshBasicMaterial({
@@ -114,7 +114,7 @@ export class FineTuner {
   }
 
   // ------------------------------------------------------------------
-  // Ancoras: precisam ser destruidas para abrir a janela de dano
+  // Âncoras: precisam ser destruidas para abrir a janela de dano
   // ------------------------------------------------------------------
   _spawnAnchors(count) {
     this._clearAnchors();
@@ -122,10 +122,10 @@ export class FineTuner {
       const angle = (i / count) * Math.PI * 2 + Math.PI / 4;
       const raioMax = Math.min(this.room.x2 - this.room.x1, this.room.z2 - this.room.z1) * TILE * 0.32;
 
-      // A posicao e geometrica, entao pode cair dentro de um rack ou fora da
-      // sala. Ancora inacessivel trava a luta inteira: o jogador nao consegue
+      // A posição e geometrica, então pode cair dentro de um rack ou fora da
+      // sala. Âncora inacessivel trava a luta inteira: o jogador não consegue
       // destruir os nos, o corpo fica blindado para sempre e parece que o
-      // chefe nao toma dano. Por isso testamos o tile antes de aceitar.
+      // chefe não toma dano. Por isso testamos o tile antes de aceitar.
       let x = this.center.x;
       let z = this.center.z;
       let achou = false;
@@ -136,7 +136,7 @@ export class FineTuner {
         const cz = this.center.z + Math.sin(a) * raio;
         const t = this.dungeon.worldToTile(cx, cz);
         if (this.dungeon.isSolid(t.tx, t.tz)) continue;
-        // precisa de espaco livre em volta para a linha de tiro passar
+        // precisa de espaço livre em volta para a linha de tiro passar
         let livre = true;
         for (const [ox, oz] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
           if (this.dungeon.isSolid(t.tx + ox, t.tz + oz)) { livre = false; break; }
@@ -191,9 +191,9 @@ export class FineTuner {
   // ------------------------------------------------------------------
   // Dano
   // ------------------------------------------------------------------
-  // O alvo chega explicito do hitscan: a ancora atingida, ou null para o corpo.
-  // A deteccao por proximidade do ponto de impacto se mostrou fragil quando o
-  // jogador fica embaixo da mao, por isso o alvo e decidido no raio.
+  // O alvo chega explicito do hitscan: a âncora atingida, ou null para o corpo.
+  // A deteccao por proximidade do ponto de impacto se mostrou frágil quando o
+  // jogador fica embaixo da mão, por isso o alvo e decidido no raio.
   applyDamage(amount, point, anchor = null) {
     if (!this.alive) return false;
 
@@ -207,7 +207,7 @@ export class FineTuner {
 
     if (this.state !== STATE.VULNERABLE) {
       this.armorFlash = 0.14;
-      // avisa no maximo a cada 2 segundos, senao vira spam no feed
+      // avisa no máximo a cada 2 segundos, senao vira spam no feed
       if (this.feed && (this._armorWarnAt || 0) <= 0) {
         this.feed.push('BLINDADO: destrua os nos de ancoragem', 'warn');
         this._armorWarnAt = 2;
@@ -234,7 +234,7 @@ export class FineTuner {
     if (this.aliveAnchors().length === 0) {
       this.state = STATE.VULNERABLE;
       this.damageWindowTimer = this.phase === 3 ? 14 : 9;
-      if (this.feed) this.feed.push('JANELA ABERTA: os pesos estao expostos', 'warn');
+      if (this.feed) this.feed.push('JANELA ABERTA: os pesos estão expostos', 'warn');
       if (this.sfx) this.sfx.levelUp();
       this.coreMat.color.setHex(0xffe066);
     }
@@ -244,7 +244,7 @@ export class FineTuner {
     this.alive = false;
     this.state = STATE.DYING;
     this._clearAnchors();
-    if (this.feed) this.feed.push('THE FINE-TUNER ajustado ao silencio.', 'warn');
+    if (this.feed) this.feed.push('THE FINE-TUNER ajustado ao silêncio.', 'warn');
   }
 
   // ------------------------------------------------------------------
@@ -254,7 +254,7 @@ export class FineTuner {
     const target = new THREE.Vector3(player.position.x, 0, player.position.z);
     const radius = 3.6;
 
-    // telegraph no chao: o jogador tem tempo de sair
+    // telegraph no chão: o jogador tem tempo de sair
     const ring = new THREE.Mesh(
       new THREE.RingGeometry(radius * 0.82, radius, 26),
       new THREE.MeshBasicMaterial({
@@ -268,7 +268,7 @@ export class FineTuner {
 
     this.slamTelegraph = { ring, timer: 1.15, target, radius };
 
-    // a mao se move para cima da posicao alvo
+    // a mão se move para cima da posição alvo
     this.group.position.x = target.x;
     this.group.position.z = target.z;
   }
@@ -302,9 +302,9 @@ export class FineTuner {
   }
 
   // Terceiro ataque: leque de projeteis. Reutiliza o sistema de projetil que o
-  // jogador ja aprendeu a ler. Antes ele saia sem nenhum aviso e o leque de
-  // 90 graus era impossivel de desviar no susto; agora o cone aparece no chao
-  // por 1.25s, os projeteis sao mais lentos e ha menos deles, o que deixa
+  // jogador já aprendeu a ler. Antes ele saia sem nenhum aviso e o leque de
+  // 90 graus era impossível de desviar no susto; agora o cone aparece no chão
+  // por 1.25s, os projeteis são mais lentos e ha menos deles, o que deixa
   // corredor entre um tiro e outro.
   _volleyAttack(director, player) {
     const baseAngle = Math.atan2(
@@ -313,8 +313,8 @@ export class FineTuner {
     );
     const spread = Math.PI * 0.5;
 
-    // setor de aviso no chao. O circulo nasce no plano XY e vai para o chao com
-    // rotacao em X, o que espelha o eixo Z: por isso o angulo entra negado.
+    // setor de aviso no chão. O circulo nasce no plano XY e vai para o chão com
+    // rotacao em X, o que espelha o eixo Z: por isso o ângulo entra negado.
     const setor = new THREE.Mesh(
       new THREE.CircleGeometry(12, 26, -baseAngle - spread / 2, spread),
       new THREE.MeshBasicMaterial({
@@ -373,11 +373,11 @@ export class FineTuner {
       this.coreMat.color.setHex(0x35f0d8);
     }
 
-    // animacao de flutuar
+    // animação de flutuar
     const t = performance.now() / 1000;
     this.group.position.y = Math.sin(t * 0.9) * 0.28;
 
-    // ancoras girando
+    // âncoras girando
     for (const a of this.anchors) {
       if (!a.alive) continue;
       a.spin += dt * 1.2;
@@ -387,11 +387,11 @@ export class FineTuner {
       a.group.position.y = 2.1 + Math.sin(a.spin * 1.3) * 0.25;
     }
 
-    // estado inicial: invoca as ancoras da fase
+    // estado inicial: invoca as âncoras da fase
     if (this.state === STATE.IDLE) {
       this.state = STATE.ANCHOR_PHASE;
       this._spawnAnchors(4);
-      if (this.feed) this.feed.push('THE FINE-TUNER: ajustando voce ao formato dele.', 'bad');
+      if (this.feed) this.feed.push('THE FINE-TUNER: ajustando você ao formato dele.', 'bad');
       return;
     }
 
@@ -411,7 +411,7 @@ export class FineTuner {
 
     if (this.state !== STATE.ANCHOR_PHASE) return;
 
-    // durante a fase de ancoras, ataca de tempo em tempo
+    // durante a fase de âncoras, ataca de tempo em tempo
     this.attackTimer -= dt;
 
     if (this.slamTelegraph) {
@@ -422,7 +422,7 @@ export class FineTuner {
       return;
     }
 
-    // aviso do leque: o cone pulsa no chao ate o disparo
+    // aviso do leque: o cone pulsa no chão até o disparo
     if (this.volleyTelegraph) {
       this.volleyTelegraph.timer -= dt;
       const t = this.volleyTelegraph.timer;

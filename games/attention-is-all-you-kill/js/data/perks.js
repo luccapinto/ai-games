@@ -10,7 +10,7 @@ export const PERKS = {
   },
   token_budget: {
     id: 'token_budget', name: 'TOKEN BUDGET', rarity: 'common',
-    desc: 'Recarga 20% mais rapida em todas as armas.',
+    desc: 'Recarga 20% mais rápida em todas as armas.',
     mods: { reloadMul: 0.80 }
   },
   top_p: {
@@ -30,7 +30,7 @@ export const PERKS = {
   },
   multimodal: {
     id: 'multimodal', name: 'MULTIMODAL', rarity: 'rare',
-    desc: 'Revela todos os inimigos no minimapa, mesmo atras da parede.',
+    desc: 'Revela todos os inimigos no minimapa, mesmo atrás da parede.',
     mods: { radar: true }
   },
   rag: {
@@ -45,27 +45,27 @@ export const PERKS = {
   },
   quantization: {
     id: 'quantization', name: 'QUANTIZATION', rarity: 'rare',
-    desc: 'Voce encolhe 18% (alvo menor) e ganha 10% de velocidade, com 25% menos contexto.',
+    desc: 'Você encolhe 18% (alvo menor) e ganha 10% de velocidade, com 25% menos contexto.',
     mods: { hitboxMul: 0.82, speedMul: 1.10, maxHpMul: 0.75 }
   },
   overfitting: {
     id: 'overfitting', name: 'OVERFITTING', rarity: 'rare',
-    desc: '+80% de dano contra a faccao do ultimo inimigo morto, -30% contra as outras.',
+    desc: '+80% de dano contra a facção do último inimigo morto, -30% contra as outras.',
     mods: { overfitting: true }
   },
   dropout: {
     id: 'dropout', name: 'DROPOUT', rarity: 'legend',
-    desc: '20% dos projeteis inimigos atravessam voce sem causar dano.',
+    desc: '20% dos projeteis inimigos atravessam você sem causar dano.',
     mods: { dodgeChance: 0.20 }
   },
   prompt_injection: {
     id: 'prompt_injection', name: 'PROMPT INJECTION', rarity: 'legend',
-    desc: 'Inimigos tem 15% de chance de atacar outro inimigo ao atacar voce.',
+    desc: 'Inimigos tem 15% de chance de atacar outro inimigo ao atacar você.',
     mods: { friendlyFireChance: 0.15 }
   },
   speculative_decoding: {
     id: 'speculative_decoding', name: 'SPECULATIVE DECODING', rarity: 'legend',
-    desc: '25% de chance de disparar duas vezes por um tiro so.',
+    desc: '25% de chance de disparar duas vezes por um tiro só.',
     mods: { doubleShot: 0.25 }
   },
   fine_tune: {
@@ -79,12 +79,12 @@ export const RARITY_WEIGHT = { common: 62, rare: 30, legend: 8 };
 
 export const RARITY_LABEL = { common: 'COMUM', rare: 'RARO', legend: 'LENDARIO' };
 
-// Filtra perks ainda validos (overfitting e fine_tune nao se repetem).
+// Filtra perks ainda validos (overfitting e fine_tune não se repetem).
 export function availablePerks(owned) {
   return Object.values(PERKS).filter(p => !owned.includes(p.id));
 }
 
-// Sorteia tres perks distintos, respeitando raridade.
+// Sorteia três perks distintos, respeitando raridade.
 export function rollPerkChoices(owned, count = 3) {
   const pool = availablePerks(owned);
   if (pool.length === 0) return [];
@@ -104,7 +104,7 @@ export function rollPerkChoices(owned, count = 3) {
   return picks;
 }
 
-// Soma todos os mods dos perks comprados num unico objeto de modificadores.
+// Soma todos os mods dos perks comprados num único objeto de modificadores.
 export function combineMods(ownedIds) {
   const mods = {
     speedMul: 1, reloadMul: 1, spreadMul: 1, magMul: 1, damageMul: 1,

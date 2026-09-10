@@ -1,5 +1,5 @@
-// controller.js — jogador: movimento, colisao, pulo e camera.
-// Colisao: circulo contra grid. Movimento resolvido por eixo separado,
+// controller.js — jogador: movimento, colisão, pulo e camera.
+// Colisão: circulo contra grid. Movimento resolvido por eixo separado,
 // com empurrao de penetracao, para o jogador deslizar em quina em vez de travar.
 
 import * as THREE from '../../vendor/three.module.js';
@@ -76,7 +76,7 @@ export class Controller {
         const minX = ix * TILE, maxX = minX + TILE;
         const minZ = iz * TILE, maxZ = minZ + TILE;
 
-        // ponto do retangulo mais proximo do centro do circulo
+        // ponto do retangulo mais próximo do centro do circulo
         const cx = Math.max(minX, Math.min(this.position.x, maxX));
         const cz = Math.max(minZ, Math.min(this.position.z, maxZ));
 
@@ -87,7 +87,7 @@ export class Controller {
         if (dist >= r) continue;
 
         if (dist < 1e-6) {
-          // centro dentro do tile: empurra pelo eixo de menor saida
+          // centro dentro do tile: empurra pelo eixo de menor saída
           const toLeft = this.position.x - minX;
           const toRight = maxX - this.position.x;
           const toBack = this.position.z - minZ;
@@ -111,7 +111,7 @@ export class Controller {
     const input = this.input;
     const axis = input.moveAxis();
 
-    // direcoes no plano, independentes de pitch
+    // direções no plano, independentes de pitch
     this._forward.set(-Math.sin(this.yaw), 0, -Math.cos(this.yaw));
     this._right.set(Math.cos(this.yaw), 0, -Math.sin(this.yaw));
 
@@ -124,17 +124,17 @@ export class Controller {
     const sprinting = input.isSprinting() && axis.z < 0;
     const targetSpeed = WALK_SPEED * this.speedMul * (sprinting ? SPRINT_MUL : 1);
 
-    // acelera na direcao desejada
+    // acelera na direção desejada
     const accel = ACCEL * (this.onGround ? 1 : 0.35);
     this.velocity.x += this._wish.x * accel * dt;
     this.velocity.z += this._wish.z * accel * dt;
 
-    // atrito: so freia de verdade quando o jogador nao esta pedindo movimento.
+    // atrito: só freia de verdade quando o jogador não esta pedindo movimento.
     //
     // Aplicar atrito sempre criava uma velocidade terminal de ACCEL/FRICTION
-    // (42/12 = 3.5 m/s), que ficava ABAIXO ate da caminhada declarada (5.6) e
-    // muito abaixo da corrida (8.12). O Shift nao mudava nada porque o atrito
-    // cortava a velocidade antes do limite entrar em acao. Verificado: 2.8 m/s
+    // (42/12 = 3.5 m/s), que ficava ABAIXO até da caminhada declarada (5.6) e
+    // muito abaixo da corrida (8.12). O Shift não mudava nada porque o atrito
+    // cortava a velocidade antes do limite entrar em ação. Verificado: 2.8 m/s
     // com e sem Shift.
     const pedindoMovimento = this._wish.lengthSq() > 0.0001;
     if (this.onGround) {
@@ -202,7 +202,7 @@ export class Controller {
     this.camera.rotation.set(this.pitch + this.recoilPitch, this.yaw, 0, 'YXZ');
   }
 
-  // Direcao de mira no espaco do mundo.
+  // Direção de mira no espaço do mundo.
   aimDirection() {
     const dir = new THREE.Vector3(0, 0, -1);
     dir.applyEuler(new THREE.Euler(this.pitch + this.recoilPitch, this.yaw, 0, 'YXZ'));

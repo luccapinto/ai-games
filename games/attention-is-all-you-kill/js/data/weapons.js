@@ -1,5 +1,5 @@
-// weapons.js — arsenal. v1 tem tres armas, uma por tier de escada.
-// Todos os numeros sao tuning de jogo, ancorados na fantasia de cada modelo.
+// weapons.js — arsenal. v1 tem três armas, uma por tier de escada.
+// Todos os números são tuning de jogo, ancorados na fantasia de cada modelo.
 
 export const WEAPONS = {
   prompt_injetor: {
@@ -9,13 +9,13 @@ export const WEAPONS = {
     tier: 0,
     kind: 'pistol',
     // A arma inicial precisa resolver um inimigo comum em 3 tiros. Com 9 de
-    // dano ela precisava de 4 e o jogador nao limpava a sala antes de morrer.
+    // dano ela precisava de 4 e o jogador não limpava a sala antes de morrer.
     damage: 13,
     fireRate: 2.0,          // tiros por segundo
     magSize: 30,
     reserveMax: 120,
     reloadTime: 1.5,
-    spread: 0.030,          // radianos de desvio maximo
+    spread: 0.030,          // radianos de desvio máximo
     pellets: 1,
     hitscan: true,
     range: 70,
@@ -24,7 +24,7 @@ export const WEAPONS = {
     color: 0x35f0d8,
     tracerColor: 0x9ffff0,
     sound: 'pistol',
-    desc: 'Pistola inicial. Dispara instrucoes cruas. Dano ridiculo, precisao honesta.'
+    desc: 'Pistola inicial. Dispara instrucoes cruas. Dano ridiculo, precisão honesta.'
   },
 
   token_streamer: {
@@ -80,7 +80,7 @@ export function weaponById(id) {
   return WEAPONS[id] || null;
 }
 
-// Aplica bonuses de perks aos numeros base, sem mutar o dado original.
+// Aplica bonuses de perks aos números base, sem mutar o dado original.
 export function resolveWeapon(id, mods = {}) {
   const base = WEAPONS[id];
   if (!base) return null;

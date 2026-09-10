@@ -1,5 +1,5 @@
 // spawner.js — director de combate: inimigos por sala, projeteis, drops e efeitos.
-// Spawna quando o jogador entra na sala, nao tudo de uma vez no boot.
+// Spawna quando o jogador entra na sala, não tudo de uma vez no boot.
 
 import * as THREE from '../../vendor/three.module.js';
 import { Enemy } from './enemy.js';
@@ -32,7 +32,7 @@ export class CombatDirector {
     this.activeRoom = null;
 
     // Controle de ritmo do combate.
-    // clock: relogio proprio do director, usado pelas permissoes de tiro.
+    // clock: relogio próprio do director, usado pelas permissoes de tiro.
     // fireSlots: quantos inimigos podem atirar ao mesmo tempo. Sem isso uma
     //   sala de oito inimigos vira oito tiros no mesmo instante e o jogador
     //   morre sem ter tempo de ler a ameaca.
@@ -91,7 +91,7 @@ export class CombatDirector {
     // marcador de drop
     this.pickupTex = signTexture('DROP', 0xffb347);
 
-    // temporarios de sincronizacao, alocados uma vez so
+    // temporarios de sincronizacao, alocados uma vez só
     this._mat4 = new THREE.Matrix4();
     this._quat = new THREE.Quaternion();
     this._one = new THREE.Vector3(1, 1, 1);
@@ -103,8 +103,8 @@ export class CombatDirector {
   // Ativacao de sala
   // ------------------------------------------------------------------
   updateRoomActivation(playerPos, floor) {
-    // Durante o tutorial o director nao popula sala nenhuma: o jogador esta
-    // aprendendo a andar e a atirar, nao sobrevivendo.
+    // Durante o tutorial o director não popula sala nenhuma: o jogador esta
+    // aprendendo a andar e a atirar, não sobrevivendo.
     if (this.tutorialMode) return;
 
     const room = this.dungeon.roomAt(playerPos.x, playerPos.z);
@@ -116,15 +116,15 @@ export class CombatDirector {
     this.roomsActivated.add(room.index);
 
     if (room.type === 'entry') {
-      // sala inicial: so um par de inimigos fracos, para aprender a atirar
+      // sala inicial: só um par de inimigos fracos, para aprender a atirar
       this.spawnGroup(room, 2, floor, { weak: true });
       return;
     }
     if (room.type === 'boss') return;      // o chefe e chamado a parte
 
     // Salas comuns vem em duas levas. A primeira leva e a que o jogador ve ao
-    // entrar; a segunda chega alguns segundos depois, quando ele ja se
-    // posicionou. Antes era tudo de uma vez e nao dava tempo de reagir.
+    // entrar; a segunda chega alguns segundos depois, quando ele já se
+    // posicionou. Antes era tudo de uma vez e não dava tempo de reagir.
     const base = room.type === 'elite' ? 3 : 3 + Math.floor(this.rng() * 3);
     const primeira = Math.ceil(base * 0.65);
     const reforco = base - primeira;
@@ -145,8 +145,8 @@ export class CombatDirector {
 
   // ------------------------------------------------------------------
   // Permissao de tiro: poucos inimigos atacam por vez.
-  // Os que ficam de fora continuam se movendo e mirando, entao a horda
-  // continua parecendo uma horda, mas o dano chega em cadencia legivel.
+  // Os que ficam de fora continuam se movendo e mirando, então a horda
+  // continua parecendo uma horda, mas o dano chega em cadência legivel.
   // ------------------------------------------------------------------
   requestFirePermission() {
     for (let i = 0; i < this.fireSlots.length; i++) {
@@ -164,14 +164,14 @@ export class CombatDirector {
     for (let i = this.pendingWaves.length - 1; i >= 0; i--) {
       const w = this.pendingWaves[i];
 
-      // aviso antes do reforco chegar, para nao ser uma emboscada injusta
+      // aviso antes do reforço chegar, para não ser uma emboscada injusta
       if (!w.avisado && this.clock >= w.at - 1.6) {
         w.avisado = true;
-        if (this.feed) this.feed.push('Reforco a caminho.', 'warn');
+        if (this.feed) this.feed.push('Reforço a caminho.', 'warn');
       }
 
       if (this.clock >= w.at) {
-        // so traz o reforco se a sala ainda estiver em disputa
+        // só traz o reforço se a sala ainda estiver em disputa
         const aindaTem = this.enemies.some(e =>
           e.alive && this.dungeon.roomAt(e.position.x, e.position.z) === w.room
         );
@@ -212,7 +212,7 @@ export class CombatDirector {
   spawnEnemyProjectile(origin, dx, dz, damage, owner, extra = {}) {
     if (this.projectiles.length >= MAX_PROJECTILES) return;
     // velocidade configuravel: o leque do chefe precisa ser mais lento que um
-    // tiro normal, senao nao ha como desviar
+    // tiro normal, senao não ha como desviar
     const speed = extra.speed || 26;
     this.projectiles.push({
       pos: origin.clone(),
@@ -301,13 +301,13 @@ export class CombatDirector {
     if (this.onKill) this.onKill(enemy);
 
     // Drop generoso de proposito: entre uma sala e outra o jogador precisa
-    // de ar. Municao em 30% dos abates e contexto em 18%.
+    // de ar. Munição em 30% dos abates e contexto em 18%.
     const roll = Math.random();
     if (roll < 0.30) this.spawnPickup('ammo', enemy.position.x, enemy.position.z);
     else if (roll < 0.48) this.spawnPickup('health', enemy.position.x, enemy.position.z);
 
-    // A Ovelha se reproduz, mas so o modelo original. Os fine-tunes sao filhos
-    // e nao geram netos: sem essa regra a sala vira fabrica infinita e o
+    // A Ovelha se reproduz, mas só o modelo original. Os fine-tunes são filhos
+    // e não geram netos: sem essa regra a sala vira fabrica infinita e o
     // jogador conclui, com razao, que o inimigo cinza e imortal.
     if (enemy.def.onDeath === 'spawn_finetune' && (enemy.generation || 0) === 0) {
       const perto = this.enemies.filter(e =>
@@ -348,7 +348,7 @@ export class CombatDirector {
   // Pickups
   // ------------------------------------------------------------------
   spawnPickup(kind, x, z) {
-    // teto de drops no chao: sem isso a cena enche de objeto girando
+    // teto de drops no chão: sem isso a cena enche de objeto girando
     const MAX_PICKUPS = 14;
     while (this.pickups.length >= MAX_PICKUPS) {
       const velho = this.pickups.shift();
@@ -364,7 +364,7 @@ export class CombatDirector {
     if (!def) return;
 
     // O modelo vem do tipo do item (js/world/itens.js). Antes tudo era o mesmo
-    // octaedro com a cor trocada, e de longe cor nao informa nada.
+    // octaedro com a cor trocada, e de longe cor não informa nada.
     const item = construirItem(kind, def.color, x, z, glowTexture(def.color));
     this.scene.add(item.group);
     this.pickups.push({ kind, group: item.group, core: item.interno, halo: item.halo, x, z, spin: Math.random() * 6.28 });
@@ -407,7 +407,7 @@ export class CombatDirector {
         }
       }
 
-      // aliado: so atirador caotico (grok) acerta os proprios aliados
+      // aliado: só atirador caotico (grok) acerta os próprios aliados
       const ownerIsChaotic = p.owner && p.owner.def && (p.owner.def.friendlyFire || 0) > 0;
       if (!remove && ownerIsChaotic) {
         for (const e of this.enemies) {
@@ -426,7 +426,7 @@ export class CombatDirector {
       if (remove) this.projectiles.splice(i, 1);
     }
 
-    // tracers: so decaem
+    // tracers: só decaem
     for (let i = this.tracers.length - 1; i >= 0; i--) {
       this.tracers[i].life -= dt;
       if (this.tracers[i].life <= 0) this.tracers.splice(i, 1);
@@ -445,8 +445,8 @@ export class CombatDirector {
       s.sprite.scale.set(sc, sc, 1);
     }
 
-    // pickups: giram devagar e flutuam. Sem rotacao em X: com forma propria
-    // (caixa, capsula, arma) o item capotava no chao e ficava de cabeca pra baixo.
+    // pickups: giram devagar e flutuam. Sem rotacao em X: com forma própria
+    // (caixa, capsula, arma) o item capotava no chão e ficava de cabeca pra baixo.
     for (const pk of this.pickups) {
       pk.spin += dt * 1.1;
       pk.core.rotation.y = pk.spin;
@@ -462,7 +462,7 @@ export class CombatDirector {
     if (!playerStats) return;
     const dealt = playerStats.takeDamage(p.damage);
     if (dealt === -1) {
-      if (this.feed) this.feed.push('DROPOUT: o projetil atravessou voce', 'warn');
+      if (this.feed) this.feed.push('DROPOUT: o projetil atravessou você', 'warn');
       return;
     }
     if (dealt <= 0) return;
@@ -483,7 +483,7 @@ export class CombatDirector {
       m.compose(p.pos, q, this._one);
       this.projMesh.setMatrixAt(i, m);
     });
-    // as instancias que sobraram vao para fora do mundo
+    // as instâncias que sobraram vao para fora do mundo
     for (let i = this.projectiles.length; i < MAX_PROJECTILES; i++) {
       m.compose(this._hidden, q, this._tiny);
       this.projMesh.setMatrixAt(i, m);

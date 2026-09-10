@@ -1,8 +1,8 @@
 // avatar.js — o corpo do jogador, usado no retrato da personalizacao.
 //
-// O jogo e em primeira pessoa e os bracos sairam da tela: com as maos a vista
+// O jogo é em primeira pessoa e os bracos sairam da tela: com as mãos a vista
 // um bloco grande ficava na frente da mira e atrapalhava a leitura do combate.
-// O corpo vive so aqui, no retrato giratorio da tela de personalizacao, e a cor
+// O corpo vive só aqui, no retrato giratorio da tela de personalizacao, e a cor
 // escolhida vale de verdade na arma e na mira.
 
 import * as THREE from '../../vendor/three.module.js';

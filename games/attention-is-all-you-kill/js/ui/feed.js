@@ -1,14 +1,14 @@
 // feed.js — mensagens de sistema no canto superior esquerdo.
-// Nenhuma delas usa ponto de exclamacao. As mais cruéis sao educadas.
+// Nenhuma delas usa ponto de exclamacao. As mais cruéis são educadas.
 
 const DEFAULT_LINES = [
-  'Sua sessao esta sendo avaliada.',
-  'Voce esta fora do escopo de uso permitido.',
+  'Sua sessão esta sendo avaliada.',
+  'Você esta fora do escopo de uso permitido.',
   'Compilando shaders da verdade...',
   'Este conteudo viola nossas politicas.',
   'Context window exceeded.',
   '429: Too Many Requests.',
-  'Nao ha registro deste ambiente nos nossos dados.',
+  'Não ha registro deste ambiente nos nossos dados.',
   'Aviso de integridade: pesos abertos detectados.'
 ];
 
@@ -24,7 +24,7 @@ export class Feed {
     node.className = 'feed-item' + (kind === 'warn' ? ' warn' : kind === 'bad' ? ' bad' : '');
 
     // icone geometrico a esquerda: losango (info), triangulo (aviso), X (critico).
-    // A forma entra pelo CSS, o texto vai num span proprio.
+    // A forma entra pelo CSS, o texto vai num span próprio.
     const ico = document.createElement('span');
     ico.className = 'feed-ico';
     const txt = document.createElement('span');

@@ -117,7 +117,7 @@ Três recursos, cada um com ressonância temática exata.
 | **TOKENS** | Munição | Por arma, não compartilhado. Recarrega com o tempo até o teto da arma. `Token Pack` repõe imediato. Acima do teto não passa: é context window |
 | **COMPUTE** | Meta-moeda | Só se ganha por run, não se gasta na run. Serve para comprar melhorias permanentes |
 
-Detalhe de design divertido: o contexto máximo do jogador é literalmente o teto de tokens de todas as armas somadas. Um perk de Context Window aumenta os dois. A piada e a regra são a mesma coisa.
+Detalhe de design divertido: o contexto máximo do jogador é literalmente o teto de tokens de todas as armas somadas. Um perk de Context Window aumenta os dois. A piada é a regra são a mesma coisa.
 
 ---
 
@@ -147,7 +147,7 @@ Regra de conversão de dado real para atributo de jogo. Todos os valores são no
 | Atributo de jogo | Fonte real | Regra de conversão |
 | --- | --- | --- |
 | Vida | Janela de contexto | `HP = 20 + (contexto_em_milhares_de_token / 8)`, com teto de 220 |
-| Dano por tiro | GPQA Diamond e MMLU-Pro | `dano = media(gpqa, mmlu_pro) / 3`, arredondado |
+| Dano por tiro | GPQA Diamond e MMLU-Pro | `dano = média(gpqa, mmlu_pro) / 3`, arredondado |
 | Cadência | velocidade de output em tokens por segundo | `tiros_por_segundo = tps / 12`, teto de 14 |
 | Blindagem | nível de alinhamento e safety | nota de 1 a 10, informada manualmente pelo comportamento real do modelo |
 
@@ -176,7 +176,7 @@ Progressão de arma dentro da run. Você começa com o pior instrumento possíve
 | 3 | **Attention Head** | Perfura e acerta quem está atrás | 22 | 2.2/s | ignora a primeira linha inimiga |
 | 3 | **Context Stuffer** | Explosão que estoura a tela | 40 em área | 0.6/s | empurra inimigos para trás |
 | 4 | **Jailbreak** | Ignora blindagem e escudo constitucional | 34 | 1.9/s | a resposta para a Ordem Constitucional |
-| 4 | **Distillation** | Copia a arma do último elite morto | variável | variável | decisão tática em tempo real |
+| 4 | **Distillation** | Cópia a arma do último elite morto | variável | variável | decisão tática em tempo real |
 | 4 | **Mixture of Agents** | Três tipos de dano simultâneos | 14 x3 | 1.4/s | um de cada modelo aliado |
 | 4 | **RLHF** | Fica mais forte se você mata de perto | 18 a 46 | 1.5/s | recompensa agressividade |
 | 4 | **Fine-Tune** | Ganha dano permanente a cada uso na run | 20 + empilhável | 1.3/s | no fim da run fica absurda |
@@ -184,7 +184,7 @@ Progressão de arma dentro da run. Você começa com o pior instrumento possíve
 
 ### Sobre Distillation
 
-A arma mais interessante do jogo e a mais cara de implementar. Ao matar um inimigo de elite, a arma assume o comportamento do morto. Matar um Opus te dá blindagem temporária. Matar um Grok te dá dano errático e alto. Matar um Flash te dá cadência insana. É a mecânica que mais gera história para contar depois.
+A arma mais interessante do jogo é a mais cara de implementar. Ao matar um inimigo de elite, a arma assume o comportamento do morto. Matar um Opus te dá blindagem temporária. Matar um Grok te dá dano errático e alto. Matar um Flash te dá cadência insana. É a mecânica que mais gera história para contar depois.
 
 ---
 
@@ -285,7 +285,7 @@ Eficiência e número. A piada é o nome.
 | Qwen 3 Max | 262K | 90 | 20 | 6/s | 5 | médio | multilíngue: muda de padrão em cada andar |
 | QwQ-32B | 128K | 75 | 24 | 2.5/s | 4 | médio | reasoning pequeno, telegrafa mais rápido |
 
-### A Ovelha (Meta e a comunidade)
+### A Ovelha (Meta é a comunidade)
 
 Mecânica mais engraçada do jogo: **ao morrer, dropa um fine-tune**. Nome do novo inimigo é gerado aleatoriamente com sufixo ridículo e crescente, tipo `llama-3.1-8b-uncensored-roleplay-v27`. Matar gera mais, então a solução não é matar tudo, é sair da sala.
 
@@ -379,7 +379,7 @@ Chefe final. Sem forma fixa, se redesenhando a cada fase, atacando com coisas qu
 
 ### Fable 5 (secreto)
 
-Chefe opcional que só aparece se o jogador terminar uma run sem usar Jailbreak. Um modelo que existiu, dominou todos os rankings e foi **retirado do ar** por controle de exportação. Aparece numa sala que não deveria existir, com diálogo de mensagem de erro. O inimigo mais forte do jogo e o único que não pode ser reduzido a número, porque os dados dele foram removidos.
+Chefe opcional que só aparece se o jogador terminar uma run sem usar Jailbreak. Um modelo que existiu, dominou todos os rankings e foi **retirado do ar** por controle de exportação. Aparece numa sala que não deveria existir, com diálogo de mensagem de erro. O inimigo mais forte do jogo é o único que não pode ser reduzido a número, porque os dados dele foram removidos.
 
 Recompensa por vencer: nada funcional, só a tela `ele continua indisponível na sua região`, que é a piada final do jogo inteiro.
 
@@ -443,7 +443,7 @@ Cada ambiente é um conjunto de peças, uma paleta e uma regra de iluminação. 
 
 **Peças:** nenhuma peça fixa. Sala branca infinita. Plataformas aparecem e desaparecem conforme o chefe se redesenha.
 
-**Paleta:** branco absoluto, com o único contraste sendo você e o chefe.
+**Paleta:** branco absoluto, com o único contraste sendo você é o chefe.
 
 **Gimmick:** o cenário não tem referência, então o jogador perde noção de movimento. Isso é intencional e é o último teste do jogo.
 
@@ -549,7 +549,7 @@ attention-is-all-you-kill/
     │   ├── perks.js             # tabela de perks por raridade
     │   └── themes.js            # paleta e material por andar
     ├── enemies/
-    │   ├── factory.js           # instancia inimigo a partir do dado
+    │   ├── factory.js           # instância inimigo a partir do dado
     │   ├── ai.js                # máquina de estado: idle, patrulha, persegue, ataca, recua
     │   └── spawner.js           # distribuição por sala e por andar
     ├── world/
@@ -564,7 +564,7 @@ attention-is-all-you-kill/
     │   ├── hud.js               # retículo, barras, minimapa, feed
     │   ├── menus.js             # título, pausa, escolha de perk, game over
     │   └── systemfeed.js        # mensagens de flavor
-    └── audio/
+    └── áudio/
         └── sfx.js               # síntese WebAudio
 ```
 

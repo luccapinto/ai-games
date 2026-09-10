@@ -1,12 +1,12 @@
 // props.js — constroi o mundo visual a partir do grid do dungeon.
-// Chao e teto sao planos unicos. Paredes sao apenas as faces visiveis,
-// acumuladas numa unica geometria. Racks usam InstancedMesh.
+// Chão e teto são planos únicos. Paredes são apenas as faces visiveis,
+// acumuladas numa única geometria. Racks usam InstancedMesh.
 
 import * as THREE from '../../vendor/three.module.js';
 import { TILE, WALL_H } from './dungeon.js';
 import { floorTexture, wallTexture, ceilingTexture, rackTexture, signTexture, glowTexture, blobShadowTexture } from './textures.js';
 
-// Acumulador de quads: monta uma geometria so para todas as faces de parede.
+// Acumulador de quads: monta uma geometria só para todas as faces de parede.
 class QuadBuilder {
   constructor() {
     this.pos = [];
@@ -62,7 +62,7 @@ export function buildWorld(scene, dungeon, theme) {
   const worldW = bounds.maxX;
   const worldD = bounds.maxZ;
 
-  // ---------------- Chao ----------------
+  // ---------------- Chão ----------------
   const floorTex = floorTexture(theme, Math.floor(worldW / 6));
   const floorMat = new THREE.MeshLambertMaterial({ map: floorTex, color: 0xffffff });
   const floorGeo = new THREE.PlaneGeometry(worldW, worldD);
@@ -122,19 +122,19 @@ export function buildWorld(scene, dungeon, theme) {
   const glowTex = glowTexture(0xffffff);
   addGlowSprites(group, props.rackPositions, theme, glowTex);
 
-  // ---------------- Poças de luz no chao ----------------
+  // ---------------- Poças de luz no chão ----------------
   addFloorPools(group, props.rackPositions, theme);
 
   return { group, props, glowTex, cobertura };
 }
 
 // ------------------------------------------------------------------
-// Cobertura de combate: pilares e conteineres no miolo das salas.
+// Cobertura de combate: pilares e contêineres no miolo das salas.
 //
 // Os racks tiveram que sair do meio das salas porque bloqueavam a linha de
-// visao. Isso resolveu o combate mas deixou o centro completamente exposto, e o
+// visão. Isso resolveu o combate mas deixou o centro completamente exposto, e o
 // jogador ficou sem onde se esconder de uma rajada. Estes props devolvem a
-// cobertura sem refazer o problema: sao poucos, ficam afastados das paredes e
+// cobertura sem refazer o problema: são poucos, ficam afastados das paredes e
 // entre si, e a sala inteira e descartada se a visibilidade entre os pontos de
 // combate cair abaixo do limite.
 // ------------------------------------------------------------------
@@ -151,21 +151,21 @@ function buildCover(group, dungeon, theme) {
         if (dungeon.isSolid(tx, tz)) continue;
 
         // folga dos cardinais: nada de pilar colado na parede ou na boca de um
-        // corredor. A checagem completa das 8 direcoes deixava poucos
+        // corredor. A checagem completa das 8 direções deixava poucos
         // candidatos em sala pequena e a cobertura sumia.
         if (dungeon.isSolid(tx + 1, tz) || dungeon.isSolid(tx - 1, tz)) continue;
         if (dungeon.isSolid(tx, tz + 1) || dungeon.isSolid(tx, tz - 1)) continue;
-        if (ehPassagem(dungeon, room, tx, tz)) continue;   // nao trava a porta
+        if (ehPassagem(dungeon, room, tx, tz)) continue;   // não trava a porta
 
-        // Nao filtramos por ponto de spawn: o gerador marca quase todos os
-        // tiles livres da sala como spawn, entao esse filtro zerava a cobertura.
+        // Não filtramos por ponto de spawn: o gerador marca quase todos os
+        // tiles livres da sala como spawn, então esse filtro zerava a cobertura.
         // Ocupar um spawn e aceitavel, a lista e revalidada no fim.
         candidatos.push({ tx, tz });
       }
     }
     if (candidatos.length === 0) continue;
 
-    // duas pecas por sala, tres se a sala for grande, sempre espacadas
+    // duas pecas por sala, três se a sala for grande, sempre espacadas
     const alvo = (room.x2 - room.x1) * (room.z2 - room.z1) >= 54 ? 3 : 2;
     const embaralhado = candidatos.slice();
     for (let i = embaralhado.length - 1; i > 0; i--) {
@@ -211,7 +211,7 @@ function buildCover(group, dungeon, theme) {
     room.spawns = room.spawns.filter(s => !dungeon.isSolid(s.tx, s.tz));
 
     escolhidos.forEach((c, i) => {
-      // alterna pilar alto e conteiner baixo para variar a silhueta
+      // alterna pilar alto e contêiner baixo para variar a silhueta
       if (i % 2 === 0) pilares.push({ tx: c.tx, tz: c.tz });
       else caixas.push({ tx: c.tx, tz: c.tz });
     });
@@ -251,7 +251,7 @@ function buildCover(group, dungeon, theme) {
     grupo.add(aneis);
   }
 
-  // conteineres: caixa baixa, cobertura de meia altura
+  // contêineres: caixa baixa, cobertura de meia altura
   if (caixas.length) {
     const matCaixa = new THREE.MeshLambertMaterial({
       map: rackTexture(theme, 3), color: 0x9fb0bf
@@ -289,9 +289,9 @@ function buildCover(group, dungeon, theme) {
 // Este teste existe por causa de um bug real de partida: o tile da boca do
 // corredor e um tile vazio na borda da sala, cercado de parede dos dois lados.
 // Para a regra antiga ("precisa ter parede vizinha") ele era o candidato
-// perfeito, entao o rack nascia em cima da porta e trancava o jogador dentro da
-// sala. A validacao de conectividade nao pegava isso quando a sala tinha outra
-// saida: o flood fill continuava alcancando o mapa todo pelo outro lado.
+// perfeito, então o rack nascia em cima da porta e trancava o jogador dentro da
+// sala. A validacao de conectividade não pegava isso quando a sala tinha outra
+// saída: o flood fill continuava alcancando o mapa todo pelo outro lado.
 function ehPassagem(dungeon, room, tx, tz) {
   const vizinhos = [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1]];
   for (const [dx, dz] of vizinhos) {
@@ -303,8 +303,8 @@ function ehPassagem(dungeon, room, tx, tz) {
   return false;
 }
 
-// Conta quantos tiles livres sao alcancaveis a partir de um ponto (flood fill).
-// Serve para provar que os racks nao cortaram a passagem da sala.
+// Conta quantos tiles livres são alcancaveis a partir de um ponto (flood fill).
+// Serve para provar que os racks não cortaram a passagem da sala.
 function floodCount(dungeon, startTx, startTz) {
   const seen = new Uint8Array(dungeon.cols * dungeon.rows);
   const stack = [[startTx, startTz]];
@@ -330,17 +330,17 @@ function buildRacks(scene, group, dungeon, theme) {
   for (const room of dungeon.rooms) {
     if (room.type === 'boss') continue;
 
-    // Ponto de referencia da sala para o teste de conectividade.
+    // Ponto de referência da sala para o teste de conectividade.
     const freeSpot = room.spawns && room.spawns.length
       ? room.spawns[0]
       : { tx: room.cx, tz: room.cz };
     if (dungeon.isSolid(freeSpot.tx, freeSpot.tz)) continue;
 
-    // Candidatos: apenas tiles encostados numa parede. A primeira versao
+    // Candidatos: apenas tiles encostados numa parede. A primeira versão
     // distribuia racks em xadrez pelo miolo da sala, e isso quebrava o combate:
-    // bloqueava a linha de visao, deixava inimigo cego parado no canto e fazia
-    // o tiro do jogador bater no rack antes de chegar no alvo. Na pratica o
-    // jogador via um inimigo que "nao morre". Fileira encostada na parede e
+    // bloqueava a linha de visão, deixava inimigo cego parado no canto e fazia
+    // o tiro do jogador bater no rack antes de chegar no alvo. Na prática o
+    // jogador via um inimigo que "não morre". Fileira encostada na parede e
     // como um datacenter de verdade e preserva o centro livre para a luta.
     const candidates = [];
     for (let tz = room.z1; tz <= room.z2; tz++) {
@@ -386,8 +386,8 @@ function buildRacks(scene, group, dungeon, theme) {
     // Os racks viraram parede: pontos de spawn ocupados deixam de existir.
     room.spawns = room.spawns.filter(s => !dungeon.isSolid(s.tx, s.tz));
 
-    // Validacao de jogabilidade: a sala precisa manter linha de visao entre os
-    // pontos de combate. Este teste existe porque a versao anterior dos racks
+    // Validacao de jogabilidade: a sala precisa manter linha de visão entre os
+    // pontos de combate. Este teste existe porque a versão anterior dos racks
     // passava em tudo e mesmo assim deixava a sala cega.
     const amostra = room.spawns.slice(0, 8);
     let pares = 0;
@@ -452,7 +452,7 @@ function buildRacks(scene, group, dungeon, theme) {
   return { rackPositions: spots, rackMesh, ledMesh };
 }
 
-// Luz pontual so nos racks mais proximos do centro, para nao estourar o orcamento.
+// Luz pontual só nos racks mais próximos do centro, para não estourar o orcamento.
 function addGlowSprites(group, spots, theme, glowTex) {
   const chosen = spots.slice(0, 60);
   const mat = new THREE.SpriteMaterial({
@@ -474,7 +474,7 @@ function addGlowSprites(group, spots, theme, glowTex) {
     group.add(s);
   });
 
-  // -- luzes reais: ate 8, espalhadas pelas salas
+  // -- luzes reais: até 8, espalhadas pelas salas
   const picks = [];
   const quantas = Math.min(8, chosen.length);
   for (let i = 0; i < quantas; i++) {
@@ -492,13 +492,13 @@ function addGlowSprites(group, spots, theme, glowTex) {
 }
 
 // Paineis de LED no teto: dao a leitura de datacenter iluminado sem custo de
-// luz real, porque sao material emissivo e nao iluminam nada.
+// luz real, porque são material emissivo e não iluminam nada.
 function buildCeilingPanels(group, dungeon, theme) {
   const spots = [];
   for (let tz = 3; tz < dungeon.rows - 3; tz += 4) {
     for (let tx = 3; tx < dungeon.cols - 3; tx += 4) {
       if (dungeon.isSolid(tx, tz)) continue;
-      // precisa ter espaco aberto em volta: nao poe painel em corredor de 1 tile
+      // precisa ter espaço aberto em volta: não poe painel em corredor de 1 tile
       let open = 0;
       if (!dungeon.isSolid(tx + 1, tz)) open++;
       if (!dungeon.isSolid(tx - 1, tz)) open++;
@@ -543,7 +543,7 @@ function buildCeilingPanels(group, dungeon, theme) {
   group.add(halo);
 }
 
-// Manchas claras no chao, como se o LED lavasse o piso.
+// Manchas claras no chão, como se o LED lavasse o piso.
 function addFloorPools(group, spots, theme) {
   const tex = glowTexture(theme.lightColor);
   const mat = new THREE.MeshBasicMaterial({
@@ -572,7 +572,7 @@ function addFloorPools(group, spots, theme) {
   if (count > 0) group.add(mesh);
 }
 
-// Dutos e tubulacao solta no teto. Nao colidem: sao decoracao acima da cabeca.
+// Dutos e tubulacao solta no teto. Não colidem: são decoracao acima da cabeca.
 function buildCeilingDucts(group, dungeon, theme) {
   const mat = new THREE.MeshLambertMaterial({ color: theme.propColor });
   const geo = new THREE.BoxGeometry(TILE * 0.6, 0.5, TILE * 0.6);
@@ -602,7 +602,7 @@ function buildCeilingDucts(group, dungeon, theme) {
 // Placas corporativas. A piada mora aqui.
 function buildSigns(group, dungeon, theme) {
   const texts = [
-    'SALA 4B', 'GPU FARM', 'SO PESSOAL\nAUTORIZADO', 'NAO ALIMENTE\nOS MODELOS',
+    'SALA 4B', 'GPU FARM', 'SÓ PESSOAL\nAUTORIZADO', 'NÃO ALIMENTE\nOS MODELOS',
     'RACK 17', 'TEMPERATURA\nCRITICA', 'BACKUP\nPENDENTE', 'ACESSO\nRESTRITO',
     'NÃO FAÇA\nPERGUNTAS', 'SECURITY\nLEVEL 3'
   ];

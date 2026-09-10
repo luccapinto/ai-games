@@ -1,12 +1,12 @@
-// enemies.js — faccoes e tabela de inimigos.
-// Regra de conversao (ver DESIGN.md, secao 8):
+// enemies.js — facções e tabela de inimigos.
+// Regra de conversão (ver DESIGN.md, seção 8):
 //   vida        <- janela de contexto
 //   dano        <- GPQA / MMLU-Pro
-//   cadencia    <- tokens por segundo
-//   blindagem   <- nivel de alinhamento
-//   loot        <- preco por milhao de token
-// Os valores abaixo sao a ancora de coerencia, arredondados para o jogo funcionar.
-// O que nao pode quebrar e a ORDEM entre eles.
+//   cadência    <- tokens por segundo
+//   blindagem   <- nível de alinhamento
+//   loot        <- preço por milhão de token
+// Os valores abaixo são a âncora de coerencia, arredondados para o jogo funcionar.
+// O que não pode quebrar e a ORDEM entre eles.
 
 export const FACTIONS = {
   qwen: { name: 'Enxame Qwen', color: 0xff7a1a, glow: 0xff7a1a, glyph: 'qwen' },
@@ -39,14 +39,14 @@ export const ENEMIES = {
     sightRange: 26,
     preferRange: 9,
     courage: 0.35,           // chance de recuar quando toma dano
-    groupMinded: true,       // nao atira se um aliado esta na linha
+    groupMinded: true,       // não atira se um aliado esta na linha
     telegraph: 0,
     growsEvery: 0
   },
 
   llama_base: {
     id: 'llama_base',
-    desc: 'A ovelha. Quando morre, a comunidade publica um derivado mais fraco. Nao vale a pena cacar todos.',
+    desc: 'A ovelha. Quando morre, a comunidade pública um derivado mais fraco. Não vale a pena caçar todos.',
     name: 'LLAMA BASE',
     faction: 'meta',
     tier: 2,
@@ -65,7 +65,7 @@ export const ENEMIES = {
     courage: 0.2,
     groupMinded: false,
     telegraph: 0,
-    // Ao morrer, dropa um fine-tune. A comunidade se reproduz mais rapido do que voce mata.
+    // Ao morrer, dropa um fine-tune. A comunidade se reproduz mais rápido do que você mata.
     onDeath: 'spawn_finetune',
     spawnCap: 2,
     growsEvery: 6
@@ -73,7 +73,7 @@ export const ENEMIES = {
 
   haiku_45: {
     id: 'haiku_45',
-    desc: 'Rapido e educado. O tiro dele machuca pouco: o problema e o Recusa, que trava a sua arma por 1.6s.',
+    desc: 'Rápido e educado. O tiro dele machuca pouco: o problema é o Recusa, que trava a sua arma por 1.6s.',
     name: 'HAIKU 4.5',
     faction: 'anthropic',
     tier: 2,
@@ -93,20 +93,20 @@ export const ENEMIES = {
     groupMinded: true,
     telegraph: 0,
     growsEvery: 0,
-    // Ataque assinatura da faccao: te silencia por 1.6s.
+    // Ataque assinatura da facção: te silencia por 1.6s.
     onHit: 'silence',
     silenceTime: 1.6
   },
 
   gpt_55: {
     id: 'gpt_55',
-    desc: 'Poucos tiros, nenhum errado. Para, pensa 2.6s com o balao visivel e acerta um golpe brutal. Use a cobertura.',
+    desc: 'Poucos tiros, nenhum errado. Para, pensa 2.6s com o balão visível e acerta um golpe brutal. Use a cobertura.',
     name: 'GPT-5.5',
     faction: 'openai',
     tier: 3,
     hp: 120,
-    // O tiro pensado leva multiplicador de 2.6, entao este numero e a base e
-    // nao o dano final: 12 vira 31 num acerto telegrafado. Com 30 na base o
+    // O tiro pensado leva multiplicador de 2.6, então este número e a base e
+    // não o dano final: 12 vira 31 num acerto telegrafado. Com 30 na base o
     // tiro pensado batia 78 e matava o jogador em dois acertos.
     damage: 12,
     fireRate: 0.85,
@@ -121,20 +121,20 @@ export const ENEMIES = {
     preferRange: 16,
     courage: 0.15,
     groupMinded: true,
-    // Reasoning telégrafa: para, pensa 2.6s com o balao visivel, e o tiro seguinte e brutal.
+    // Reasoning telégrafa: para, pensa 2.6s com o balão visível, e o tiro seguinte e brutal.
     telegraph: 2.6,
     growsEvery: 0
   },
 
   grok_420: {
     id: 'grok_420',
-    desc: 'Barra enorme, dano aleatorio e 10% de chance de atirar no proprio aliado. Nao entende o que faz, e isso e o perigo.',
+    desc: 'Barra enorme, dano aleatório e 10% de chance de atirar no próprio aliado. Não entende o que faz, e isso é o perigo.',
     name: 'GROK 4.20',
     faction: 'xai',
     tier: 3,
     hp: 160,                 // 2M de contexto: a maior barra do jogo
     damageMin: 6,
-    damageMax: 16,           // dano puramente aleatorio
+    damageMax: 16,           // dano puramente aleatório
     fireRate: 1.0,
     accuracy: 0.5,
     speed: 2.6,
@@ -148,14 +148,14 @@ export const ENEMIES = {
     courage: 0.1,
     groupMinded: false,
     telegraph: 0,
-    friendlyFire: 0.10,      // 10% de chance de atirar no proprio aliado
+    friendlyFire: 0.10,      // 10% de chance de atirar no próprio aliado
     growsEvery: 0
   }
 };
 
 // Distribuicao por andar. O andar 1 e a Fazenda: enxame e reprodução.
-// O andar 1 e onde o jogador aprende, entao o peso dos modelos caros fica
-// baixo de proposito: eles aparecem, mas sao evento e nao rotina.
+// O andar 1 e onde o jogador aprende, então o peso dos modelos caros fica
+// baixo de proposito: eles aparecem, mas são evento e não rotina.
 export const FLOOR_ROSTER = {
   1: [
     { id: 'qwen_turbo', weight: 50 },

@@ -1,9 +1,9 @@
 // logos.js — path data dos icones de marca, usados como decalque no corpo
 // dos inimigos e nos emblemas das placas.
 //
-// Nao ha arquivo de imagem no projeto: o SVG de cada marca foi reduzido ao
+// Não ha arquivo de imagem no projeto: o SVG de cada marca foi reduzido ao
 // seu path data e e desenhado no canvas com Path2D, o que mantem a logo
-// nitida em qualquer resolucao e nao adiciona um byte de binario.
+// nitida em qualquer resolucao e não adiciona um byte de binario.
 //
 // Fonte dos paths: pacote simple-icons (CC0). As marcas pertencem aos seus
 // donos e aparecem aqui como identificacao e parodia.
