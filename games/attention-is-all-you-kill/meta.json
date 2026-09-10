@@ -1,8 +1,8 @@
 {
   "slug": "attention-is-all-you-kill",
-  "título": "ATTENTION IS ALL YOU KILL",
-  "subtítulo": "FPS roguelike em que os inimigos são modelos de linguagem",
-  "gênero": "FPS roguelike",
+  "titulo": "ATTENTION IS ALL YOU KILL",
+  "subtitulo": "FPS roguelike em que os inimigos são modelos de linguagem",
+  "genero": "FPS roguelike",
   "plataforma": "Navegador, desktop e celular",
   "estado": "jogável",
   "criado": "2026-09-10",
@@ -45,7 +45,7 @@
     "Publicado sem abrir porta nenhuma: nginx local atrás de túnel Cloudflare"
   ],
   "arquivos_chave": {
-    "documentação": "DESIGN.md",
+    "documentacao": "DESIGN.md",
     "dados_de_balanceamento": "js/data/enemies.js",
     "silhuetas": "js/enemies/silhuetas.js"
   }

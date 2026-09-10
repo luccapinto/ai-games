@@ -12,7 +12,7 @@ and playable, with the model that wrote it and what it cost recorded next to it.
 
 | Jogo | Gênero | IA | Custo | Jogar |
 | --- | --- | --- | --- | --- |
-| **ATTENTION IS ALL YOU KILL** [`attention-is-all-you-kill`](games/attention-is-all-you-kill/README.md) | FPS roguelike | deepseek-flash | US$ 1,03 | [jogar](games/attention-is-all-you-kill/) |
+| **attention-is-all-you-kill** [`attention-is-all-you-kill`](games/attention-is-all-you-kill/README.md) |  | deepseek-flash | US$ 1,03 | [jogar](games/attention-is-all-you-kill/) |
 
 ## Como este repositório se organiza
 
@@ -55,7 +55,7 @@ uma ordem de grandeza maior.
 
 ## Os jogos por dentro
 
-### attention-is-all-you-kill
+### ATTENTION IS ALL YOU KILL
 
 Você é uma sessão de inferência invadindo um datacenter. Cada inimigo é um modelo real, com poder derivado dos próprios números públicos dele: a vida vem do contexto declarado, o dano do GPQA, a cadência dos tokens por segundo, o espalhamento da taxa de alucinação e o loot do preço por milhão de tokens. Descer três andares leva ao chefe THE FINE-TUNER.
 
