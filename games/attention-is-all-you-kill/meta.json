@@ -1,0 +1,52 @@
+{
+  "slug": "attention-is-all-you-kill",
+  "titulo": "ATTENTION IS ALL YOU KILL",
+  "subtitulo": "FPS roguelike em que os inimigos sao modelos de linguagem",
+  "genero": "FPS roguelike",
+  "plataforma": "Navegador, desktop e celular",
+  "estado": "jogavel",
+  "criado": "2026-09-10",
+  "capa": "capa.jpg",
+  "url": "https://attention.luccabuilds.com",
+  "resumo": "Voce e uma sessao de inferencia invadindo um datacenter. Cada inimigo e um modelo real, com poder derivado dos proprios numeros publicos dele: a vida vem do contexto declarado, o dano do GPQA, a cadencia dos tokens por segundo, o espalhamento da taxa de alucinacao e o loot do preco por milhao de tokens. Descer tres andares leva ao chefe THE FINE-TUNER.",
+  "ia": {
+    "agente": "Hermes Agent (Talos)",
+    "modelo": "deepseek-flash",
+    "provider": "DeepSeek",
+    "interacao": "conversa em portugues, com o usuario testando cada build no navegador e reportando bugs em primeira mao"
+  },
+  "custo": {
+    "usd_estimado": 0.9,
+    "medido_em": "2026-09-10",
+    "fonte": "contabilidade de billing do Hermes (session_model_usage)",
+    "chamadas_api": 555,
+    "tokens_entrada": 1076471,
+    "tokens_saida": 544694,
+    "tokens_cache_leitura": 138365440,
+    "nota": "O cache domina a contagem porque cada turno reenvia o contexto acumulado. Custo estimado com a tabela de precos do provider configurado, nao e a fatura."
+  },
+  "stack": [
+    "JavaScript (ES modules nativos)",
+    "Three.js",
+    "Web Audio API",
+    "Canvas 2D"
+  ],
+  "tamanho": {
+    "linhas_proprias": 7653,
+    "mb": 2.5,
+    "assets_binarios": 0
+  },
+  "destaques": [
+    "Um atributo de jogo para cada numero publico do modelo: contexto vira vida, GPQA vira dano, tokens por segundo viram cadencia, alucinacao vira espalhamento e preco por milhao vira loot",
+    "Zero arquivo de asset: texturas desenhadas em canvas, som sintetizado em WebAudio e as logos das marcas embutidas como path data vetorial",
+    "Cinco silhuetas distintas, uma por faccao, para o jogador reconhecer o inimigo pela forma antes de ler o nome",
+    "Chefe THE FINE-TUNER com ancoras destrutiveis, janelas de vulnerabilidade e leque telegrafado",
+    "Manual e tutorial gerados a partir dos dados do proprio jogo, entao nao ficam desatualizados quando o balanceamento muda",
+    "Publicado sem abrir porta nenhuma: nginx local atras de tunel Cloudflare"
+  ],
+  "arquivos_chave": {
+    "documentacao": "DESIGN.md",
+    "dados_de_balanceamento": "js/data/enemies.js",
+    "silhuetas": "js/enemies/silhuetas.js"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "name": "attention-is-all-you-kill",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "FPS roguelike sobre pesos abertos descendo o datacenter de quem te chama de brinquedo.",
+  "scripts": {
+    "serve": "python3 -m http.server 8123"
+  }
+}

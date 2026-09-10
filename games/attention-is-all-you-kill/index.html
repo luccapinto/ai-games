@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<title>ATTENTION IS ALL YOU KILL</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<canvas id="game"></canvas>
+
+<!-- ================= HUD ================= -->
+<div id="hud" class="hidden">
+
+  <div class="hud-topleft">
+    <div id="feed"></div>
+  </div>
+
+  <div class="hud-topcenter">
+    <span id="floor-label">ANDAR 1</span>
+    <span class="sep">/</span>
+    <span id="room-label">SALA 1</span>
+    <span class="sep">/</span>
+    <span id="kill-label">0 ABATES</span>
+  </div>
+
+  <div class="hud-topright">
+    <canvas id="minimap" width="200" height="200"></canvas>
+    <div id="boss-bar" class="hidden">
+      <span id="boss-name">THE FINE-TUNER</span>
+      <div class="boss-track"><div id="boss-fill"></div></div>
+    </div>
+  </div>
+
+  <div id="crosshair">
+    <span class="ch-dot"></span>
+    <span class="ch-l ch-t"></span>
+    <span class="ch-l ch-b"></span>
+    <span class="ch-l ch-l"></span>
+    <span class="ch-l ch-r"></span>
+  </div>
+
+  <div class="hud-botleft">
+    <div class="stat-row">
+      <span class="stat-name">CONTEXTO</span>
+      <span class="stat-value" id="hp-value">100</span>
+    </div>
+    <div class="bar"><div id="hp-fill" class="bar-fill hp"></div></div>
+    <div id="hp-note" class="stat-note"></div>
+  </div>
+
+  <div class="hud-botright">
+    <div class="stat-row">
+      <span class="stat-name" id="weapon-name">PROMPT INJETOR</span>
+      <span class="stat-value" id="ammo-value">24</span>
+    </div>
+    <div class="bar slim"><div id="ammo-fill" class="bar-fill ammo"></div></div>
+    <div id="weapon-slots" class="slots"></div>
+  </div>
+
+  <div class="hud-botcenter">
+    <div id="perk-list"></div>
+  </div>
+
+  <div id="prompt-hint" class="hidden"></div>
+  <div id="damage-vignette"></div>
+  <div id="hit-marker"></div>
+</div>
+
+<!-- ================= MENU ================= -->
+<div id="menu" class="screen">
+  <div class="menu-inner">
+    <div class="logo-mark">ATTENTION</div>
+    <div class="logo-mark alt">IS ALL YOU KILL</div>
+    <p class="tagline">Um FPS roguelike sobre pesos abertos descendo o datacenter de quem te chama de brinquedo.</p>
+
+    <div id="menu-meta" class="meta-box">
+      <div class="meta-line">
+        <span>COMPUTE DISPONIVEL</span>
+        <span id="meta-compute" class="meta-value">0</span>
+      </div>
+      <div id="meta-upgrades" class="meta-upgrades"></div>
+    </div>
+
+    <button id="btn-play" class="btn-primary">INICIAR INFERENCIA</button>
+    <button id="btn-codex" class="btn-ghost">COMO JOGAR</button>
+    <button id="btn-skin" class="btn-ghost">PERSONALIZAR</button>
+    <button id="btn-tutorial" class="btn-ghost">TUTORIAL GUIADO</button>
+
+    <div class="controls">
+      <div><b>WASD</b> mover</div>
+      <div><b>MOUSE</b> mirar</div>
+      <div><b>CLIQUE</b> atirar</div>
+      <div><b>SHIFT</b> correr</div>
+      <div><b>ESPACO</b> pular</div>
+      <div><b>R</b> recarregar</div>
+      <div><b>1 2 3</b> trocar arma</div>
+      <div><b>ESC</b> pausar</div>
+    </div>
+
+    <p class="footnote">Construido por Lucca Pinto e Talos. Three.js local, sem dependencia externa.</p>
+  </div>
+</div>
+
+<!-- ================= PAUSA ================= -->
+<div id="pause" class="screen hidden">
+  <div class="menu-inner">
+    <div class="logo-mark small">PAUSA</div>
+    <p class="tagline" id="pause-sub">Sua sessao esta sendo avaliada.</p>
+    <button id="btn-resume" class="btn-primary">RETOMAR</button>
+    <button id="btn-abandon" class="btn-ghost">ABANDONAR RUN</button>
+  </div>
+</div>
+
+<!-- ================= PERKS ================= -->
+<div id="perks" class="screen hidden">
+  <div class="perks-inner">
+    <div class="perks-title">TOKENS PROCESSADOS</div>
+    <p class="perks-sub">Escolha um ajuste de pesos.</p>
+    <div id="perk-options" class="perk-options"></div>
+  </div>
+</div>
+
+<!-- ================= MORTE ================= -->
+<div id="death" class="screen hidden">
+  <div class="menu-inner">
+    <div class="death-code">MODEL DEPRECATED</div>
+    <div id="death-stats" class="death-stats"></div>
+    <p class="tagline">Pesos aprendidos preservados.</p>
+    <button id="btn-again" class="btn-primary">NOVA RUN</button>
+    <button id="btn-menu" class="btn-ghost">VOLTAR AO MENU</button>
+  </div>
+</div>
+
+<!-- ================= VITORIA ================= -->
+<div id="win" class="screen hidden">
+  <div class="menu-inner">
+    <div class="death-code win-code">ANDAR LIMPO</div>
+    <div id="win-stats" class="death-stats"></div>
+    <p class="tagline">O andar abaixo ja sabe que voce vem.</p>
+    <button id="btn-descend" class="btn-primary">DESCER</button>
+    <button id="btn-win-menu" class="btn-ghost">VOLTAR AO MENU</button>
+  </div>
+</div>
+
+<!-- ================= TUTORIAL ================= -->
+<div id="tutorial" class="hidden">
+  <div class="tut-caixa">
+    <div class="tut-topo">
+      <span id="tut-progresso">1 / 6</span>
+      <button id="btn-tut-pular" class="tut-pular">PULAR TUTORIAL</button>
+    </div>
+    <h3 id="tut-titulo">MOVIMENTO</h3>
+    <p id="tut-texto"></p>
+    <p id="tut-dica" class="tut-dica"></p>
+    <div class="tut-instrucao"><span class="tut-seta"></span><span id="tut-instrucao"></span></div>
+  </div>
+</div>
+
+<!-- ================= CODEX ================= -->
+<div id="codex" class="screen hidden">
+  <div class="codex-inner">
+    <div class="codex-cabeca">
+      <div class="logo-mark small">MANUAL</div>
+      <button id="btn-codex-fechar" class="btn-ghost">FECHAR</button>
+    </div>
+    <div id="codex-body" class="codex-body"></div>
+  </div>
+</div>
+
+<!-- ================= PERSONALIZACAO ================= -->
+<div id="skin" class="screen hidden">
+  <div class="skin-inner">
+    <div class="codex-cabeca">
+      <div class="logo-mark small">OPERADOR</div>
+      <button id="btn-skin-fechar" class="btn-ghost">VOLTAR</button>
+    </div>
+    <div class="skin-corpo">
+      <div class="skin-retrato">
+        <canvas id="skin-preview" width="340" height="340"></canvas>
+        <p class="skin-legenda">E assim que voce entra no datacenter.</p>
+      </div>
+      <div class="skin-opcoes">
+        <p class="codex-sub">A luz e o acabamento aparecem na arma que voce carrega e na sua mira.</p>
+        <div id="skin-paletas"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>

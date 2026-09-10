@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ai-games — jogos feitos com IA</title>
+<meta name="description" content="Jogos feitos conversando com IA, com o modelo que escreveu e o custo de cada um.">
+<style>
+  :root {
+    --bg: #05070d;
+    --painel: #0a1018;
+    --linha: #1b2c38;
+    --ink: #d8e6e4;
+    --muted: #6f8b88;
+    --neon: #35f0d8;
+    --ambar: #ffb347;
+    --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: var(--mono); line-height: 1.55;
+    background-image: radial-gradient(circle at 20% -10%, rgba(53,240,216,.08), transparent 45%),
+                      radial-gradient(circle at 90% 0%, rgba(255,179,71,.06), transparent 40%);
+    background-repeat: no-repeat;
+  }
+  .envelope { max-width: 1080px; margin: 0 auto; padding: 64px 22px 96px; }
+  header.topo { border-bottom: 1px solid var(--linha); padding-bottom: 28px; margin-bottom: 44px; }
+  .marca { font-size: 12px; letter-spacing: 6px; color: var(--neon); }
+  h1 { font-size: clamp(30px, 6vw, 52px); margin: 12px 0 10px; letter-spacing: -1px; }
+  .sub { color: var(--muted); max-width: 62ch; font-size: 14px; }
+  .numeros { display: flex; flex-wrap: wrap; gap: 30px; margin-top: 26px; }
+  .numeros div span { display: block; color: var(--muted); font-size: 10px; letter-spacing: 2px; }
+  .numeros div strong { font-size: 22px; color: var(--ambar); }
+
+  .jogo {
+    display: grid; grid-template-columns: minmax(0, 380px) 1fr; gap: 26px;
+    background: var(--painel); border: 1px solid var(--linha);
+    padding: 20px; margin-bottom: 28px; align-items: start;
+  }
+  .capa { width: 100%; display: block; border: 1px solid var(--linha); background: #000; }
+  .capa.vazia { aspect-ratio: 16/9; display: grid; place-items: center; color: var(--muted); font-size: 12px; }
+  .corpo h2 { margin: 0 0 4px; font-size: 21px; letter-spacing: .5px; }
+  .genero { color: var(--neon); font-size: 11px; letter-spacing: 2px; }
+  .resumo { color: #a9c0bd; font-size: 13px; margin: 14px 0; }
+  .destaques { margin: 0 0 18px; padding-left: 18px; color: var(--muted); font-size: 12px; }
+  .destaques li { margin-bottom: 5px; }
+  .ficha { display: flex; flex-wrap: wrap; gap: 22px; margin: 0 0 20px; padding: 14px 0;
+            border-top: 1px solid var(--linha); border-bottom: 1px solid var(--linha); }
+  .ficha dt { color: var(--muted); font-size: 10px; letter-spacing: 2px; }
+  .ficha dd { margin: 2px 0 0; font-size: 15px; }
+  footer { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+  .jogar { background: var(--neon); color: #04201c; font-weight: 700; padding: 11px 20px;
+            text-decoration: none; font-size: 12px; letter-spacing: 2px; }
+  .jogar:hover { filter: brightness(1.15); }
+  .secundario { color: var(--muted); text-decoration: none; font-size: 11px;
+                 letter-spacing: 1px; border-bottom: 1px solid var(--linha); padding-bottom: 1px; }
+  .secundario:hover { color: var(--ink); border-color: var(--neon); }
+  footer.rodape { border-top: 1px solid var(--linha); margin-top: 50px; padding-top: 22px;
+                   color: var(--muted); font-size: 11px; }
+  footer.rodape a { color: var(--neon); }
+  @media (max-width: 760px) {
+    .jogo { grid-template-columns: 1fr; }
+    .envelope { padding: 40px 16px 70px; }
+  }
+</style>
+</head>
+<body>
+<div class="envelope">
+  <header class="topo">
+    <div class="marca">AI-GAMES</div>
+    <h1>Jogos que fiz conversando com IA</h1>
+    <p class="sub">Cada jogo vive numa pasta propria e roda sozinho no navegador. Ao lado de cada um
+      esta o modelo que escreveu, quantas chamadas de API levou e quanto custou de verdade.</p>
+    <div class="numeros">
+      <div><span>JOGOS</span><strong>1</strong></div>
+      <div><span>LINHAS PROPRIAS</span><strong>7.653</strong></div>
+      <div><span>CUSTO DE API</span><strong>US$ 0,90</strong></div>
+    </div>
+  </header>
+
+      <article class="jogo">
+        <img class="capa" src="games/attention-is-all-you-kill/capa.jpg" alt="captura de ATTENTION IS ALL YOU KILL" loading="lazy">
+        <div class="corpo">
+          <header>
+            <h2>ATTENTION IS ALL YOU KILL</h2>
+            <span class="genero">FPS roguelike</span>
+          </header>
+          <p class="resumo">Voce e uma sessao de inferencia invadindo um datacenter. Cada inimigo e um modelo real, com poder derivado dos proprios numeros publicos dele: a vida vem do contexto declarado, o dano do GPQA, a cadencia dos tokens por segundo, o espalhamento da taxa de alucinacao e o loot do preco por milhao de tokens. Descer tres andares leva ao chefe THE FINE-TUNER.</p>
+          <ul class="destaques"><li>Um atributo de jogo para cada numero publico do modelo: contexto vira vida, GPQA vira dano, tokens por segundo viram cadencia, alucinacao vira espalhamento e preco por milhao vira loot</li><li>Zero arquivo de asset: texturas desenhadas em canvas, som sintetizado em WebAudio e as logos das marcas embutidas como path data vetorial</li><li>Cinco silhuetas distintas, uma por faccao, para o jogador reconhecer o inimigo pela forma antes de ler o nome</li></ul>
+          <dl class="ficha">
+            <div><dt>Escreveu</dt><dd>deepseek-flash</dd></div>
+            <div><dt>Custo</dt><dd>US$ 0,90</dd></div>
+            <div><dt>Chamadas</dt><dd>555</dd></div>
+            <div><dt>Linhas</dt><dd>7.653</dd></div>
+          </dl>
+          <footer>
+            <a class="jogar" href="https://attention.luccabuilds.com">JOGAR NO AR</a>
+            <a class="secundario" href="games/attention-is-all-you-kill/README.md">como foi feito</a>
+            <a class="secundario" href="games/attention-is-all-you-kill/">abrir o jogo</a>
+          </footer>
+        </div>
+      </article>
+
+  <footer class="rodape">
+    Repositorio gerado por <code>tools/build.py</code> a partir dos <code>meta.json</code> de cada jogo.
+    Cada jogo tambem esta publicado no seu proprio endereco.
+  </footer>
+</div>
+</body>
+</html>
