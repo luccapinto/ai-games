@@ -12,7 +12,7 @@ and playable, with the model that wrote it and what it cost recorded next to it.
 
 | Jogo | Genero | IA | Custo | Jogar |
 | --- | --- | --- | --- | --- |
-| **ATTENTION IS ALL YOU KILL** [`attention-is-all-you-kill`](games/attention-is-all-you-kill/README.md) | FPS roguelike | deepseek-flash | US$ 0,90 | [jogar](https://attention.luccabuilds.com) |
+| **ATTENTION IS ALL YOU KILL** [`attention-is-all-you-kill`](games/attention-is-all-you-kill/README.md) | FPS roguelike | deepseek-flash | US$ 0,90 | [jogar](games/attention-is-all-you-kill/) |
 
 ## Como este repositorio se organiza
 

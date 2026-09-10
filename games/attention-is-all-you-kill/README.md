@@ -2,7 +2,8 @@
 
 FPS roguelike de dungeon, single-player, rodando no navegador. Voce e uma instancia de pesos abertos descendo o datacenter das grandes labs.
 
-- **Jogar:** https://attention.luccabuilds.com
+- **Jogar:** abra o `index.html` desta pasta, ou va pelo hub. Tambem esta
+  publicado em https://attention.luccabuilds.com como espelho
 - **Design completo:** [DESIGN.md](./DESIGN.md)
 - **Parte de:** [ai-games](../../README.md), o hub dos jogos que fiz com IA
 
@@ -164,11 +165,11 @@ capa, que e uma captura do jogo rodando.
 
 ## Publicacao
 
-```bash
-python3 deploy.py
-```
+Este jogo e um site estatico, entao publicar e copiar a pasta. Servido de
+qualquer lugar, inclusive do GitHub Pages deste repositorio, ele funciona igual.
 
-O script copia o jogo para o diretorio servido pelo nginx
+O espelho em attention.luccabuilds.com roda no homelab, com um script que copia o
+jogo para o diretorio servido pelo nginx
 (`~/homelab-config/docker/nginx-landing/sites/attention-is-all-you-kill/`) e
 carimba um `?v=<timestamp>` em todos os imports. Isso existe porque o navegador
 guardava modulos antigos em cache e o que aparecia na tela nao era o que estava

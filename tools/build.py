@@ -65,8 +65,10 @@ def tabela_do_readme(jogos):
         ia = j.get('ia', {})
         modelo = ia.get('modelo', '')
         custo = moeda((j.get('custo') or {}).get('usd_estimado'))
-        url = j.get('url')
-        link = f'[jogar]({url})' if url else f'[pasta](games/{j["_slug"]})'
+        # O link de jogar aponta para a pasta do jogo dentro do proprio repo, e
+        # nao para um endereco externo: assim o hub funciona sozinho, servido de
+        # qualquer lugar (GitHub Pages inclusive), sem depender de outro host.
+        link = f'[jogar](games/{j["_slug"]}/)'
         pasta = f'[`{j["_slug"]}`](games/{j["_slug"]}/README.md)'
         linhas.append(f'| **{titulo}** {pasta} | {genero} | {modelo} | {custo} | {link} |')
     return '\n'.join(linhas)
@@ -190,7 +192,7 @@ def gerar_hub(jogos):
         tamanho = j.get('tamanho') or {}
         destaques = (j.get('destaques') or [])[:3]
         capa = j.get('capa')
-        url = j.get('url')
+        espelho = j.get('espelho')
         slug = j['_slug']
         pasta = j['_pasta']
 
@@ -198,7 +200,12 @@ def gerar_hub(jogos):
         imagem = (f'<img class="capa" src="{src}" alt="captura de {j.get("titulo", slug)}" loading="lazy">'
                   if src else '<div class="capa vazia">sem captura</div>')
 
-        acao = (f'<a class="jogar" href="{url}">JOGAR NO AR</a>' if url else '')
+        # O botao principal leva para a pasta do jogo DENTRO do repo. Endereco
+        # externo entra como espelho, em segundo plano: o hub nao pode depender
+        # de outro servidor estar no ar para alguem conseguir jogar.
+        acao = f'<a class="jogar" href="games/{slug}/">JOGAR</a>'
+        espelho_link = (f'<a class="secundario" href="{espelho}">espelho no servidor</a>'
+                        if espelho else '')
         itens = ''.join(f'<li>{d}</li>' for d in destaques)
 
         cartoes.append(f"""      <article class="jogo">
@@ -219,7 +226,7 @@ def gerar_hub(jogos):
           <footer>
             {acao}
             <a class="secundario" href="games/{slug}/README.md">como foi feito</a>
-            <a class="secundario" href="games/{slug}/">abrir o jogo</a>
+            {espelho_link}
           </footer>
         </div>
       </article>""")
@@ -312,7 +319,7 @@ def gerar_hub(jogos):
 
   <footer class="rodape">
     Repositorio gerado por <code>tools/build.py</code> a partir dos <code>meta.json</code> de cada jogo.
-    Cada jogo tambem esta publicado no seu proprio endereco.
+    Todo jogo aqui e jogavel a partir desta pasta, sem depender de outro servidor.
   </footer>
 </div>
 </body>
