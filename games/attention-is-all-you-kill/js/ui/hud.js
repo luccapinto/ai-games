@@ -114,9 +114,12 @@ export class Hud {
       this.bossBar.classList.remove('hidden');
       const r = Math.max(0, boss.hp / boss.maxHp);
       this.bossFill.style.width = `${r * 100}%`;
+      // O nome vem do chefe: cada andar tem o seu, e o indicador dizendo
+      // FINE-TUNER para todos fazia o jogador achar que era sempre o mesmo.
+      const nome = boss.nome || boss.name || 'CHEFE';
       this.bossName.textContent = boss.isVulnerable
-        ? 'THE FINE-TUNER  /  EXPOSTO'
-        : 'THE FINE-TUNER  /  BLINDADO';
+        ? `${nome}  /  EXPOSTO`
+        : `${nome}  /  BLINDADO`;
     } else {
       this.bossBar.classList.add('hidden');
     }

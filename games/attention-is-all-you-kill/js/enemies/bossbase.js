@@ -19,7 +19,7 @@ import { TILE } from '../world/dungeon.js';
 
 export const ESTADO = {
   IDLE: 'IDLE',
-  ANCORAS: 'ANCORAS',
+  ANCORAS: 'ÂNCORAS',
   VULNERAVEL: 'VULNERAVEL',
   MORRENDO: 'MORRENDO',
   MORTO: 'MORTO'
@@ -84,7 +84,7 @@ export class Chefe {
   // ------------------------------------------------------------------
   // Ganchos da subclasse
   // ------------------------------------------------------------------
-  _build() { throw new Error('chefe precisa montar o proprio corpo'); }
+  _build() { throw new Error('chefe precisa montar o próprio corpo'); }
 
   // Escolhe o próximo ataque. A subclasse decide; a base só cronometra.
   _escolherAtaque() {}
@@ -189,7 +189,7 @@ export class Chefe {
     this.ancoras.length = 0;
   }
 
-  // O sistema de tiro pergunta por boss.anchors; a lista aqui se chama ancoras.
+  // O sistema de tiro pergunta por boss.anchors; a lista aqui se chama âncoras.
   get anchors() { return this.ancoras; }
 
   aliveAnchors() { return this.ancoras.filter(a => a.alive); }
