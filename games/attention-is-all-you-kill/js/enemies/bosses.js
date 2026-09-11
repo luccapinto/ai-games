@@ -346,12 +346,12 @@ export class Candidato extends Chefe {
     this.group.add(colarinho);
 
     // cabeça e o cabelo, que é a leitura mais rápida de todas
-    const cabeca = new THREE.Mesh(new THREE.BoxGeometry(1.15, 1.3, 1.15), pele);
+    const cabeca = new THREE.Mesh(new THREE.BoxGeometry(1.25, 1.4, 1.25), pele);
     cabeca.position.y = 5.5;
     this.group.add(cabeca);
 
     const cabeloMat = new THREE.MeshLambertMaterial({ color: 0xf2d06a, emissive: 0x6a5020 });
-    const cabelo = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.55, 1.4), cabeloMat);
+    const cabelo = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.6, 1.5), cabeloMat);
     cabelo.position.y = 6.25;
     this.group.add(cabelo);
     const topete = new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.35, 0.5), cabeloMat);
@@ -409,7 +409,9 @@ export class Candidato extends Chefe {
       map: glowTexture(0xf2d06a), color: 0xf2d06a,
       transparent: true, opacity: 0.35, depthWrite: false, blending: THREE.AdditiveBlending
     }));
-    this.brilhoCabelo.scale.set(4, 4, 1);
+    // Glow pequeno de propósito: um halo grande aqui lava a cabeça e a silhueta
+    // deixa de ser lida. O cabelo precisa aparecer, não brilhar.
+    this.brilhoCabelo.scale.set(1.9, 1.9, 1);
     this.brilhoCabelo.position.y = 6.3;
     this.group.add(this.brilhoCabelo);
 
@@ -474,7 +476,7 @@ export class Candidato extends Chefe {
 
     this.nucleo.rotation.y += dt * 1.5;
     if (this.brilhoCabelo) {
-      this.brilhoCabelo.material.opacity = 0.25 + 0.2 * Math.abs(Math.sin(t * 1.8));
+      this.brilhoCabelo.material.opacity = 0.14 + 0.1 * Math.abs(Math.sin(t * 1.8));
     }
   }
 
@@ -504,8 +506,13 @@ export class Candidato extends Chefe {
     const uz = dz / dist;
 
     const largura = 9;
-    const mat = new THREE.MeshLambertMaterial({ color: 0x8a6a4a });
-    const parede = new THREE.Mesh(new THREE.BoxGeometry(largura, 3.4, 0.9), mat);
+    // Transparente para poder esmaecer de perto: um bloco opaco de 3,4 de altura
+    // passando na frente da câmera tapa a tela inteira por um segundo, e levar
+    // dano sem ver nada não é dificuldade, é estorvo.
+    const mat = new THREE.MeshLambertMaterial({
+      color: 0x8a6a4a, transparent: true, opacity: 1
+    });
+    const parede = new THREE.Mesh(new THREE.BoxGeometry(largura, 3.0, 0.9), mat);
     parede.rotation.y = Math.atan2(ux, uz) + Math.PI / 2;
     parede.position.set(this.center.x + ux * 3, 1.7, this.center.z + uz * 3);
     this.scene.add(parede);
@@ -551,8 +558,18 @@ export class Candidato extends Chefe {
 
     m.distancia += m.velocidade * dt;
     m.parede.position.set(
-      this.center.x + m.ux * m.distancia, 1.7, this.center.z + m.uz * m.distancia
+      this.center.x + m.ux * m.distancia, 1.5, this.center.z + m.uz * m.distancia
     );
+
+    // Quanto mais perto da câmera, mais transparente: o muro continua legível de
+    // longe e deixa de tapar a visão quando está em cima de você.
+    const distJogador = Math.hypot(
+      player.position.x - m.parede.position.x,
+      player.position.z - m.parede.position.z
+    );
+    m.parede.material.opacity = distJogador < 3.2
+      ? Math.max(0.12, distJogador / 3.2) * 0.75
+      : 1;
 
     // O muro empurra: quem está na faixa leva dano uma vez por passagem.
     if (!m.jaAtingiu) {

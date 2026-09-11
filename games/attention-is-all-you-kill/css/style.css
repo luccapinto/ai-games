@@ -216,10 +216,20 @@ html, body {
 
 /* ---- barra de chefe ---- */
 
-#boss-bar { margin-top: 12px; }
+/* O painel fica ancorado à direita, e o nome do chefe é longo ("O CANDIDATO /
+   BLINDADO"). Com a largura do minimapa ele transbordava para fora da tela e o
+   nome aparecia cortado. Com largura de conteúdo e margem automática à
+   esquerda, o painel cresce para dentro da tela. */
+#boss-bar {
+  margin-top: 12px;
+  width: max-content;
+  max-width: 46vw;
+  margin-left: auto;
+}
 #boss-name {
   display: block;
-  font-size: 11px; letter-spacing: 0.24em; color: var(--danger);
+  font-size: 11px; letter-spacing: 0.14em; color: var(--danger);
+  white-space: nowrap;
   margin-bottom: 5px;
 }
 .boss-track {
