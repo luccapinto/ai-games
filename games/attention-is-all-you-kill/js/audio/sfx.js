@@ -28,7 +28,7 @@ export class Sfx {
   _now() { return this.ctx.currentTime; }
 
   // Buffer de ruido reaproveitado por todos os tiros.
-  // Nome do cache e _noiseBuf de proposito: this._noise e um metodo da classe,
+  // Nome do cache e _noiseBuf de propósito: this._noise e um metodo da classe,
   // então usar o mesmo nome aqui retornaria a função em vez do buffer.
   _noiseBuffer(duration = 0.5) {
     if (!this._noiseBuf) {

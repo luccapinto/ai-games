@@ -6,7 +6,7 @@ import { WEAPONS } from '../data/weapons.js';
 import { glowTexture } from '../world/textures.js';
 import { TILE } from '../world/dungeon.js';
 
-// Interseccao raio-esfera, usada para acertar o chefe e os nos de ancoragem.
+// Interseccao raio-esfera, usada para acertar o chefe e os nós de ancoragem.
 function raySphere(origin, dir, center, radius) {
   const ox = origin.x - center.x;
   const oy = origin.y - center.y;
@@ -58,7 +58,7 @@ export class WeaponSystem {
   // Viewmodel
   // ------------------------------------------------------------------
   _buildViewModel() {
-    this.rig = new THREE.Group();          // segue a camera e faz sway
+    this.rig = new THREE.Group();          // segue a câmera e faz sway
     this.camera.add(this.rig);
 
     this.model = new THREE.Group();        // a arma em si, trocada por tipo
@@ -95,7 +95,7 @@ export class WeaponSystem {
 
     const bodyMat = new THREE.MeshLambertMaterial({ color: 0x1e2830 });
     // A luz e o metal da arma guardam referência: são eles que a tela de
-    // personalizacao recolore quando o jogador escolhe a aparencia.
+    // personalizacao recolore quando o jogador escolhe a aparência.
     const luzDoJogador = this.skin ? this.skin.corLuz : w.color;
     const metalDoJogador = this.skin ? this.skin.corAcabamento : 0x39444f;
 
@@ -197,7 +197,7 @@ export class WeaponSystem {
   // Troca as cores da arma sem reconstruir o viewmodel: a customizacao tem que
   // refletir na hora, inclusive no menu, antes da partida começar.
   //
-  // A aparencia aparece na arma, e não em bracos: com as mãos na tela a leitura
+  // A aparência aparece na arma, e não em bracos: com as mãos na tela a leitura
   // do combate piorava, porque um bloco grande ficava na frente da mira.
   aplicarSkin(skin) {
     if (!skin) return;
@@ -307,7 +307,7 @@ export class WeaponSystem {
     // Inimigos comuns: o alvo e um cilindro vertical do tamanho do corpo.
     //
     // A versão anterior média a distância do raio ao centro do inimigo em
-    // y=1.0 e exigia menos de 0.52. Como a camera fica em y=1.69, um tiro
+    // y=1.0 e exigia menos de 0.52. Como a câmera fica em y=1.69, um tiro
     // horizontal passava 0.69 acima do centro e era descartado mesmo com a mira
     // perfeitamente em cima do inimigo: o jogador via o tiro atravessar o corpo
     // e não entendia por que o dano não entrava.
@@ -318,7 +318,7 @@ export class WeaponSystem {
       const oz = e.position.z - eye.z;
 
       // interseccao raio-cilindro no plano horizontal.
-      // Equação: |t*D - P|^2 = r^2, com P = alvo - camera, o que da
+      // Equação: |t*D - P|^2 = r^2, com P = alvo - câmera, o que da
       // a = D.D, b = -2*(D.P) e c = P.P - r^2. O sinal de b e negativo.
       const a = dir.x * dir.x + dir.z * dir.z;
       if (a < 1e-8) continue;
@@ -329,7 +329,7 @@ export class WeaponSystem {
 
       const raiz = Math.sqrt(disc);
       let t = (-b - raiz) / (2 * a);
-      if (t < 0) t = (-b + raiz) / (2 * a);   // camera já dentro do cilindro
+      if (t < 0) t = (-b + raiz) / (2 * a);   // câmera já dentro do cilindro
       if (t < 0 || t > hitDist) continue;
 
       // a altura do raio nesse ponto tem que cair dentro do corpo
@@ -355,7 +355,7 @@ export class WeaponSystem {
       let nearestAnchorT = Infinity;
       for (const a of this.boss.anchors) {
         if (!a.alive) continue;
-        const t = raySphere(eye, dir, tmp.set(a.x, a.group.position.y, a.z), 1.15);
+        const t = raySphere(eye, dir, tmp.set(a.x, a.group.position.y, a.z), this.boss.raioAncora || 1.15);
         if (t > 0.2 && t < hitDist && t < nearestAnchorT) {
           nearestAnchorT = t;
           hitAnchor = a;
@@ -372,8 +372,12 @@ export class WeaponSystem {
           eye.z + dir.z * nearestAnchorT
         );
       } else {
+        // A hitbox do corpo vem do próprio chefe: uma bola larga e um sujeito
+        // alto e magro não podem compartilhar a mesma esfera de acerto.
         const bp = this.boss.group.position;
-        const t = raySphere(eye, dir, tmp.set(bp.x, bp.y + 4.4, bp.z), 3.0);
+        const altura = this.boss.alturaCorpo ?? 4.4;
+        const raio = this.boss.raioCorpo ?? 3.0;
+        const t = raySphere(eye, dir, tmp.set(bp.x, bp.y + altura, bp.z), raio);
         if (t > 0.2 && t < hitDist) {
           hitDist = t;
           hitEnemy = null;

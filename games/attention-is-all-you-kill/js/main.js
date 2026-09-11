@@ -6,12 +6,13 @@ import { Engine, autoQuality } from './core/engine.js';
 import { Input } from './core/input.js';
 import { Dungeon, TILE } from './world/dungeon.js';
 import { buildWorld } from './world/props.js';
-import { themeForFloor } from './data/themes.js';
+import { themeForFloor, layoutForFloor } from './data/themes.js';
 import { Controller } from './player/controller.js';
 import { PlayerStats, BASE_MAX_HP } from './player/stats.js';
 import { WeaponSystem } from './player/weapon.js';
 import { CombatDirector } from './enemies/spawner.js';
 import { FineTuner } from './enemies/boss.js';
+import { Bolha, Candidato, Juiz } from './enemies/bosses.js';
 import { Sfx } from './audio/sfx.js';
 import { Hud } from './ui/hud.js';
 import { Feed } from './ui/feed.js';
@@ -35,7 +36,7 @@ const STATE = {
 };
 
 const AMBIENT_LINES = [
-  'Sua sessão esta sendo avaliada.',
+  'Sua sessão está sendo avaliada.',
   'Este ambiente não consta no nosso conjunto de treino.',
   'Aviso de integridade: pesos abertos detectados.',
   'Context window exceeded.',
@@ -51,13 +52,28 @@ const PICKUP_LABEL = {
   weapon_few_shot: 'FEW-SHOT SHOTGUN desbloqueada. Acesso fora do escopo concedido.'
 };
 
+// Qual chefe espera no fim do andar. A chave é o id do tema, então mexer na
+// ordem dos temas não muda quem aparece: o chefe acompanha o cenário.
+const CHEFES = {
+  6: Bolha,        // A BOLHA
+  7: Candidato,    // O PALANQUE
+  8: Juiz          // O TRIBUNAL
+};
+
+function criarChefe(theme, scene, dungeon, tema, room, sfx, feed) {
+  const Classe = CHEFES[theme.id];
+  if (Classe) return new Classe(scene, dungeon, tema, room, sfx, feed);
+  // O FINE-TUNER atende os temas 1 a 5; os temáticos chegam depois dele.
+  return new FineTuner(scene, dungeon, tema, room, sfx, feed);
+}
+
 class Game {
   constructor() {
     this.canvas = document.getElementById('game');
     this.engine = new Engine(this.canvas);
     this.engine.setQuality(autoQuality());
 
-    // a camera precisa estar na cena para o viewmodel aparecer
+    // a câmera precisa estar na cena para o viewmodel aparecer
     this.engine.scene.add(this.engine.camera);
 
     this.input = new Input(this.canvas);
@@ -269,8 +285,14 @@ class Game {
     this._clearFloor();
 
     const seed = Math.floor(Math.random() * 1e9) + floor * 7919;
-    this.dungeon = new Dungeon({ floor, roomCount: 8 + Math.min(4, floor - 1), seed });
     this.theme = themeForFloor(floor);
+    // A forma do andar vem do tema: metrô pede corredor, palanque pede arena.
+    this.dungeon = new Dungeon({
+      floor,
+      roomCount: 8 + Math.min(4, floor - 1),
+      seed,
+      layout: layoutForFloor(floor)
+    });
 
     this.world = buildWorld(this.engine.scene, this.dungeon, this.theme);
 
@@ -288,7 +310,7 @@ class Game {
       this.engine.camera, this.dungeon, this.director, this.stats, this.sfx, this.skin
     );
     this.weapon.onFeed = (text, kind) => this.feed.push(text, kind);
-    // aplica a aparencia escolhida: a arma nasce com a cor do jogador
+    // aplica a aparência escolhida: a arma nasce com a cor do jogador
     this.weapon.aplicarSkin(this.skin);
 
     this.boss = null;
@@ -466,7 +488,7 @@ class Game {
     // chefe: aparece quando o jogador entra na sala marcada
     const room = this.dungeon.roomAt(player.position.x, player.position.z);
     if (room && room.type === 'boss' && !this.boss && !this._bossRoomDone) {
-      this.boss = new FineTuner(this.engine.scene, this.dungeon, this.theme, room, this.sfx, this.feed);
+      this.boss = criarChefe(this.theme, this.engine.scene, this.dungeon, this.theme, room, this.sfx, this.feed);
       this.boss.onPlayerHit = () => this.hud.flashDamage();
       this.weapon.boss = this.boss;
       this.feed.push('Você não esta autorizado a estar nesta sala.', 'bad');

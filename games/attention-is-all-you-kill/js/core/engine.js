@@ -1,4 +1,4 @@
-// engine.js — renderer, cena, camera, luz e qualidade.
+// engine.js — renderer, cena, câmera, luz e qualidade.
 // Poucas luzes fortes em vez de muitas fracas. Sem shadow map: sombra e decal escuro.
 
 import * as THREE from '../../vendor/three.module.js';

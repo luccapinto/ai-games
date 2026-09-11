@@ -32,21 +32,42 @@
     "Canvas 2D"
   ],
   "tamanho": {
-    "linhas_proprias": 8815,
-    "mb": 2.4,
-    "assets_binarios": 0
+    "linhas_proprias": 10709,
+    "mb": 2.5,
+    "modulos_js": 36
   },
   "destaques": [
+    "Oito andares, cada um com paleta, plano de fundo e planta próprios: sala em cadeia, corredor central, anel em volta de uma praça e labirinto apertado",
+    "Quatro chefes: THE FINE-TUNER, A BOLHA, O CANDIDATO e O JUIZ, com a mesma regra de ouro (corpo blindado enquanto as âncoras estiverem de pé) e ataques temáticos",
     "Um atributo de jogo para cada número público do modelo: contexto vira vida, GPQA vira dano, tokens por segundo viram cadência, alucinação vira espalhamento e preço por milhão vira loot",
     "Zero arquivo de asset: texturas desenhadas em canvas, som sintetizado em WebAudio e as logos das marcas embutidas como path data vetorial",
     "Cinco silhuetas distintas, uma por facção, para o jogador reconhecer o inimigo pela forma antes de ler o nome",
-    "Chefe THE FINE-TUNER com âncoras destrutíveis, janelas de vulnerabilidade e leque telegrafado",
-    "Manual e tutorial gerados a partir dos dados do próprio jogo, então não ficam desatualizados quando o balanceamento muda",
-    "Publicado sem abrir porta nenhuma: nginx local atrás de túnel Cloudflare"
+    "Manual e tutorial gerados a partir dos dados do próprio jogo, então não ficam desatualizados quando o balanceamento muda"
   ],
-  "arquivos_chave": {
-    "documentacao": "DESIGN.md",
-    "dados_de_balanceamento": "js/data/enemies.js",
-    "silhuetas": "js/enemies/silhuetas.js"
-  }
+  "arquivos_chave": [
+    {
+      "caminho": "js/enemies/bossbase.js",
+      "papel": "Mecânica comum dos chefes: âncoras, janela de dano, três fases, hitbox"
+    },
+    {
+      "caminho": "js/enemies/bosses.js",
+      "papel": "A BOLHA, O CANDIDATO e O JUIZ, com os ataques de cada um"
+    },
+    {
+      "caminho": "js/world/dungeon.js",
+      "papel": "Geração do andar em quatro plantas: grid, espinha, círculo e labirinto"
+    },
+    {
+      "caminho": "js/data/themes.js",
+      "papel": "Paleta, neblina e planta de cada andar"
+    },
+    {
+      "caminho": "js/ui/codex.js",
+      "papel": "Manual gerado dos dados: andares, inimigos, chefes, armas e perks"
+    },
+    {
+      "caminho": "js/player/weapon.js",
+      "papel": "Hitscan com esfera por chefe e âncora, e o viewmodel da arma"
+    }
+  ]
 }

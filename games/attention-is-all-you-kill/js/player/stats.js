@@ -4,7 +4,7 @@
 import { resolveWeapon, WEAPON_ORDER, WEAPONS } from '../data/weapons.js';
 import { combineMods, PERKS } from '../data/perks.js';
 
-// 128 e tematico (janela de contexto) e da margem de erro para o jogador
+// 128 e temático (janela de contexto) e da margem de erro para o jogador
 // aprender o andar sem morrer na segunda sala.
 // Exportado porque o main.js também precisa da base: antes ele tinha um 100
 // hardcoded que sobrescrevia este valor e anulava qualquer ajuste feito aqui.

@@ -7,12 +7,18 @@ export const TILE = 3.0;          // tamanho do tile em unidades de mundo
 export const WALL_H = 4.2;        // altura da parede
 
 export class Dungeon {
-  constructor({ floor = 1, cols = 46, rows = 46, roomCount = 8, seed = 1 } = {}) {
+  constructor({ floor = 1, cols = 46, rows = 46, roomCount = 8, seed = 1, layout = 'grid' } = {}) {
     this.floor = floor;
     this.cols = cols;
     this.rows = rows;
     this.roomCount = roomCount;
     this.seed = seed;
+    // O layout muda a forma do andar, não as regras. Um corredor de metrô, uma
+    // arena em anel e um arquivo apertado usam o mesmo grid, então colisão,
+    // linha de visão e caminho de IA continuam valendo sem caso especial.
+    this.layout = layout;
+    if (layout === 'labirinto') this.roomCount = Math.max(roomCount, 12);
+    if (layout === 'circulo') this.roomCount = Math.max(roomCount, 9);
     this.grid = new Uint8Array(cols * rows).fill(1);   // 1 = solido, 0 = livre
     this.rooms = [];
     this.spawns = [];
@@ -51,10 +57,75 @@ export class Dungeon {
   // Geração
   // ------------------------------------------------------------------
   generate() {
+    if (this.layout === 'espinha') return this._gerarEspinha();
+    if (this.layout === 'circulo') return this._gerarCirculo();
+    if (this.layout === 'labirinto') return this._gerarLabirinto();
+    return this._gerarGrade();
+  }
+
+  // ------------------------------------------------------------------
+  // Montagem comum: o que vem depois de decidir onde ficam as salas
+  // ------------------------------------------------------------------
+  _finalizar(placed, larguraCorredor = 2, atalhos = true, minVizinhos = 3) {
+    // ordena por distância da origem e conecta em cadeia
+    placed.sort((a, b) => (a.cx + a.cz) - (b.cx + b.cz));
+    for (let i = 1; i < placed.length; i++) {
+      this._carveCorridor(placed[i - 1], placed[i], larguraCorredor);
+    }
+    // atalho extra para dar loop e evitar beco sem saída único
+    if (atalhos) {
+      for (let i = 0; i + 2 < placed.length; i += 3) {
+        this._carveCorridor(placed[i], placed[i + 2], larguraCorredor);
+      }
+    }
+
+    placed.forEach((r, i) => {
+      r.index = i;
+      if (i === 0) r.type = 'entry';
+      else if (i === placed.length - 1) r.type = 'boss';
+      else if (i % 4 === 0) r.type = 'elite';
+      else r.type = 'combat';
+    });
+
+    this.rooms = placed;
+    this.entryRoom = placed[0];
+    this.bossRoom = placed[placed.length - 1];
+
+    for (const room of this.rooms) {
+      room.spawns = [];
+      for (let tz = room.z1 + 1; tz < room.z2 - 1; tz++) {
+        for (let tx = room.x1 + 1; tx < room.x2 - 1; tx++) {
+          if (this.isSolid(tx, tz)) continue;
+          // Salas pequenas têm menos tiles com folga. Exigir 3 vizinhos livres
+          // no labirinto deixava sala sem nenhum ponto de spawn, e sala vazia
+          // quebra o ritmo: o jogador entra, não tem nada, e sai.
+          let abertos = 0;
+          if (!this.isSolid(tx + 1, tz)) abertos++;
+          if (!this.isSolid(tx - 1, tz)) abertos++;
+          if (!this.isSolid(tx, tz + 1)) abertos++;
+          if (!this.isSolid(tx, tz - 1)) abertos++;
+          if (abertos >= minVizinhos) {
+            const c = this.tileCenter(tx, tz);
+            room.spawns.push({ x: c.x, z: c.z, tx, tz });
+          }
+        }
+      }
+    }
+  }
+
+  _cavarSala(room) {
+    for (let tz = room.z1; tz < room.z2; tz++) {
+      for (let tx = room.x1; tx < room.x2; tx++) this.setSolid(tx, tz, false);
+    }
+  }
+
+  // ------------------------------------------------------------------
+  // grid — o padrão: salas soltas ligadas em cadeia
+  // ------------------------------------------------------------------
+  _gerarGrade() {
     const placed = [];
     let guard = 0;
 
-    // 1) salas retangulares sem sobreposicao, com folga de 2 tiles
     while (placed.length < this.roomCount && guard < 900) {
       guard++;
       const w = this._irand(5, 9);
@@ -71,59 +142,207 @@ export class Dungeon {
 
       const room = { x1: x, z1: z, x2: x + w, z2: z + h, cx: x + (w >> 1), cz: z + (h >> 1) };
       placed.push(room);
+      this._cavarSala(room);
+    }
 
-      for (let tz = z; tz < z + h; tz++) {
-        for (let tx = x; tx < x + w; tx++) this.setSolid(tx, tz, false);
+    this._finalizar(placed);
+  }
+
+  // ------------------------------------------------------------------
+  // espinha — um corredor longo corta o andar e as salas pendem dele
+  //
+  // É o formato de estação e de corredor de negociação: você sempre sabe onde
+  // está, porque existe uma linha mestra. Também deixa o trem do metrô ter um
+  // trajeto reto e legível.
+  // ------------------------------------------------------------------
+  _gerarEspinha() {
+    const placed = [];
+    const horizontal = this._rand() > 0.5;
+
+    // a via: um corredor largo no meio, de ponta a ponta
+    const larguraVia = 3;
+    const meio = Math.floor((horizontal ? this.rows : this.cols) / 2);
+
+    if (horizontal) {
+      for (let tx = 1; tx < this.cols - 1; tx++) {
+        for (let w = -1; w <= larguraVia - 2; w++) this.setSolid(tx, meio + w, false);
+      }
+    } else {
+      for (let tz = 1; tz < this.rows - 1; tz++) {
+        for (let w = -1; w <= larguraVia - 2; w++) this.setSolid(meio + w, tz, false);
       }
     }
 
-    // 2) ordena por distância da origem e conecta em cadeia, mais alguns atalhos
-    placed.sort((a, b) => (a.cx + a.cz) - (b.cx + b.cz));
-    for (let i = 1; i < placed.length; i++) {
-      this._carveCorridor(placed[i - 1], placed[i]);
-    }
-    // atalho extra para dar loop e evitar beco sem saída único
-    for (let i = 0; i + 2 < placed.length; i += 3) {
-      this._carveCorridor(placed[i], placed[i + 2]);
-    }
+    // salas penduradas dos dois lados, cada uma com uma porta curta até a via
+    const porLado = Math.ceil(this.roomCount / 2);
+    for (let lado = 0; lado < 2; lado++) {
+      for (let i = 0; i < porLado; i++) {
+        if (placed.length >= this.roomCount) break;
+        const w = this._irand(5, 8);
+        const h = this._irand(4, 7);
+        const folga = 4;
+        let room = null;
 
-    // 3) marca tipos de sala
-    placed.forEach((r, i) => {
-      r.index = i;
-      if (i === 0) r.type = 'entry';
-      else if (i === placed.length - 1) r.type = 'boss';
-      else if (i % 4 === 0) r.type = 'elite';
-      else r.type = 'combat';
-    });
+        for (let tentativa = 0; tentativa < 40 && !room; tentativa++) {
+          const aoLongo = this._irand(folga, (horizontal ? this.cols : this.rows) - folga - (horizontal ? w : h));
+          let x, z;
+          if (horizontal) {
+            x = aoLongo;
+            z = lado === 0 ? meio - larguraVia - h - this._irand(1, 2) : meio + larguraVia + this._irand(1, 2);
+          } else {
+            z = aoLongo;
+            x = lado === 0 ? meio - larguraVia - w - this._irand(1, 2) : meio + larguraVia + this._irand(1, 2);
+          }
+          if (x < 1 || z < 1 || x + w >= this.cols - 1 || z + h >= this.rows - 1) continue;
 
-    this.rooms = placed;
-    this.entryRoom = placed[0];
-    this.bossRoom = placed[placed.length - 1];
+          const colide = placed.some(r =>
+            x < r.x2 + 2 && x + w > r.x1 - 2 && z < r.z2 + 2 && z + h > r.z1 - 2);
+          if (colide) continue;
 
-    // 4) pontos de spawn por sala, aproveitando tiles livres com folga de parede
-    for (const room of this.rooms) {
-      room.spawns = [];
-      for (let tz = room.z1 + 1; tz < room.z2 - 1; tz++) {
-        for (let tx = room.x1 + 1; tx < room.x2 - 1; tx++) {
-          if (this.isSolid(tx, tz)) continue;
-          // precisa ter espaço livre em volta: não spawnar em gargalo
-          let openNeighbors = 0;
-          if (!this.isSolid(tx + 1, tz)) openNeighbors++;
-          if (!this.isSolid(tx - 1, tz)) openNeighbors++;
-          if (!this.isSolid(tx, tz + 1)) openNeighbors++;
-          if (!this.isSolid(tx, tz - 1)) openNeighbors++;
-          if (openNeighbors >= 3) {
-            const c = this.tileCenter(tx, tz);
-            room.spawns.push({ x: c.x, z: c.z, tx, tz });
+          room = { x1: x, z1: z, x2: x + w, z2: z + h, cx: x + (w >> 1), cz: z + (h >> 1) };
+        }
+
+        if (!room) continue;
+        placed.push(room);
+        this._cavarSala(room);
+
+        // porta: liga a sala à via pela face mais próxima
+        if (horizontal) {
+          const px = room.cx;
+          const de = lado === 0 ? room.z2 - 1 : room.z1;
+          const ate = lado === 0 ? meio - 1 : meio + larguraVia;
+          for (let tz = Math.min(de, ate); tz <= Math.max(de, ate); tz++) {
+            this.setSolid(px, tz, false);
+            this.setSolid(px + 1, tz, false);
+          }
+        } else {
+          const pz = room.cz;
+          const de = lado === 0 ? room.x2 - 1 : room.x1;
+          const ate = lado === 0 ? meio - 1 : meio + larguraVia;
+          for (let tx = Math.min(de, ate); tx <= Math.max(de, ate); tx++) {
+            this.setSolid(tx, pz, false);
+            this.setSolid(tx, pz + 1, false);
           }
         }
       }
     }
+
+    this._finalizar(placed, 2, false);
   }
 
-  _carveCorridor(a, b) {
-    // Caminho em L: horizontal depois vertical (ou o inverso).
-    const width = 2;
+  // ------------------------------------------------------------------
+  // circulo — as salas formam um anel em volta de uma praça central
+  //
+  // A praça é o palco: no comício, é onde o chefe discursa, e o anel dá voltas
+  // em volta dele. Combate aqui é sempre em movimento.
+  // ------------------------------------------------------------------
+  _gerarCirculo() {
+    const placed = [];
+    const meioX = Math.floor(this.cols / 2);
+    const meioZ = Math.floor(this.rows / 2);
+
+    // praça central: a maior sala, e sempre a última a ser marcada como chefe
+    const w0 = this._irand(9, 12);
+    const h0 = this._irand(9, 12);
+    const centro = {
+      x1: meioX - (w0 >> 1), z1: meioZ - (h0 >> 1),
+      x2: meioX - (w0 >> 1) + w0, z2: meioZ - (h0 >> 1) + h0,
+      cx: meioX, cz: meioZ
+    };
+    placed.push(centro);
+    this._cavarSala(centro);
+
+    const noAnel = this.roomCount - 1;
+    const raio = Math.min(this.cols, this.rows) * 0.36;
+
+    for (let i = 0; i < noAnel; i++) {
+      const ang = (i / noAnel) * Math.PI * 2;
+      const w = this._irand(5, 8);
+      const h = this._irand(5, 8);
+      let room = null;
+
+      for (let tentativa = 0; tentativa < 30 && !room; tentativa++) {
+        const r = raio * (1 - tentativa * 0.02);
+        const cx = Math.round(meioX + Math.cos(ang) * r);
+        const cz = Math.round(meioZ + Math.sin(ang) * r);
+        const x = cx - (w >> 1);
+        const z = cz - (h >> 1);
+        if (x < 1 || z < 1 || x + w >= this.cols - 1 || z + h >= this.rows - 1) continue;
+
+        const colide = placed.some(k =>
+          x < k.x2 + 2 && x + w > k.x1 - 2 && z < k.z2 + 2 && z + h > k.z1 - 2);
+        if (colide) continue;
+
+        room = { x1: x, z1: z, x2: x + w, z2: z + h, cx: x + (w >> 1), cz: z + (h >> 1) };
+      }
+
+      if (!room) continue;
+      placed.push(room);
+      this._cavarSala(room);
+
+      // raio: liga cada sala do anel à praça
+      this._carveCorridor(room, centro, 2);
+    }
+
+    // A praça vira o chefe e a entrada vira a sala mais distante dela, para o
+    // jogador atravessar o anel antes de chegar na luta.
+    this._finalizar(placed, 2, true);
+
+    const dist = (r) => Math.hypot(r.cx - centro.cx, r.cz - centro.cz);
+    const maisLonge = this.rooms.reduce((a, b) => (dist(a) > dist(b) ? a : b));
+    const chefe = this.rooms.find(r => r.cx === centro.cx && r.cz === centro.cz) || this.rooms[0];
+
+    for (const r of this.rooms) r.type = 'combat';
+    if (maisLonge) maisLonge.type = 'entry';
+    if (chefe) chefe.type = 'boss';
+    for (let i = 1; i < this.rooms.length; i += 3) {
+      const r = this.rooms[i];
+      if (r !== maisLonge && r !== chefe) r.type = 'elite';
+    }
+
+    this.entryRoom = maisLonge || this.rooms[0];
+    this.bossRoom = chefe || this.rooms[this.rooms.length - 1];
+  }
+
+  // ------------------------------------------------------------------
+  // labirinto — muitas salas pequenas e corredores estreitos
+  //
+  // O arquivo do tribunal: você ouve o tiro antes de ver quem atirou, e a
+  // linha de visão quase nunca passa de uma sala. Aqui a cobertura vale mais
+  // que a velocidade.
+  // ------------------------------------------------------------------
+  _gerarLabirinto() {
+    const placed = [];
+    let guard = 0;
+
+    while (placed.length < this.roomCount && guard < 2000) {
+      guard++;
+      // A primeira sala é a entrada e a última é o chefe. As duas precisam
+      // caber o que vai dentro: sala de 3x3 não acomoda nem o jogador nem o
+      // chefe com as âncoras dele.
+      const ehChefe = placed.length === this.roomCount - 1;
+      const minimo = ehChefe ? 6 : 4;
+      const w = this._irand(minimo, minimo + 3);
+      const h = this._irand(minimo, minimo + 3);
+      const x = this._irand(2, this.cols - w - 3);
+      const z = this._irand(2, this.rows - h - 3);
+      const pad = 2;
+
+      const colide = placed.some(r =>
+        x < r.x2 + pad && x + w > r.x1 - pad && z < r.z2 + pad && z + h > r.z1 - pad);
+      if (colide) continue;
+
+      const room = { x1: x, z1: z, x2: x + w, z2: z + h, cx: x + (w >> 1), cz: z + (h >> 1) };
+      placed.push(room);
+      this._cavarSala(room);
+    }
+
+    // Corredor de largura 1 é o que dá a sensação de arquivo apertado, e o
+    // critério de spawn desce para 2 vizinhos livres.
+    this._finalizar(placed, 1, true, 2);
+  }
+
+  _carveCorridor(a, b, width = 2) {
     const horizontalFirst = this._rand() > 0.5;
     const ax = a.cx, az = a.cz, bx = b.cx, bz = b.cz;
 

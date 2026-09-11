@@ -11,21 +11,21 @@
 const PASSOS = [
   {
     titulo: 'MOVIMENTO',
-    texto: 'Você esta no datacenter. Use W, A, S, D para andar.',
+    texto: 'Você está no datacenter. Use W, A, S, D para andar.',
     dica: 'SHIFT corre. ESPAÇO pula. Andar para trás não é vergonha.',
     instrucao: 'Ande alguns metros.',
     pronto: (t) => t.distancia >= 5
   },
   {
     titulo: 'MIRAR',
-    texto: 'Mova o mouse para olhar em volta. O ponteiro fica travado no centro de proposito.',
+    texto: 'Mova o mouse para olhar em volta. O ponteiro fica travado no centro de propósito.',
     dica: 'Se o mouse sair, clique na tela para travar de novo. ESC solta.',
-    instrucao: 'Gire a camera.',
+    instrucao: 'Gire a câmera.',
     pronto: (t) => t.giro >= 3.2
   },
   {
     titulo: 'ATIRAR',
-    texto: 'Clique para atirar. A sua arma inicial se chama Prompt Injetor e ela e ruim de proposito.',
+    texto: 'Clique para atirar. A sua arma inicial se chama Prompt Injetor e ela é ruim de propósito.',
     dica: 'Cada tiro gasta um token. O número no canto inferior direito é o pente.',
     instrucao: 'Destrua o alvo de treino.',
     pronto: (t) => t.g.stats.kills >= 1,
@@ -41,8 +41,8 @@ const PASSOS = [
   },
   {
     titulo: 'ARSENAL',
-    texto: 'Existem três armas no jogo. Pegue a que estiver brilhando no chão e aperte 2 para usa-la.',
-    dica: 'A Few-Shot Shotgun destroi de perto e não serve para nada de longe.',
+    texto: 'Existem três armas no jogo. Pegue a que estiver brilhando no chão e aperte 2 para usá-la.',
+    dica: 'A Few-Shot Shotgun destrói de perto e não serve para nada de longe.',
     instrucao: 'Pegue a arma e troque para ela.',
     pronto: (t) => Object.keys(t.g.stats.ammo).length >= 2 && t.g.stats.currentWeaponId === 'token_streamer',
     aoEntrar: (t) => t.criarArma()
@@ -51,9 +51,9 @@ const PASSOS = [
     titulo: 'COBERTURA',
     texto: 'Pilares e contêineres bloqueiam tiro. Os inimigos não atiram todos ao mesmo tempo, então você sempre tem uma janela para se reposicionar.',
     dica: 'No primeiro andar a luz fica vermelha conforme o seu contexto cai. A sala é o seu medidor de vida.',
-    instrucao: 'Tutorial concluido. ',
+    instrucao: 'Tutorial concluído. ',
     pronto: (t) => t.tempoNoPasso > 6,
-    aoEntrar: (t) => t.g.feed.push('Tutorial concluido. O andar continua.', 'warn')
+    aoEntrar: (t) => t.g.feed.push('Tutorial concluído. O andar continua.', 'warn')
   }
 ];
 

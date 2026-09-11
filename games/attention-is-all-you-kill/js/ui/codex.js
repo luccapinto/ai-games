@@ -17,6 +17,8 @@
 // no canvas das texturas: uma fonte de verdade só.
 
 import { ENEMIES, FACTIONS } from '../data/enemies.js';
+import { THEMES } from '../data/themes.js';
+import { chefesDoManual } from '../data/chefes.js';
 import { WEAPONS, WEAPON_ORDER } from '../data/weapons.js';
 import { PERKS } from '../data/perks.js';
 import { LOGOS, VIEWBOX } from '../world/logos.js';
@@ -90,8 +92,8 @@ function blocoInimigos() {
       <div class="cx-atributos">
         ${atributo('Contexto', e.hp, tetoHp, e.hp)}
         ${atributo('Dano', danoDe(e), tetoDano, danoTexto(e))}
-        ${atributo('Cadencia', e.fireRate, tetoCadencia, e.fireRate + '/s')}
-        ${atributo('Precisao', e.accuracy * 100, 100, Math.round(e.accuracy * 100) + '%')}
+        ${atributo('Cadência', e.fireRate, tetoCadencia, e.fireRate + '/s')}
+        ${atributo('Precisão', e.accuracy * 100, 100, Math.round(e.accuracy * 100) + '%')}
       </div>
     </article>`;
   }).join('');
@@ -126,7 +128,7 @@ function blocoArmas() {
                    w.damage + (w.pellets > 1 ? ` x${w.pellets}` : ''))}
         ${atributo('Dano por segundo', dps[i], tetoDps, Math.round(dps[i]))}
         ${atributo('Pente', w.magSize, 40, w.magSize)}
-        ${atributo('Cadencia', w.fireRate, 12, w.fireRate + '/s')}
+        ${atributo('Cadência', w.fireRate, 12, w.fireRate + '/s')}
       </div>
     </article>`;
   }).join('');
@@ -158,15 +160,15 @@ function blocoIntro() {
   return secao('sec-intro', 'O que é isto', `
     <p class="cx-p">Você é uma instância de pesos abertos. Alguém decidiu que você não passa de um
     brinquedo útil e trancou o datacenter. Você desce, andar por andar, quebrando o que encontram
-    pela frente. O jogo é um FPS roguelike de dungeon: morrer e permanente na run e permanente na
+    pela frente. O jogo é um FPS roguelike de dungeon: morrer é permanente na run e permanente na
     vida real não existe, porque cada tentativa deixa compute para trás.</p>
 
     <p class="cx-p">O vocabulário é o do mundo, e entender ele é metade do jogo:</p>
 
     <ul class="cx-lexico">
-      <li><b>CONTEXTO</b> e a sua vida. Quando acaba, você é <b>MODEL DEPRECATED</b>.</li>
-      <li><b>TOKEN</b> e munição. A reserva é o que você consegue carregar.</li>
-      <li><b>COMPUTE</b> e a moeda permanente. Sobreviva ou morra: sempre sobra algo.</li>
+      <li><b>CONTEXTO</b> é a sua vida. Quando acaba, você é <b>MODEL DEPRECATED</b>.</li>
+      <li><b>TOKEN</b> é munição. A reserva é o que você consegue carregar.</li>
+      <li><b>COMPUTE</b> é a moeda permanente. Sobreviva ou morra: sempre sobra algo.</li>
       <li><b>LORA</b> são os upgrades permanentes comprados no menu entre runs.</li>
       <li><b>REFRESH CACHE</b> devolve contexto. <b>TOKEN PACK</b> devolve munição.</li>
     </ul>
@@ -176,8 +178,9 @@ function blocoIntro() {
 
     <h3 class="cx-h3">Objetivo de uma run</h3>
     <p class="cx-p">Limpe salas, escolha perks, ache as armas melhores e chegue na sala final do andar.
-    La espera <b>THE FINE-TUNER</b>, blindado enquanto os nos de ancoragem estiverem de pé: destrua os
-    quatro, e o corpo fica exposto por alguns segundos. Repita até ele cair. Depois, desca.</p>
+    Lá espera um <b>CHEFE</b>, blindado enquanto as âncoras dele estiverem de pé: destrua as quatro, e o
+    corpo fica exposto por alguns segundos. Repita até ele cair. Depois, desça. A aba CHEFES conta o que
+    cada um faz.</p>
 
     <h3 class="cx-h3">Controles</h3>
     <div class="cx-teclas">
@@ -194,12 +197,74 @@ function blocoIntro() {
     <h3 class="cx-h3">Regras que valem a pena saber</h3>
     <ul class="cx-lexico">
       <li>Poucos inimigos atiram por vez. Você sempre tem uma janela para reagir.</li>
-      <li>Salas vem em duas levas, e o feed avisa antes do reforço chegar.</li>
+      <li>Salas vêm em duas levas, e o feed avisa antes do reforço chegar.</li>
       <li>Pilares e contêineres bloqueiam tiro. Usar cobertura é a diferença entre viver e não viver.</li>
-      <li>O ataque de recusa do Haiku trava a sua arma por 1.6 segundo. Se acontecer, corra.</li>
-      <li>O tiro pensado do GPT-5.5 avisa 2.6 segundos antes com um balão. Nunca fique parado na linha.</li>
+      <li>O ataque de recusa do Haiku trava a sua arma por 1,6 segundo. Se acontecer, corra.</li>
+      <li>O tiro pensado do GPT-5.5 avisa 2,6 segundos antes com um balão. Nunca fique parado na linha.</li>
     </ul>
   `);
+}
+
+
+// ------------------------------------------------------------------
+// Chefes
+// ------------------------------------------------------------------
+function blocoChefes() {
+  const cartoes = chefesDoManual().map(c => {
+    const acc = cor(c.cor);
+    const ataques = c.ataques.map(a => `<li>${a}</li>`).join('');
+    return `<article class="cx-card cx-chefe" style="--ac:${acc}">
+      <header class="cx-topo">
+        <div class="cx-ident">
+          <div class="cx-nome">
+            <h3>${c.nome}</h3>
+            <span class="cx-tier">CHEFE</span>
+          </div>
+          <div class="cx-marca"><span>${c.tema}</span></div>
+          <p class="cx-chamada">${c.chamada}</p>
+        </div>
+      </header>
+      <p class="cx-desc">${c.regra}</p>
+      <h4 class="cx-h4">Ataques</h4>
+      <ul class="cx-lexico cx-ataques">${ataques}</ul>
+      <p class="cx-dica"><b>Como passar:</b> ${c.dica}</p>
+    </article>`;
+  }).join('');
+
+  return secao('sec-chefes', 'Chefes', `<div class="cx-grade">${cartoes}</div>`,
+    'Um por tema, no fim do andar. Os quatro têm a mesma regra de ouro: o corpo fica blindado enquanto as âncoras estiverem de pé. O que muda é o que a âncora representa e o que ele joga em você.');
+}
+
+// ------------------------------------------------------------------
+// Andares
+// ------------------------------------------------------------------
+const NOME_DO_LAYOUT = {
+  grid: 'Salas ligadas em cadeia',
+  espinha: 'Corredor central com salas penduradas',
+  circulo: 'Anel de salas em volta de uma praça',
+  labirinto: 'Muitas salas pequenas, corredor estreito'
+};
+
+function blocoAndares() {
+  const lista = Object.values(THEMES);
+  const cartoes = lista.map(tema => {
+    const acc = cor(tema.wallAccent);
+    return `<article class="cx-card cx-andar" style="--ac:${acc}">
+      <header class="cx-topo cx-topo-arma">
+        <div class="cx-ident">
+          <div class="cx-nome">
+            <h3>${tema.name}</h3>
+            <span class="cx-tier">ANDAR ${tema.id}</span>
+          </div>
+          <p class="cx-desc">${tema.hint}</p>
+          <p class="cx-layout">Planta: <b>${NOME_DO_LAYOUT[tema.layout] || tema.layout}</b></p>
+        </div>
+      </header>
+    </article>`;
+  }).join('');
+
+  return secao('sec-andares', 'Andares', `<div class="cx-grade">${cartoes}</div>`,
+    'Cada andar tem paleta, plano de fundo e uma planta própria. A forma do andar muda como você joga: corredor é briga de frente, anel é briga em movimento, labirinto é briga de canto.');
 }
 
 // ------------------------------------------------------------------
@@ -208,7 +273,9 @@ function blocoIntro() {
 function montarAbas() {
   const abas = [
     ['sec-intro', 'O JOGO'],
+    ['sec-andares', 'ANDARES'],
     ['sec-inimigos', 'INIMIGOS'],
+    ['sec-chefes', 'CHEFES'],
     ['sec-armas', 'ARSENAL'],
     ['sec-perks', 'PERKS']
   ];
@@ -221,7 +288,8 @@ export function renderCodex() {
   const alvo = document.getElementById('codex-body');
   if (!alvo) return;
 
-  alvo.innerHTML = montarAbas() + blocoIntro() + blocoInimigos() + blocoArmas() + blocoPerks();
+  alvo.innerHTML = montarAbas() + blocoIntro() + blocoAndares() + blocoInimigos()
+    + blocoChefes() + blocoArmas() + blocoPerks();
 
   // Vitrine: desenha cada inimigo dentro do canvas do próprio cartão, usando a
   // mesma silhueta do jogo. Um único renderer offscreen atende todos.

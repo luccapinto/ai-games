@@ -73,7 +73,7 @@ export const ENEMIES = {
 
   haiku_45: {
     id: 'haiku_45',
-    desc: 'Rápido e educado. O tiro dele machuca pouco: o problema é o Recusa, que trava a sua arma por 1.6s.',
+    desc: 'Rápido e educado. O tiro dele machuca pouco: o problema é o Recusa, que trava a sua arma por 1,6s.',
     name: 'HAIKU 4.5',
     faction: 'anthropic',
     tier: 2,
@@ -93,14 +93,14 @@ export const ENEMIES = {
     groupMinded: true,
     telegraph: 0,
     growsEvery: 0,
-    // Ataque assinatura da facção: te silencia por 1.6s.
+    // Ataque assinatura da facção: te silencia por 1,6s.
     onHit: 'silence',
     silenceTime: 1.6
   },
 
   gpt_55: {
     id: 'gpt_55',
-    desc: 'Poucos tiros, nenhum errado. Para, pensa 2.6s com o balão visível e acerta um golpe brutal. Use a cobertura.',
+    desc: 'Poucos tiros, nenhum errado. Para, pensa 2,6s com o balão visível e acerta um golpe brutal. Use a cobertura.',
     name: 'GPT-5.5',
     faction: 'openai',
     tier: 3,
@@ -121,7 +121,7 @@ export const ENEMIES = {
     preferRange: 16,
     courage: 0.15,
     groupMinded: true,
-    // Reasoning telégrafa: para, pensa 2.6s com o balão visível, e o tiro seguinte e brutal.
+    // Reasoning telégrafa: para, pensa 2,6s com o balão visível, e o tiro seguinte e brutal.
     telegraph: 2.6,
     growsEvery: 0
   },
@@ -155,7 +155,7 @@ export const ENEMIES = {
 
 // Distribuicao por andar. O andar 1 e a Fazenda: enxame e reprodução.
 // O andar 1 e onde o jogador aprende, então o peso dos modelos caros fica
-// baixo de proposito: eles aparecem, mas são evento e não rotina.
+// baixo de propósito: eles aparecem, mas são evento e não rotina.
 export const FLOOR_ROSTER = {
   1: [
     { id: 'qwen_turbo', weight: 50 },

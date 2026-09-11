@@ -319,7 +319,7 @@ def gerar_hub(jogos):
 
   <footer class="rodape">
     Repositório gerado por <code>tools/build.py</code> a partir dos <code>meta.json</code> de cada jogo.
-    Todo jogo aqui e jogável a partir desta pasta, sem depender de outro servidor.
+    Todo jogo aqui é jogável a partir desta pasta, sem depender de outro servidor.
   </footer>
 </div>
 </body>

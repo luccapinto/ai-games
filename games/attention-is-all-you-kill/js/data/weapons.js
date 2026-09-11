@@ -70,7 +70,7 @@ export const WEAPONS = {
     color: 0xff2e88,
     tracerColor: 0xff9ecb,
     sound: 'shotgun',
-    desc: 'Cartucho com varios exemplos dentro. Devastadora de perto, inutil de longe.'
+    desc: 'Cartucho com varios exemplos dentro. Devastadora de perto, inútil de longe.'
   }
 };
 

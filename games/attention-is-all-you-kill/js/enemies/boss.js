@@ -1,5 +1,5 @@
 // boss.js — THE FINE-TUNER, chefe do andar 1.
-// Regra da luta: enquanto as âncoras (os nos de ajuste) existirem, a mão esta
+// Regra da luta: enquanto as âncoras (os nós de ajuste) existirem, a mão esta
 // blindada. Destrua as âncoras para abrir a janela de dano. Três fases.
 
 import * as THREE from '../../vendor/three.module.js';
@@ -27,7 +27,7 @@ export class FineTuner {
     this.name = 'THE FINE-TUNER';
     // 420 e o total de dano que a luta pede: 4 âncoras de 38 na fase 1, mais
     // três janelas de dano. Com 900 o corpo sozinho pedia ~70 tiros de pistola
-    // depois das âncoras, e a luta virava exercício de paciencia.
+    // depois das âncoras, e a luta virava exercício de paciência.
     this.maxHp = 420;
     this.hp = this.maxHp;
     this.phase = 1;
@@ -209,7 +209,7 @@ export class FineTuner {
       this.armorFlash = 0.14;
       // avisa no máximo a cada 2 segundos, senao vira spam no feed
       if (this.feed && (this._armorWarnAt || 0) <= 0) {
-        this.feed.push('BLINDADO: destrua os nos de ancoragem', 'warn');
+        this.feed.push('BLINDADO: destrua os nós de ancoragem', 'warn');
         this._armorWarnAt = 2;
       }
       return false;

@@ -6,7 +6,7 @@ jogável sozinho, com o modelo que escreveu e quanto custou registrados ao lado.
 *Games I built by talking to AI. Each one lives in its own folder, self-contained
 and playable, with the model that wrote it and what it cost recorded next to it.*
 
-**1 jogo** até agora, 8.815 linhas de código próprio, US$ 1,03 de API no total.
+**1 jogo** até agora, 10.709 linhas de código próprio, US$ 1,03 de API no total.
 
 ## Os jogos
 
@@ -61,17 +61,17 @@ Você é uma sessão de inferência invadindo um datacenter. Cada inimigo é um 
 
 O que tem dentro:
 
+- Oito andares, cada um com paleta, plano de fundo e planta próprios: sala em cadeia, corredor central, anel em volta de uma praça e labirinto apertado
+- Quatro chefes: THE FINE-TUNER, A BOLHA, O CANDIDATO e O JUIZ, com a mesma regra de ouro (corpo blindado enquanto as âncoras estiverem de pé) e ataques temáticos
 - Um atributo de jogo para cada número público do modelo: contexto vira vida, GPQA vira dano, tokens por segundo viram cadência, alucinação vira espalhamento e preço por milhão vira loot
 - Zero arquivo de asset: texturas desenhadas em canvas, som sintetizado em WebAudio e as logos das marcas embutidas como path data vetorial
 - Cinco silhuetas distintas, uma por facção, para o jogador reconhecer o inimigo pela forma antes de ler o nome
-- Chefe THE FINE-TUNER com âncoras destrutíveis, janelas de vulnerabilidade e leque telegrafado
 - Manual e tutorial gerados a partir dos dados do próprio jogo, então não ficam desatualizados quando o balanceamento muda
-- Publicado sem abrir porta nenhuma: nginx local atrás de túnel Cloudflare
 
 - **Modelo:** deepseek-flash via DeepSeek
 - **Agente:** Hermes Agent (Talos)
 - **Custo estimado:** US$ 1,03 (656 chamadas de API, 1.893.978 tokens)
-- **Tamanho:** 8.815 linhas de código próprio, 2,4 MB
+- **Tamanho:** 10.709 linhas de código próprio, 2,5 MB
 - **Pasta:** [`games/attention-is-all-you-kill/`](games/attention-is-all-you-kill/README.md)
 
 ---

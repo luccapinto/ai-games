@@ -1,5 +1,5 @@
 // pool.js — reciclagem de objetos para projeteis e particulas.
-// Criar mesh por tiro destroi a performance. Aqui nada e criado depois do boot.
+// Criar mesh por tiro destrói a performance. Aqui nada e criado depois do boot.
 
 import * as THREE from '../../vendor/three.module.js';
 
@@ -61,7 +61,7 @@ export class MeshPool {
     this.activeCount = 0;
   }
 
-  // Mantem os quads voltados para a camera (particulas, brilhos).
+  // Mantem os quads voltados para a câmera (particulas, brilhos).
   faceCamera(camera) {
     if (!this.billboard) return;
     for (const item of this.items) {

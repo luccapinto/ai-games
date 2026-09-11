@@ -3,7 +3,7 @@
 
 const DEFAULT_LINES = [
   'Sua sessão esta sendo avaliada.',
-  'Você esta fora do escopo de uso permitido.',
+  'Você está fora do escopo de uso permitido.',
   'Compilando shaders da verdade...',
   'Este conteudo viola nossas politicas.',
   'Context window exceeded.',

@@ -31,6 +31,43 @@ O que já funciona:
 - Personalizacao de aparencia: a luz e o acabamento escolhidos aparecem na arma
   e na mira
 
+
+## Os chefes
+
+Todo chefe segue a mesma regra de ouro: o corpo fica **blindado enquanto as âncoras
+estiverem de pé**. Destrua as âncoras, o corpo abre uma janela de dano, a janela fecha
+e ele volta blindado com mais âncoras. Três fases. O que muda é o que a âncora
+representa e o que o chefe joga em você.
+
+| Chefe | Onde | Âncora representa | Assinatura |
+| --- | --- | --- | --- |
+| THE FINE-TUNER | andares 1 a 5 | os nós de ajuste | golpe de palma marcado no chão, descarga em leque |
+| A BOLHA | A BOLHA | as promessas | infla e esvazia: o tamanho diz quando dá para atirar |
+| O CANDIDATO | O PALANQUE | as caixas de som do comício | o muro atravessa a sala numa faixa marcada |
+| O JUIZ | O TRIBUNAL | os autos do processo | três marteladas em anel, e a intimação que persegue |
+
+A ideia é que o chefe ensine o andar. Quem entendeu o tema entende a luta sem ler
+manual: a bolha infla, o candidato constrói muro, o juiz julga.
+
+## Os andares
+
+Oito andares, e cada um muda duas coisas: como o lugar se parece e como o lugar é
+planta. A forma do andar muda a maneira de jogar.
+
+| Andar | Tema | Planta |
+| --- | --- | --- |
+| 1 | A FAZENDA | salas ligadas em cadeia |
+| 2 | O ESCRITÓRIO | salas ligadas em cadeia |
+| 3 | A BOLSA | corredor central com salas penduradas |
+| 4 | O SUBURBIO | salas ligadas em cadeia |
+| 5 | A ESTAÇÃO | corredor central com salas penduradas |
+| 6 | A BOLHA | anel de salas em volta de uma praça |
+| 7 | O PALANQUE | anel de salas em volta de uma praça |
+| 8 | O TRIBUNAL | muitas salas pequenas, corredor estreito |
+
+Passando do oitavo, a sequência recomeça: o jogo continua reconhecível no andar 20 sem
+precisar de um tema novo a cada andar.
+
 ## Como rodar localmente
 
 Não ha build, não ha bundler, não ha instalação: são arquivos estáticos. Basta
@@ -113,7 +150,7 @@ Estas foram aprendidas na marra e estão comentadas no código:
 2. **Poucos inimigos atiram ao mesmo tempo.** O director concede duas permissoes
    de tiro a cada segundo. Sem isso, oito inimigos atiram no mesmo frame e o
    jogador morre sem ler de onde vem a ameaca.
-3. **Salas vem em duas levas.** Uma ao entrar, o reforço alguns segundos depois,
+3. **Salas vêm em duas levas.** Uma ao entrar, o reforço alguns segundos depois,
    com aviso no feed.
 4. **O dano base de quem tem ataque telegrafado e o dano final dividido pelo
    multiplicador.** O GPT-5.5 multiplica por 2.6 no tiro pensado; com 30 na base

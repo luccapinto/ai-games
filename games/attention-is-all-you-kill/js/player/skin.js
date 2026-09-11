@@ -1,6 +1,6 @@
-// skin.js — aparencia do jogador, salva entre sessões.
+// skin.js — aparência do jogador, salva entre sessões.
 //
-// O jogo é em primeira pessoa, então a aparencia só importa se ela aparecer em
+// O jogo é em primeira pessoa, então a aparência só importa se ela aparecer em
 // algum lugar. Aparece em dois: nos bracos que seguram a arma (visiveis o tempo
 // todo) e no retrato do HUD. Foi por isso que a customizacao virou bracos +
 // paleta em vez de um menu de opções que não muda nada na tela.
@@ -49,7 +49,7 @@ export class Skin {
       if (dados && dados.luz) this.luz = dados.luz;
     } catch (e) {
       // localStorage bloqueado ou dado corrompido: mantem o padrão em silêncio,
-      // aparencia não pode impedir o jogo de abrir
+      // aparência não pode impedir o jogo de abrir
     }
   }
 

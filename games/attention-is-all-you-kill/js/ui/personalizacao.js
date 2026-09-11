@@ -1,4 +1,4 @@
-// personalizacao.js — tela de aparencia do jogador.
+// personalizacao.js — tela de aparência do jogador.
 //
 // Duas paletas e um retrato giratorio. A escolha aparece em dois lugares: nos
 // bracos que seguram a arma, dentro da partida, e no próprio retrato. Fica

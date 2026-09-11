@@ -1,4 +1,4 @@
-// controller.js — jogador: movimento, colisão, pulo e camera.
+// controller.js — jogador: movimento, colisão, pulo e câmera.
 // Colisão: circulo contra grid. Movimento resolvido por eixo separado,
 // com empurrao de penetracao, para o jogador deslizar em quina em vez de travar.
 
@@ -193,7 +193,7 @@ export class Controller {
     const shakeX = (Math.random() - 0.5) * this.shakeAmount;
     const shakeY = (Math.random() - 0.5) * this.shakeAmount;
 
-    // aplica na camera
+    // aplica na câmera
     this.camera.position.set(
       this.position.x + bobX + shakeX,
       this.position.y + bobY + shakeY,

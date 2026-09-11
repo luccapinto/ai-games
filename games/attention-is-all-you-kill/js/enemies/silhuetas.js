@@ -201,7 +201,7 @@ function grok(peca, m) {
   peca(m.escuro, G.coneEspinho, 0.12, 0.94, -0.34, 2.5, 0, 0.3);
   peca(m.escuro, G.coneEspinho, -0.36, 1.10, -0.24, 2.1, 0, -1.0);
 
-  // bracos desiguais de proposito
+  // bracos desiguais de propósito
   peca(m.corpo, G.caixaBracoLongo, 0.48, 1.40, 0.04, -0.3, 0, -0.28);
   peca(m.corpo, G.caixaBraco, -0.48, 1.30, -0.04, 0.2, 0, 0.34);
   peca(m.luz, G.esferaLuz, 0.62, 1.08, 0.16);

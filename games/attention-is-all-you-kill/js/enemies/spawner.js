@@ -220,6 +220,10 @@ export class CombatDirector {
       damage,
       owner,
       life: 3.2,
+      // Homing é quanto o projétil corrige a rota por segundo. Zero é tiro reto.
+      // A intimação do juiz usa um valor baixo de propósito: ela persegue, mas
+      // devagar, para o jogador conseguir ver e sair da linha.
+      homing: extra.homing || 0,
       onHitEffect: extra.onHitEffect || null,
       silenceTime: extra.silenceTime || 0
     });
@@ -300,7 +304,7 @@ export class CombatDirector {
     if (playerStats) playerStats.addKill(enemy);
     if (this.onKill) this.onKill(enemy);
 
-    // Drop generoso de proposito: entre uma sala e outra o jogador precisa
+    // Drop generoso de propósito: entre uma sala e outra o jogador precisa
     // de ar. Munição em 30% dos abates e contexto em 18%.
     const roll = Math.random();
     if (roll < 0.30) this.spawnPickup('ammo', enemy.position.x, enemy.position.z);
@@ -384,6 +388,20 @@ export class CombatDirector {
     for (let i = this.projectiles.length - 1; i >= 0; i--) {
       const p = this.projectiles[i];
       p.life -= dt;
+
+      // Correção de rota, quando o tiro persegue. O vetor é reutilizado para
+      // não alocar a cada frame, e a correção é proporcional a dt: em 60 fps e
+      // em 30 fps o projétil faz a mesma curva.
+      if (p.homing > 0) {
+        const alvo = player.eyePosition();
+        const tmp = this._tmpHoming || (this._tmpHoming = new THREE.Vector3());
+        tmp.set(alvo.x - p.pos.x, 0, alvo.z - p.pos.z);
+        if (tmp.lengthSq() > 0.0001) {
+          tmp.normalize().multiplyScalar(p.vel.length());
+          p.vel.lerp(tmp, Math.min(1, p.homing * dt));
+        }
+      }
+
       p.pos.addScaledVector(p.vel, dt);
 
       let remove = p.life <= 0;

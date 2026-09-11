@@ -369,7 +369,7 @@ export function nameplateTexture(name, faction, accentHex) {
 
   // Emblema: a logo real da marca, reduzida a path data. Cada facção carrega o
   // simbolo de quem ela representa, que é a informação mais rápida que o
-  // jogador tem para saber contra o que esta lutando.
+  // jogador tem para saber contra o que está lutando.
   const cx = PAD + TAM_EMBLEMA / 2;
   const cy = H / 2;
   const paths = LOGOS[faction];

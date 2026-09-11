@@ -943,3 +943,53 @@ html, body {
   .cx-atributos { padding: 10px 13px 14px; }
   .cx-perk { grid-template-columns: 1fr; gap: 3px; }
 }
+
+/* ================= MANUAL: CHEFES E ANDARES ================= */
+/* O cartão de chefe tem mais hierarquia que o de inimigo: chamada, regra,
+   lista de ataques e a dica de como passar. Sem a dica, o manual explicava o
+   problema e não a solução. */
+.cx-chamada {
+  margin: 8px 0 0;
+  color: var(--skin-luz, #ffd76a);
+  font-style: italic;
+  opacity: .9;
+}
+
+.cx-h4 {
+  margin: 14px 0 6px;
+  font-size: 10px;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: #6f8b98;
+}
+
+.cx-ataques { margin: 0; }
+
+.cx-dica {
+  margin: 12px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid #1c2c38;
+  color: #9fd8ff;
+}
+
+.cx-dica b { color: #cfe6f2; }
+
+.cx-chefe .cx-desc { margin: 12px 0 0; }
+
+.cx-layout {
+  margin: 8px 0 0;
+  color: #6f8b98;
+}
+
+.cx-layout b { color: #cfe6f2; }
+
+/* Seis abas não cabem lado a lado num celular. Em vez de encolher a letra até
+   ficar ilegível, a barra rola na horizontal. */
+.cx-abas {
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.cx-abas::-webkit-scrollbar { display: none; }
+
+.cx-abas button { flex: 0 0 auto; }
