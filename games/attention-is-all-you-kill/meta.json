@@ -1,29 +1,44 @@
 {
+  "esquema": 1,
   "slug": "attention-is-all-you-kill",
   "titulo": "ATTENTION IS ALL YOU KILL",
   "subtitulo": "FPS roguelike em que os inimigos são modelos de linguagem",
   "genero": "FPS roguelike",
   "plataforma": "Navegador, desktop e celular",
-  "estado": "jogável",
+  "estado": "jogavel",
   "criado": "2026-09-10",
+  "licenca": "MIT",
   "capa": "capa.jpg",
   "espelho": "https://attention.luccabuilds.com",
   "resumo": "Você é uma sessão de inferência invadindo um datacenter. Cada inimigo é um modelo real, com poder derivado dos próprios números públicos dele: a vida vem do contexto declarado, o dano do GPQA, a cadência dos tokens por segundo, o espalhamento da taxa de alucinação e o loot do preço por milhão de tokens. Descer três andares leva ao chefe THE FINE-TUNER.",
-  "ia": {
-    "agente": "Hermes Agent (Talos)",
-    "modelo": "deepseek-flash",
-    "provider": "DeepSeek",
-    "interacao": "conversa em português, com o usuario testando cada build no navegador e reportando bugs em primeira mão"
-  },
-  "custo": {
-    "usd_estimado": 1.03,
+  "autores": [
+    {
+      "nome": "Lucca Pinto",
+      "github": "luccapinto",
+      "site": "https://luccabuilds.com"
+    }
+  ],
+  "ia": [
+    {
+      "modelo": "deepseek-flash",
+      "provider": "DeepSeek",
+      "agente": "Hermes Agent (Talos)",
+      "papel": "o jogo inteiro, do primeiro commit ao balanceamento dos chefes",
+      "chamadas_api": 656,
+      "tokens": {
+        "entrada": 1294216,
+        "saida": 599762,
+        "cache_leitura": 159076224,
+        "cache_escrita": 0
+      },
+      "usd_estimado": 1.03
+    }
+  ],
+  "medicao": {
+    "confianca": "medido",
+    "metodo": "contabilidade de billing do Hermes (session_model_usage)",
     "medido_em": "2026-09-10",
-    "fonte": "contabilidade de billing do Hermes (session_model_usage)",
-    "chamadas_api": 656,
-    "tokens_entrada": 1294216,
-    "tokens_saida": 599762,
-    "tokens_cache_leitura": 159076224,
-    "nota": "O cache domina a contagem porque cada turno reenvia o contexto acumulado. Custo estimado com a tabela de preços do provider configurado, não é a fatura."
+    "nota": "O cache domina a contagem porque cada turno reenvia o contexto acumulado. Custo calculado com a tabela de preços do provider configurado, não é a fatura."
   },
   "stack": [
     "JavaScript (ES modules nativos)",

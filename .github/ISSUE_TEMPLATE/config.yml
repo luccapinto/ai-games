@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Como mandar um jogo
+    url: https://github.com/luccapinto/ai-games/blob/main/CONTRIBUTING.md
+    about: O guia completo, do clone ao PR.
+  - name: Como medir os tokens
+    url: https://github.com/luccapinto/ai-games/blob/main/docs/CUSTOS.md
+    about: Onde cada ferramenta guarda o consumo da sessao.
