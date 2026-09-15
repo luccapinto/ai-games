@@ -22,12 +22,20 @@ import unicodedata
 
 RAIZ = pathlib.Path(__file__).resolve().parent.parent
 
-# O jogo vive fora do repositorio enquanto esta sendo feito, e dentro dele na
-# copia publicada. Verifica os dois: o servidor de desenvolvimento so existe na
-# fonte, entao e ela que responde ao teste de carregamento.
-FONTE = pathlib.Path.home() / 'games' / 'attention-is-all-you-kill'
-JOGO = FONTE if FONTE.exists() else RAIZ / 'games' / 'attention-is-all-you-kill'
-COPIAS = [JOGO] if JOGO == RAIZ / 'games' / 'attention-is-all-you-kill' else [JOGO, RAIZ / 'games' / 'attention-is-all-you-kill']
+# O repositorio e coletivo: verifica todo jogo em games/, nao um so. Uma copia
+# em desenvolvimento fora do repo, se existir, entra junto: e nela que mora o
+# servidor de desenvolvimento, entao e ela que responde ao teste de carregamento.
+def _jogos():
+    pasta = RAIZ / 'games'
+    if not pasta.exists():
+        return []
+    return [p for p in sorted(pasta.iterdir())
+            if p.is_dir() and not p.name.startswith(('.', '_'))]
+
+
+JOGOS = _jogos()
+FONTE = pathlib.Path.home() / 'games'
+COPIAS = JOGOS + [FONTE / j.name for j in JOGOS if (FONTE / j.name).exists()]
 NAO_ASCII = re.compile(r'[^\x00-\x7F]')
 
 falhas: list[str] = []
@@ -123,7 +131,8 @@ def checar_json_chaves(arquivo: pathlib.Path):
 
 
 def checar_sintaxe_js():
-    arquivos = sorted(JOGO.glob('js/**/*.js'))
+    arquivos = [a for copia in COPIAS for a in sorted(copia.glob('js/**/*.js'))
+                if 'vendor' not in a.parts]
     if not arquivos:
         return
     r = subprocess.run(['node', '--check'] + [str(a) for a in arquivos],
@@ -133,8 +142,17 @@ def checar_sintaxe_js():
 
 
 def checar_servidor():
-    """O jogo carrega de fato? Sobe o servidor e pede o modulo raiz."""
-    proc = subprocess.Popen(['python3', 'serve.py', '8155'], cwd=JOGO,
+    """O jogo carrega de fato? Sobe o servidor e pede o modulo raiz.
+
+    So roda onde ha um serve.py, que e coisa da copia de desenvolvimento. Na
+    copia publicada o jogo abre direto do arquivo, entao nao ha o que subir; e
+    faltar servidor nao e falha: e o caso normal de quem clonou o repositorio.
+    """
+    candidatos = [c for c in COPIAS if (c / 'serve.py').exists()]
+    if not candidatos:
+        return
+    jogo = candidatos[0]
+    proc = subprocess.Popen(['python3', 'serve.py', '8155'], cwd=jogo,
                             stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
     try:
         for _ in range(40):
@@ -154,6 +172,10 @@ def checar_servidor():
 
 
 def main() -> int:
+    if not JOGOS:
+        print('nenhum jogo em games/', file=sys.stderr)
+        return 1
+
     checar_sintaxe_js()
 
     for copia in COPIAS:
@@ -162,13 +184,12 @@ def main() -> int:
                 checar_js(p)
         for p in sorted(copia.glob('css/**/*.css')):
             checar_css(p)
-    for raiz in (JOGO, RAIZ):
-        for p in sorted(raiz.glob('**/*.py')):
-            if '.git' not in p.parts and 'vendor' not in p.parts:
-                checar_python(p)
-        for p in sorted(raiz.glob('**/*.json')):
-            if '.git' not in p.parts:
-                checar_json_chaves(p)
+    for p in sorted(RAIZ.glob('**/*.py')):
+        if '.git' not in p.parts and 'vendor' not in p.parts:
+            checar_python(p)
+    for p in sorted(RAIZ.glob('**/*.json')):
+        if '.git' not in p.parts:
+            checar_json_chaves(p)
 
     checar_servidor()
 
@@ -178,7 +199,7 @@ def main() -> int:
             print(' -', f)
         return 1
 
-    print('tudo certo: codigo em ASCII, texto acentuado, jogo carrega')
+    print(f'tudo certo em {len(JOGOS)} jogo(s): codigo em ASCII, texto acentuado')
     return 0
 
 

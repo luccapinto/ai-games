@@ -1,0 +1,43 @@
+name: validar
+
+# Todo PR que toca um jogo passa por aqui. O que se protege: meta.json torto
+# entrando no benchmark, e indice gerado ficando para tras do que foi mudado.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      # Sem dependencia: os tres scripts sao stdlib de proposito, para qualquer
+      # pessoa rodar o mesmo comando na maquina dela antes de abrir o PR.
+      # Sem --rigoroso de proposito: erro barra o merge, aviso so aparece no log.
+      # Recusar um PR porque o jogo ainda nao tem captura de tela custa mais
+      # contribuicao do que ganha em capricho.
+      - name: meta.json de cada jogo
+        run: python3 tools/validar.py
+
+      - name: indice, hub e dados regenerados
+        run: python3 tools/build.py --conferir
+
+      - name: o jogo abre mesmo
+        run: |
+          falhou=0
+          for jogo in games/*/; do
+            if [ ! -f "$jogo/index.html" ]; then
+              echo "::error file=$jogo::sem index.html: o jogo precisa abrir pela pasta"
+              falhou=1
+            fi
+          done
+          exit $falhou

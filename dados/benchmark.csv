@@ -1,0 +1,2 @@
+slug,titulo,criado,genero,estado,autor,github,modelo,provider,agente,chamadas_api,tokens_entrada,tokens_saida,tokens_novos,tokens_cache,usd_estimado,linhas_do_jogo,confianca
+attention-is-all-you-kill,ATTENTION IS ALL YOU KILL,2026-09-10,FPS roguelike,jogavel,Lucca Pinto,luccapinto,deepseek-flash,DeepSeek,Hermes Agent (Talos),656,1294216,599762,1893978,159076224,1.0300,10709,medido

@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ai-games — jogos feitos com IA</title>
-<meta name="description" content="Repositório coletivo de jogos feitos com IA, com o modelo que escreveu, os tokens gastos e o custo de cada um.">
+<title>Benchmark — ai-games</title>
+<meta name="description" content="Quanto custou, em tokens e em dólar, cada jogo feito com IA neste repositório.">
 <style>
   :root {
     --bg: #05070d; --painel: #0a1018; --linha: #1b2c38; --ink: #d8e6e4;
@@ -98,52 +98,50 @@
 <body>
 <div class="envelope">
   <header class="topo">
-    <div class="marca">AI-GAMES</div>
-    <h1>Jogos feitos conversando com IA</h1>
-    <p class="sub">Repositório coletivo. Cada jogo vive numa pasta própria e roda sozinho no
-      navegador. Ao lado de cada um está quem fez, qual modelo escreveu, quantos tokens custou
-      e quanto saiu de API.</p>
-    <div class="numeros"><div><span>JOGOS</span><strong>1</strong></div><div><span>QUEM FEZ</span><strong>1</strong></div><div><span>MODELOS</span><strong>1</strong></div><div><span>LINHAS</span><strong>10.709</strong></div><div><span>TOKENS NOVOS</span><strong>1,9 M</strong></div><div><span>CUSTO DE API</span><strong>US$ 1,03</strong></div></div>
+    <div class="marca"><a href="index.html">AI-GAMES</a> / BENCHMARK</div>
+    <h1>O que custou cada jogo</h1>
+    <p class="sub">Um jogo inteiro é uma tarefa longa, bagunçada e com um juiz honesto no fim:
+      ou dá para jogar, ou não dá. Esta tabela registra quanto cada modelo gastou para chegar lá,
+      declarado por quem fez.</p>
+    <div class="numeros"><div><span>JOGOS</span><strong>1</strong></div><div><span>MODELOS</span><strong>1</strong></div><div><span>TOKENS NOVOS</span><strong>1,9 M</strong></div><div><span>TOKENS DE CACHE</span><strong>159,1 M</strong></div><div><span>CHAMADAS</span><strong>656</strong></div><div><span>CUSTO TOTAL</span><strong>US$ 1,03</strong></div></div>
     <nav class="navegacao">
-      <a class="destaque" href="https://github.com/luccapinto/ai-games/blob/main/CONTRIBUTING.md">MANDAR O SEU JOGO</a>
-      <a href="benchmark.html">VER O BENCHMARK</a>
-      <a href="dados/benchmark.csv">BAIXAR OS DADOS</a>
-      <a href="https://github.com/luccapinto/ai-games">CÓDIGO</a>
+      <a href="index.html">VOLTAR AO HUB</a>
+      <a href="dados/benchmark.csv">CSV</a>
+      <a href="dados/benchmark.json">JSON</a>
+      <a href="https://github.com/luccapinto/ai-games/blob/main/docs/CUSTOS.md">METODOLOGIA</a>
     </nav>
   </header>
 
-      <article class="jogo">
-        <img class="capa" src="games/attention-is-all-you-kill/capa.jpg" alt="captura de ATTENTION IS ALL YOU KILL" loading="lazy">
-        <div class="corpo">
-          <header>
-            <h2>ATTENTION IS ALL YOU KILL</h2>
-            <span class="genero">FPS roguelike</span>
-            <p class="autoria">por <a href="https://github.com/luccapinto">Lucca Pinto</a></p>
-          </header>
-          <p class="resumo">Você é uma sessão de inferência invadindo um datacenter. Cada inimigo é um modelo real, com poder derivado dos próprios números públicos dele: a vida vem do contexto declarado, o dano do GPQA, a cadência dos tokens por segundo, o espalhamento da taxa de alucinação e o loot do preço por milhão de tokens. Descer três andares leva ao chefe THE FINE-TUNER.</p>
-          <ul class="destaques"><li>Oito andares, cada um com paleta, plano de fundo e planta próprios: sala em cadeia, corredor central, anel em volta de uma praça e labirinto apertado</li><li>Quatro chefes: THE FINE-TUNER, A BOLHA, O CANDIDATO e O JUIZ, com a mesma regra de ouro (corpo blindado enquanto as âncoras estiverem de pé) e ataques temáticos</li><li>Um atributo de jogo para cada número público do modelo: contexto vira vida, GPQA vira dano, tokens por segundo viram cadência, alucinação vira espalhamento e preço por milhão vira loot</li></ul>
-          <dl class="ficha">
-            <div><dt>Escreveu</dt><dd>deepseek-flash</dd></div>
-            <div><dt>Agente</dt><dd>Hermes Agent (Talos)</dd></div>
-            <div><dt>Tokens novos</dt><dd>1,9 M</dd></div>
-            <div><dt>Custo</dt><dd>US$ 1,03</dd></div>
-            <div><dt>Linhas</dt><dd>10.709</dd></div>
-          </dl>
-          <footer class="acoes">
-            <a class="jogar" href="games/attention-is-all-you-kill/">JOGAR</a>
-            <a class="secundario" href="games/attention-is-all-you-kill/README.md">como foi feito</a>
-            <a class="secundario" href="https://attention.luccabuilds.com">espelho do autor</a>
-          </footer>
-        </div>
-      </article>
+  <h2 class="secao">Por jogo</h2>
+  <div class="rolagem"><table><thead><tr><th>Jogo</th><th>Quem fez</th><th>Modelo</th><th>Agente</th><th class="num">Tokens novos</th><th class="num">Cache</th><th class="num">Custo</th><th class="num">Linhas</th><th>Medição</th></tr></thead><tbody><tr><td class="txt"><a href="games/attention-is-all-you-kill/">ATTENTION IS ALL YOU KILL</a></td><td class="txt">Lucca Pinto</td><td class="txt">deepseek-flash</td><td class="txt">Hermes Agent (Talos)</td><td class="num">1,9 M</td><td class="num">159,1 M</td><td class="num destaque">US$ 1,03</td><td class="num">10.709</td><td><span class="selo medido">medido</span></td></tr></tbody></table></div>
 
-      <section class="convite">
-        <h2>O próximo jogo pode ser o seu</h2>
-        <p>Faça um jogo conversando com qualquer modelo, em qualquer ferramenta. Rode
-          <code>python3 tools/novo_jogo.py meu-jogo</code>, preencha o <code>meta.json</code> com
-          o que o modelo gastou e abra um PR. O jogo entra no hub e os números entram no
-          benchmark — inclusive se o modelo tiver ido mal: resultado ruim medido também é dado.</p>
-      </section>
+  <h2 class="secao">Por modelo</h2>
+  <div class="rolagem"><table><thead><tr><th>Modelo</th><th class="num">Jogos</th><th class="num">Tokens novos</th><th class="num">Cache</th><th class="num">Custo</th><th class="num">Linhas</th><th class="num">Tokens/linha</th><th class="num">Linhas/US$</th></tr></thead><tbody><tr><td class="txt">deepseek-flash</td><td class="num">1</td><td class="num">1,9 M</td><td class="num">159,1 M</td><td class="num destaque">US$ 1,03</td><td class="num">10.709</td><td class="num">176,9</td><td class="num">10.397</td></tr></tbody></table></div>
+
+  <h2 class="secao">Por agente</h2>
+  <div class="rolagem"><table><thead><tr><th>Agente</th><th class="num">Jogos</th><th class="num">Tokens novos</th><th class="num">Cache</th><th class="num">Custo</th><th class="num">Linhas</th><th class="num">Tokens/linha</th><th class="num">Linhas/US$</th></tr></thead><tbody><tr><td class="txt">Hermes Agent (Talos)</td><td class="num">1</td><td class="num">1,9 M</td><td class="num">159,1 M</td><td class="num destaque">US$ 1,03</td><td class="num">10.709</td><td class="num">176,9</td><td class="num">10.397</td></tr></tbody></table></div>
+  <p class="nota">A mesma tarefa muda de preço conforme a ferramenta que dirige o modelo: quanto
+    contexto ela reenvia, quanto ela acerta de cache, quantas chamadas ela gasta para aplicar uma
+    edição. Por isso agente é uma coluna do benchmark, não um detalhe.</p>
+
+  <h2 class="secao">Por provider</h2>
+  <div class="rolagem"><table><thead><tr><th>Provider</th><th class="num">Jogos</th><th class="num">Tokens novos</th><th class="num">Cache</th><th class="num">Custo</th><th class="num">Linhas</th><th class="num">Tokens/linha</th><th class="num">Linhas/US$</th></tr></thead><tbody><tr><td class="txt">DeepSeek</td><td class="num">1</td><td class="num">1,9 M</td><td class="num">159,1 M</td><td class="num destaque">US$ 1,03</td><td class="num">10.709</td><td class="num">176,9</td><td class="num">10.397</td></tr></tbody></table></div>
+
+  <h2 class="secao">Como ler isto</h2>
+  <p class="nota"><strong>Tokens novos</strong> é entrada mais saída. <strong>Cache</strong> fica
+    à parte porque depende da ferramenta, não do trabalho: numa sessão longa cada turno reenvia o
+    contexto acumulado, e quanto disso vira leitura barata de cache é decisão do agente. Somar os
+    dois num número só compara agentes, não jogos.</p>
+  <p class="nota"><strong>Linhas por dólar</strong> é uma medida de escala, não de qualidade. Um
+    modelo que escreve um jogo enxuto e bom perde nessa coluna para um que despeja código. Leia
+    junto com o jogo: ele está a um clique, e ou é divertido, ou não é.</p>
+  <p class="nota"><strong>Medição</strong> diz de onde veio o número: <em>medido</em> saiu da
+    contabilidade da própria ferramenta, <em>estimado</em> foi reconstruído por quem fez,
+    <em>parcial</em> cobre só parte das sessões. Ninguém audita a declaração de ninguém — o que
+    o repositório garante é que ela está escrita, datada e versionada ao lado do código.</p>
+  <p class="nota">Isto <strong>não</strong> é um benchmark controlado: jogos diferentes, pessoas
+    diferentes, ambições diferentes. O que ele mostra é a ordem de grandeza real de construir algo
+    que funciona conversando com um modelo — o número que nenhum eval de tarefa curta dá.</p>
 
   <footer class="rodape">
     Repositório coletivo. O índice, esta página e os arquivos de <code>dados/</code> são gerados
