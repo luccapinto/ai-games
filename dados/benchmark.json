@@ -1,0 +1,112 @@
+{
+  "esquema": 1,
+  "resumo": {
+    "jogos": 1,
+    "autores": 1,
+    "modelos": 1,
+    "linhas": 10709,
+    "usd": 1.03,
+    "tokens_novos": 1893978,
+    "tokens_cache": 159076224,
+    "chamadas": 656
+  },
+  "jogos": [
+    {
+      "slug": "attention-is-all-you-kill",
+      "titulo": "ATTENTION IS ALL YOU KILL",
+      "genero": "FPS roguelike",
+      "criado": "2026-09-10",
+      "estado": "jogavel",
+      "licenca": "MIT",
+      "autores": [
+        {
+          "nome": "Lucca Pinto",
+          "github": "luccapinto",
+          "site": "https://luccabuilds.com"
+        }
+      ],
+      "ia": [
+        {
+          "modelo": "deepseek-flash",
+          "provider": "DeepSeek",
+          "agente": "Hermes Agent (Talos)",
+          "papel": "o jogo inteiro, do primeiro commit ao balanceamento dos chefes",
+          "chamadas_api": 656,
+          "tokens": {
+            "entrada": 1294216,
+            "saida": 599762,
+            "cache_leitura": 159076224,
+            "cache_escrita": 0
+          },
+          "usd_estimado": 1.03
+        }
+      ],
+      "medicao": {
+        "metodo": "contabilidade de billing do Hermes (session_model_usage)",
+        "confianca": "medido",
+        "medido_em": "2026-09-10",
+        "nota": "O cache domina a contagem porque cada turno reenvia o contexto acumulado. Custo calculado com a tabela de preços do provider configurado, não é a fatura."
+      },
+      "totais": {
+        "tokens_entrada": 1294216,
+        "tokens_saida": 599762,
+        "tokens_novos": 1893978,
+        "tokens_cache": 159076224,
+        "tokens_totais": 160970202,
+        "usd": 1.03,
+        "chamadas_api": 656,
+        "linhas": 10709,
+        "tem_custo": true
+      },
+      "url": "games/attention-is-all-you-kill/"
+    }
+  ],
+  "por_modelo": [
+    {
+      "nome": "deepseek-flash",
+      "jogos": [
+        "attention-is-all-you-kill"
+      ],
+      "n_jogos": 1,
+      "tokens_novos": 1893978,
+      "tokens_cache": 159076224,
+      "chamadas_api": 656,
+      "usd": 1.03,
+      "linhas": 10709,
+      "tokens_por_linha": 176.86,
+      "linhas_por_dolar": 10397.09
+    }
+  ],
+  "por_agente": [
+    {
+      "nome": "Hermes Agent (Talos)",
+      "jogos": [
+        "attention-is-all-you-kill"
+      ],
+      "n_jogos": 1,
+      "tokens_novos": 1893978,
+      "tokens_cache": 159076224,
+      "chamadas_api": 656,
+      "usd": 1.03,
+      "linhas": 10709,
+      "tokens_por_linha": 176.86,
+      "linhas_por_dolar": 10397.09
+    }
+  ],
+  "por_provider": [
+    {
+      "nome": "DeepSeek",
+      "jogos": [
+        "attention-is-all-you-kill"
+      ],
+      "n_jogos": 1,
+      "tokens_novos": 1893978,
+      "tokens_cache": 159076224,
+      "chamadas_api": 656,
+      "usd": 1.03,
+      "linhas": 10709,
+      "tokens_por_linha": 176.86,
+      "linhas_por_dolar": 10397.09
+    }
+  ]
+}

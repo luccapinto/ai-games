@@ -1,0 +1,46 @@
+name: Vou mandar um jogo
+description: Avise que esta fazendo, para ninguem duplicar e para o slug ficar reservado.
+title: "[jogo] "
+labels: [jogo-novo]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Nao e obrigatorio abrir issue antes — pode mandar o PR direto. Isto serve
+        para avisar que voce esta fazendo, pedir ajuda no meio, ou reservar o nome.
+
+  - type: input
+    id: slug
+    attributes:
+      label: Slug
+      description: O nome da pasta em games/, minuscula-com-hifen
+      placeholder: meu-jogo
+    validations:
+      required: true
+
+  - type: input
+    id: ideia
+    attributes:
+      label: O que e o jogo
+      placeholder: Um puzzle em que as pecas sao tokens de um tokenizer
+    validations:
+      required: true
+
+  - type: input
+    id: modelo
+    attributes:
+      label: Com qual modelo e em qual ferramenta
+      description: Da para trocar depois. Serve para saber o que ja esta representado no benchmark.
+      placeholder: claude-opus-5 no Claude Code
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: regras
+    attributes:
+      label: Antes de comecar
+      options:
+        - label: Li o CONTRIBUTING.md
+          required: true
+        - label: Vou anotar os tokens desde a primeira sessao (e mais facil que reconstruir depois)
+          required: false

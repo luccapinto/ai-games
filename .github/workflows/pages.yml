@@ -1,0 +1,46 @@
+name: publicar
+
+# O hub e todos os jogos vao para o GitHub Pages a cada push na main. E o que
+# faz valer a pena contribuir: o jogo fica jogavel num link no mesmo dia, sem
+# ninguem precisar hospedar nada.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Uma publicacao por vez; nao cancela a que esta no ar no meio do caminho.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  publicar:
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      # Gera de novo antes de publicar: o que vai para o ar sai sempre dos
+      # meta.json, nunca de um HTML que alguem commitou desatualizado.
+      - name: gerar o indice
+        run: python3 tools/build.py
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+
+      - id: deploy
+        uses: actions/deploy-pages@v4
