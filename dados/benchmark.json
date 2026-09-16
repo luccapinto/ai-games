@@ -1,14 +1,14 @@
 {
   "esquema": 1,
   "resumo": {
-    "jogos": 4,
+    "jogos": 5,
     "autores": 1,
     "modelos": 2,
-    "linhas": 14613,
-    "usd": 5.86,
-    "tokens_novos": 2214978,
+    "linhas": 15448,
+    "usd": 6.5200000000000005,
+    "tokens_novos": 2258978,
     "tokens_cache": 159076224,
-    "chamadas": 754
+    "chamadas": 776
   },
   "jogos": [
     {
@@ -59,6 +59,55 @@
         "tem_custo": true
       },
       "url": "games/seiva/"
+    },
+    {
+      "slug": "processo",
+      "titulo": "PROCESSO",
+      "genero": "Cartas com construção de baralho",
+      "criado": "2026-09-16",
+      "estado": "jogavel",
+      "licenca": "MIT",
+      "autores": [
+        {
+          "nome": "Lucca Pinto",
+          "github": "luccapinto",
+          "site": "https://luccabuilds.com"
+        }
+      ],
+      "ia": [
+        {
+          "modelo": "claude-opus-5",
+          "provider": "Anthropic",
+          "agente": "Claude Code",
+          "papel": "o jogo inteiro: regras, cartas, balanceamento, interface e os simuladores",
+          "chamadas_api": 22,
+          "tokens": {
+            "entrada": 36000,
+            "saida": 8000,
+            "cache_leitura": 0,
+            "cache_escrita": 0
+          },
+          "usd_estimado": 0.66
+        }
+      ],
+      "medicao": {
+        "metodo": "diferença do orçamento de tokens da sessão entre o início e o fim do jogo",
+        "confianca": "estimado",
+        "medido_em": "2026-09-16",
+        "nota": "Número estimado, não lido de billing. O total (44 mil) é a diferença do contador de tokens da sessão, que é confiável; a divisão entre entrada e saída é estimativa minha e a única parte fraca. O cache está zerado porque não foi medido, não porque não houve."
+      },
+      "totais": {
+        "tokens_entrada": 36000,
+        "tokens_saida": 8000,
+        "tokens_novos": 44000,
+        "tokens_cache": 0,
+        "tokens_totais": 44000,
+        "usd": 0.66,
+        "chamadas_api": 22,
+        "linhas": 835,
+        "tem_custo": true
+      },
+      "url": "games/processo/"
     },
     {
       "slug": "cripta",
@@ -214,16 +263,17 @@
       "jogos": [
         "antena",
         "cripta",
+        "processo",
         "seiva"
       ],
-      "n_jogos": 3,
-      "tokens_novos": 321000,
+      "n_jogos": 4,
+      "tokens_novos": 365000,
       "tokens_cache": 0,
-      "chamadas_api": 98,
-      "usd": 4.83,
-      "linhas": 3904,
-      "tokens_por_linha": 82.22,
-      "linhas_por_dolar": 808.28
+      "chamadas_api": 120,
+      "usd": 5.49,
+      "linhas": 4739,
+      "tokens_por_linha": 77.02,
+      "linhas_por_dolar": 863.21
     },
     {
       "nome": "deepseek-flash",
@@ -246,16 +296,17 @@
       "jogos": [
         "antena",
         "cripta",
+        "processo",
         "seiva"
       ],
-      "n_jogos": 3,
-      "tokens_novos": 321000,
+      "n_jogos": 4,
+      "tokens_novos": 365000,
       "tokens_cache": 0,
-      "chamadas_api": 98,
-      "usd": 4.83,
-      "linhas": 3904,
-      "tokens_por_linha": 82.22,
-      "linhas_por_dolar": 808.28
+      "chamadas_api": 120,
+      "usd": 5.49,
+      "linhas": 4739,
+      "tokens_por_linha": 77.02,
+      "linhas_por_dolar": 863.21
     },
     {
       "nome": "Hermes Agent (Talos)",
@@ -278,16 +329,17 @@
       "jogos": [
         "antena",
         "cripta",
+        "processo",
         "seiva"
       ],
-      "n_jogos": 3,
-      "tokens_novos": 321000,
+      "n_jogos": 4,
+      "tokens_novos": 365000,
       "tokens_cache": 0,
-      "chamadas_api": 98,
-      "usd": 4.83,
-      "linhas": 3904,
-      "tokens_por_linha": 82.22,
-      "linhas_por_dolar": 808.28
+      "chamadas_api": 120,
+      "usd": 5.49,
+      "linhas": 4739,
+      "tokens_por_linha": 77.02,
+      "linhas_por_dolar": 863.21
     },
     {
       "nome": "DeepSeek",

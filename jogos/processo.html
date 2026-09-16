@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ai-games — jogos feitos com IA</title>
-<meta name="description" content="Vitrine de jogos feitos com IA: cada um roda no navegador, com o modelo que escreveu e quanto custou ao lado.">
+<title>PROCESSO — ai-games</title>
+<meta name="description" content="Seu requerimento tem cinco instâncias, do atendente que diz que não é com ele até O Setor Responsável, que está fora do ar. Paciência é vida, tempo é energia, e">
 <style>
   :root {
     --bg: #05070d; --painel: #0a1018; --linha: #1b2c38; --ink: #d8e6e4;
@@ -211,84 +211,41 @@
 <body>
 <div class="envelope">
   <header class="topo">
-    <div class="marca">AI-GAMES</div>
-    <h1>O que a IA está construindo</h1>
-    <p class="sub">Repositório coletivo de jogos feitos conversando com modelos. Todos abrem no
-      navegador, sem instalar nada. Ao lado de cada um está quem escreveu e quanto custou —
-      porque um jogo bom por dez dólares e um jogo bom por um dólar não são a mesma coisa.</p>
-    <div class="numeros"><div><span>JOGOS</span><strong>5</strong></div><div><span>MODELOS</span><strong>2</strong></div><div><span>CUSTO DE API</span><strong>US$ 6,52</strong></div></div>
-    <nav class="navegacao">
-      <a class="destaque" href="https://github.com/luccapinto/ai-games/blob/main/CONTRIBUTING.md">MANDAR O SEU JOGO</a>
-      <a href="benchmark.html">VER O BENCHMARK</a>
-      <a href="dados/benchmark.csv">BAIXAR OS DADOS</a>
-      <a href="https://github.com/luccapinto/ai-games">CÓDIGO</a>
-    </nav>
+    <div class="marca"><a href="../index.html">AI-GAMES</a> / CARTAS COM CONSTRUÇÃO DE BARALHO</div>
+    <h1>PROCESSO</h1>
+    <p class="sub">Jogo de cartas onde o adversário é a repartição</p>
+    <p class="autoria">por <a href="https://github.com/luccapinto">Lucca Pinto</a> · 2026-09-16</p>
   </header>
 
-  <div class="grade">
-      <article class="cartao">
-        <div class="midia"><img src="games/seiva/capa.jpg" alt="captura de SEIVA" loading="lazy"></div>
-        <div class="cartao-corpo">
-          <h3><a href="jogos/seiva.html">SEIVA</a></h3>
-          <span class="genero">Defesa de torre</span>
-          <p class="autoria">por <a href="https://github.com/luccapinto">Lucca Pinto</a></p>
-          <div class="chips"><span class="chip modelo">claude-opus-5</span><span class="chip custo">US$ 1,05</span></div>
-          <div class="empurra"></div>
-          <a class="jogar" href="games/seiva/">JOGAR</a>
-        </div>
-      </article>
-      <article class="cartao">
-        <div class="midia"><img src="games/processo/capa.jpg" alt="captura de PROCESSO" loading="lazy"></div>
-        <div class="cartao-corpo">
-          <h3><a href="jogos/processo.html">PROCESSO</a></h3>
-          <span class="genero">Cartas com construção de baralho</span>
-          <p class="autoria">por <a href="https://github.com/luccapinto">Lucca Pinto</a></p>
-          <div class="chips"><span class="chip modelo">claude-opus-5</span><span class="chip custo">US$ 0,66</span></div>
-          <div class="empurra"></div>
-          <a class="jogar" href="games/processo/">JOGAR</a>
-        </div>
-      </article>
-      <article class="cartao">
-        <div class="midia"><img src="games/cripta/capa.jpg" alt="captura de CRIPTA" loading="lazy"></div>
-        <div class="cartao-corpo">
-          <h3><a href="jogos/cripta.html">CRIPTA</a></h3>
-          <span class="genero">Puzzle</span>
-          <p class="autoria">por <a href="https://github.com/luccapinto">Lucca Pinto</a></p>
-          <div class="chips"><span class="chip modelo">claude-opus-5</span><span class="chip custo">US$ 1,30</span></div>
-          <div class="empurra"></div>
-          <a class="jogar" href="games/cripta/">JOGAR</a>
-        </div>
-      </article>
-      <article class="cartao">
-        <div class="midia"><img src="games/antena/capa.jpg" alt="captura de ANTENA" loading="lazy"></div>
-        <div class="cartao-corpo">
-          <h3><a href="jogos/antena.html">ANTENA</a></h3>
-          <span class="genero">Plataforma de precisão</span>
-          <p class="autoria">por <a href="https://github.com/luccapinto">Lucca Pinto</a></p>
-          <div class="chips"><span class="chip modelo">claude-opus-5</span><span class="chip custo">US$ 2,48</span></div>
-          <div class="empurra"></div>
-          <a class="jogar" href="games/antena/">JOGAR</a>
-        </div>
-      </article>
-      <article class="cartao">
-        <div class="midia"><img src="games/attention-is-all-you-kill/capa.jpg" alt="captura de ATTENTION IS ALL YOU KILL" loading="lazy"></div>
-        <div class="cartao-corpo">
-          <h3><a href="jogos/attention-is-all-you-kill.html">ATTENTION IS ALL YOU KILL</a></h3>
-          <span class="genero">FPS roguelike</span>
-          <p class="autoria">por <a href="https://github.com/luccapinto">Lucca Pinto</a></p>
-          <div class="chips"><span class="chip modelo">deepseek-flash</span><span class="chip custo">US$ 1,03</span></div>
-          <div class="empurra"></div>
-          <a class="jogar" href="games/attention-is-all-you-kill/">JOGAR</a>
-        </div>
-      </article>
-      <article class="cartao convite">
-        <h3>O próximo jogo pode ser o seu</h3>
-        <p>Faça um jogo conversando com qualquer modelo, em qualquer ferramenta.
-          Rode <code>python3 tools/novo_jogo.py meu-jogo</code>, preencha o
-          <code>meta.json</code> com o que o modelo gastou e abra um PR.</p>
-        <a class="jogar" href="https://github.com/luccapinto/ai-games/blob/main/CONTRIBUTING.md">MANDAR O MEU</a>
-      </article>
+  <div class="jogo-topo">
+    <div class="midia"><img src="../games/processo/capa.jpg" alt="captura de PROCESSO" loading="eager"></div>
+    <div class="jogo-acoes">
+      <a class="jogar" href="../games/processo/">JOGAR</a>
+      <a class="secundario" href="../games/processo/README.md">como foi feito</a>
+      
+    </div>
   </div>
+
+  <div class="colunas">
+    <div>
+      <p class="sub" style="max-width:none">Seu requerimento tem cinco instâncias, do atendente que diz que não é com ele até O Setor Responsável, que está fora do ar. Paciência é vida, tempo é energia, e o servidor sempre anuncia o próximo golpe. A taxa de vitória e o valor de cada carta foram medidos rodando milhares de corridas, não estimados no olho.</p>
+      <h2 class="secao">O que tem dentro</h2>
+      <ul class="destaques"><li>Taxa de vitória medida em milhares de corridas simuladas, não estimada: saiu de 0% para 51% depois de uma varredura de parâmetros</li><li>O valor de cada carta foi medido forçando a escolha dela e comparando a vitória, porque contar &#x27;carta mais escolhida&#x27; só mede a tabela de notas do robô e não o jogo</li><li>A medição achou uma carta dominante (forçá-la subia a vitória de 40% para 70%), duas armadilhas e uma carta que nunca compensava — essa foi removida</li><li>Um robô sem duas regras (não se defender quando dá para matar, curar quando a paciência acaba) perdeu 6 de 6 corridas; com elas, ganhou metade. O jogo tem decisão, não sorteio</li><li>Interface em DOM e CSS, não canvas: cada carta é um button de verdade, que navega por Tab e responde a Enter sem código extra</li><li>Zero arquivo de imagem ou de áudio: a textura de papel são duas tramas de gradiente cruzadas</li></ul>
+      <h2 class="secao">Por onde começar a ler</h2>
+      <ul class="arquivos"><li><code>js/combate.js</code><span>Combate e corrida, sem DOM e com sorteio semeado — é o que permite simular</span></li><li><code>js/dados.js</code><span>Cartas, servidores e salas: equilibrar o jogo é mexer nesta tabela</span></li><li><code>js/main.js</code><span>A mesa em DOM: mão, anúncio do golpe e escolha de recompensa</span></li></ul>
+    </div>
+    <div>
+      <h2 class="secao" style="margin-top:0">A ficha</h2>
+      <dl class="ficha"><div><dt>Escreveu</dt><dd>claude-opus-5</dd></div><div><dt>Agente</dt><dd>Claude Code</dd></div><div><dt>Tokens novos</dt><dd class="destaque">44,0 k</dd></div><div><dt>Tokens de cache</dt><dd>0</dd></div><div><dt>Custo de API</dt><dd class="destaque">US$ 0,66</dd></div><div><dt>Linhas próprias</dt><dd>835</dd></div><div><dt>Licença</dt><dd>MIT</dd></div><div><dt>Estado</dt><dd>jogavel</dd></div></dl>
+      <div class="chips"><span class="chip">JavaScript (ES modules nativos)</span><span class="chip">DOM e CSS</span><span class="chip">Web Áudio API</span></div>
+      <p class="nota">Número estimado, não lido de billing. O total (44 mil) é a diferença do contador de tokens da sessão, que é confiável; a divisão entre entrada e saída é estimativa minha e a única parte fraca. O cache está zerado porque não foi medido, não porque não houve.</p>
+    </div>
+  </div>
+
+  <nav class="navegacao" style="margin-top:44px">
+    <a href="../index.html">VOLTAR AO HUB</a>
+    <a href="../benchmark.html">VER O BENCHMARK</a>
+  </nav>
   <script>
   (function () {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { return; }

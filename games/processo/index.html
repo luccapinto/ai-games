@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PROCESSO</title>
+<meta name="description" content="Jogo de cartas com construção de baralho: cinco salas de repartição, do atendente até O Setor Responsável.">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<main id="mesa">
+  <header id="topo">
+    <div class="medidor">
+      <span class="rotulo">PACIÊNCIA</span>
+      <div class="barra"><div id="barra-paciencia"></div></div>
+      <span id="paciencia" class="numero">72</span>
+    </div>
+    <div id="sala-atual">SALA 1/5</div>
+    <div class="medidor">
+      <span class="rotulo">TEMPO</span>
+      <span id="tempo" class="numero grande">3</span>
+      <span id="guarda" class="guarda oculto">0</span>
+    </div>
+  </header>
+
+  <section id="servidor">
+    <div id="carimbo-servidor">
+      <h2 id="servidor-nome">ATENDENTE</h2>
+      <p id="servidor-fala">Isso aqui não é comigo.</p>
+    </div>
+    <div class="barra grande"><div id="barra-servidor"></div></div>
+    <div id="servidor-numeros">
+      <span id="servidor-paciencia">39</span>
+      <span id="servidor-guarda" class="guarda oculto">0</span>
+      <span id="servidor-forca" class="forca oculto">0</span>
+    </div>
+    <p id="intencao">Vai dar 7 de dano.</p>
+  </section>
+
+  <section id="mao" aria-label="sua mão"></section>
+
+  <footer id="rodape">
+    <button id="passar" class="botao">PASSAR A VEZ</button>
+    <span id="monte-info">monte 0 · descarte 0</span>
+  </footer>
+
+  <section id="recompensa" class="cortina oculto">
+    <h2>REQUERIMENTO DEFERIDO</h2>
+    <p class="linha">Escolha uma carta para o processo, ou siga sem nada.</p>
+    <div id="opcoes"></div>
+    <button id="pular" class="botao secundario">SEGUIR SEM NADA</button>
+  </section>
+
+  <section id="menu" class="cortina">
+    <h1>PROCESSO</h1>
+    <p class="linha">Seu requerimento tem cinco instâncias. Do atendente que diz
+      que não é com ele até O Setor Responsável, que está fora do ar.</p>
+    <p class="linha miudo">Paciência é sua vida. Tempo é sua energia. Guarda some no fim do turno.
+      O servidor sempre anuncia o próximo golpe — jogue olhando para ele.</p>
+    <button id="comecar" class="botao">PROTOCOLAR</button>
+  </section>
+
+  <section id="fim" class="cortina oculto">
+    <h2 id="fim-titulo">DEFERIDO</h2>
+    <p class="linha" id="fim-resumo"></p>
+    <button id="denovo" class="botao">PROTOCOLAR DE NOVO</button>
+  </section>
+</main>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
