@@ -9,8 +9,8 @@ registrados ao lado.
 costs. Each game is a self-contained, playable folder that records the model that
 wrote it, the agent that drove it, and the tokens it burned.*
 
-**3 jogos** de **1 pessoa**, 13.486 linhas de código,
-2,1 M tokens novos e US$ 4,81 de API no total.
+**4 jogos** de **1 pessoa**, 14.613 linhas de código,
+2,2 M tokens novos e US$ 5,86 de API no total.
 
 👉 **[Jogar tudo](https://luccapinto.github.io/ai-games/)** · **[Ver o benchmark](https://luccapinto.github.io/ai-games/benchmark.html)** · **[Mandar o seu jogo](CONTRIBUTING.md)**
 
@@ -18,6 +18,7 @@ wrote it, the agent that drove it, and the tokens it burned.*
 
 | Jogo | Gênero | Quem fez | Modelo | Tokens novos | Custo | Jogar |
 | --- | --- | --- | --- | --- | --- | --- |
+| **SEIVA** [`seiva`](games/seiva/README.md) | Defesa de torre | Lucca Pinto | claude-opus-5 | 70,0 k | US$ 1,05 | [jogar](https://luccapinto.github.io/ai-games/games/seiva/) |
 | **CRIPTA** [`cripta`](games/cripta/README.md) | Puzzle | Lucca Pinto | claude-opus-5 | 86,0 k | US$ 1,30 | [jogar](https://luccapinto.github.io/ai-games/games/cripta/) |
 | **ANTENA** [`antena`](games/antena/README.md) | Plataforma de precisão | Lucca Pinto | claude-opus-5 | 165,0 k | US$ 2,48 | [jogar](https://luccapinto.github.io/ai-games/games/antena/) |
 | **ATTENTION IS ALL YOU KILL** [`attention-is-all-you-kill`](games/attention-is-all-you-kill/README.md) | FPS roguelike | Lucca Pinto | deepseek-flash | 1,9 M | US$ 1,03 | [jogar](https://luccapinto.github.io/ai-games/games/attention-is-all-you-kill/) |
@@ -26,7 +27,7 @@ wrote it, the agent that drove it, and the tokens it burned.*
 
 | Modelo | Jogos | Tokens novos | Cache | Custo | Linhas |
 | --- | --- | --- | --- | --- | --- |
-| claude-opus-5 | 2 | 251,0 k | 0 | US$ 3,78 | 2.777 |
+| claude-opus-5 | 3 | 321,0 k | 0 | US$ 4,83 | 3.904 |
 | deepseek-flash | 1 | 1,9 M | 159,1 M | US$ 1,03 | 10.709 |
 
 Tokens novos são entrada + saída. Cache aparece em coluna separada de propósito:
@@ -92,6 +93,25 @@ pagar preço cheio por ele outra vez. Sem cache, o custo destes jogos seria uma
 ordem de grandeza maior.
 
 ## Os jogos por dentro
+
+### SEIVA
+
+Dez ondas de brocas, besouros e fungos subindo o tronco em direção ao coração da árvore. Quatro torres com papéis distintos e uma regra que muda tudo: cada torre encarece a próxima do mesmo tipo, então variar sai mais barato que repetir. A regra não é enfeite temático — a simulação provou que, sem ela, espalhar a torre mais barata vencia sem custar uma vida.
+
+O que tem dentro:
+
+- O módulo do jogo não tem uma linha de DOM, então as dez ondas rodam em Node e o balanceamento é conferido por simulação em vez de no olho
+- A simulação achou o defeito que esvaziava o jogo: espalhar 35 espinhos baratos vencia sem perder uma vida, e as outras três torres viravam enfeite
+- A correção virou mecânica: cada torre encarece a próxima do mesmo tipo, e depois dela variar vale quase o dobro em corações (11/12 contra 6/12)
+- Navegador e simulação foram comparados rodando a mesma estratégia, e deram resultado idêntico — uma simulação que não bate com o jogo não prova nada
+- A primeira versão pintou trilha, terra e casca em marrons do mesmo valor e o tabuleiro sumia; a hierarquia de contraste foi refeita para a trilha saltar
+- Zero arquivo de imagem ou de áudio: tronco, casca, torres, pragas e som saem de código
+
+- **Quem fez:** Lucca Pinto
+- **Modelo:** claude-opus-5 via Anthropic, dirigido por Claude Code — 70,0 k tokens novos, 0 de cache, 24 chamadas, US$ 1,05
+- **Custo total:** US$ 1,05 (estimado)
+- **Tamanho:** 1.127 linhas de código próprio, 0,1 MB
+- **Pasta:** [`games/seiva/`](games/seiva/README.md)
 
 ### CRIPTA
 

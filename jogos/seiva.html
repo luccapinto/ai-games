@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ai-games — jogos feitos com IA</title>
-<meta name="description" content="Vitrine de jogos feitos com IA: cada um roda no navegador, com o modelo que escreveu e quanto custou ao lado.">
+<title>SEIVA — ai-games</title>
+<meta name="description" content="Dez ondas de brocas, besouros e fungos subindo o tronco em direção ao coração da árvore. Quatro torres com papéis distintos e uma regra que muda tudo: cada torr">
 <style>
   :root {
     --bg: #05070d; --painel: #0a1018; --linha: #1b2c38; --ink: #d8e6e4;
@@ -211,73 +211,41 @@
 <body>
 <div class="envelope">
   <header class="topo">
-    <div class="marca">AI-GAMES</div>
-    <h1>O que a IA está construindo</h1>
-    <p class="sub">Repositório coletivo de jogos feitos conversando com modelos. Todos abrem no
-      navegador, sem instalar nada. Ao lado de cada um está quem escreveu e quanto custou —
-      porque um jogo bom por dez dólares e um jogo bom por um dólar não são a mesma coisa.</p>
-    <div class="numeros"><div><span>JOGOS</span><strong>4</strong></div><div><span>MODELOS</span><strong>2</strong></div><div><span>CUSTO DE API</span><strong>US$ 5,86</strong></div></div>
-    <nav class="navegacao">
-      <a class="destaque" href="https://github.com/luccapinto/ai-games/blob/main/CONTRIBUTING.md">MANDAR O SEU JOGO</a>
-      <a href="benchmark.html">VER O BENCHMARK</a>
-      <a href="dados/benchmark.csv">BAIXAR OS DADOS</a>
-      <a href="https://github.com/luccapinto/ai-games">CÓDIGO</a>
-    </nav>
+    <div class="marca"><a href="../index.html">AI-GAMES</a> / DEFESA DE TORRE</div>
+    <h1>SEIVA</h1>
+    <p class="sub">Defesa de torre num tronco comido por dentro</p>
+    <p class="autoria">por <a href="https://github.com/luccapinto">Lucca Pinto</a> · 2026-09-16</p>
   </header>
 
-  <div class="grade">
-      <article class="cartao">
-        <div class="midia"><img src="games/seiva/capa.jpg" alt="captura de SEIVA" loading="lazy"></div>
-        <div class="cartao-corpo">
-          <h3><a href="jogos/seiva.html">SEIVA</a></h3>
-          <span class="genero">Defesa de torre</span>
-          <p class="autoria">por <a href="https://github.com/luccapinto">Lucca Pinto</a></p>
-          <div class="chips"><span class="chip modelo">claude-opus-5</span><span class="chip custo">US$ 1,05</span></div>
-          <div class="empurra"></div>
-          <a class="jogar" href="games/seiva/">JOGAR</a>
-        </div>
-      </article>
-      <article class="cartao">
-        <div class="midia"><img src="games/cripta/capa.jpg" alt="captura de CRIPTA" loading="lazy"></div>
-        <div class="cartao-corpo">
-          <h3><a href="jogos/cripta.html">CRIPTA</a></h3>
-          <span class="genero">Puzzle</span>
-          <p class="autoria">por <a href="https://github.com/luccapinto">Lucca Pinto</a></p>
-          <div class="chips"><span class="chip modelo">claude-opus-5</span><span class="chip custo">US$ 1,30</span></div>
-          <div class="empurra"></div>
-          <a class="jogar" href="games/cripta/">JOGAR</a>
-        </div>
-      </article>
-      <article class="cartao">
-        <div class="midia"><img src="games/antena/capa.jpg" alt="captura de ANTENA" loading="lazy"></div>
-        <div class="cartao-corpo">
-          <h3><a href="jogos/antena.html">ANTENA</a></h3>
-          <span class="genero">Plataforma de precisão</span>
-          <p class="autoria">por <a href="https://github.com/luccapinto">Lucca Pinto</a></p>
-          <div class="chips"><span class="chip modelo">claude-opus-5</span><span class="chip custo">US$ 2,48</span></div>
-          <div class="empurra"></div>
-          <a class="jogar" href="games/antena/">JOGAR</a>
-        </div>
-      </article>
-      <article class="cartao">
-        <div class="midia"><img src="games/attention-is-all-you-kill/capa.jpg" alt="captura de ATTENTION IS ALL YOU KILL" loading="lazy"></div>
-        <div class="cartao-corpo">
-          <h3><a href="jogos/attention-is-all-you-kill.html">ATTENTION IS ALL YOU KILL</a></h3>
-          <span class="genero">FPS roguelike</span>
-          <p class="autoria">por <a href="https://github.com/luccapinto">Lucca Pinto</a></p>
-          <div class="chips"><span class="chip modelo">deepseek-flash</span><span class="chip custo">US$ 1,03</span></div>
-          <div class="empurra"></div>
-          <a class="jogar" href="games/attention-is-all-you-kill/">JOGAR</a>
-        </div>
-      </article>
-      <article class="cartao convite">
-        <h3>O próximo jogo pode ser o seu</h3>
-        <p>Faça um jogo conversando com qualquer modelo, em qualquer ferramenta.
-          Rode <code>python3 tools/novo_jogo.py meu-jogo</code>, preencha o
-          <code>meta.json</code> com o que o modelo gastou e abra um PR.</p>
-        <a class="jogar" href="https://github.com/luccapinto/ai-games/blob/main/CONTRIBUTING.md">MANDAR O MEU</a>
-      </article>
+  <div class="jogo-topo">
+    <div class="midia"><img src="../games/seiva/capa.jpg" alt="captura de SEIVA" loading="eager"></div>
+    <div class="jogo-acoes">
+      <a class="jogar" href="../games/seiva/">JOGAR</a>
+      <a class="secundario" href="../games/seiva/README.md">como foi feito</a>
+      
+    </div>
   </div>
+
+  <div class="colunas">
+    <div>
+      <p class="sub" style="max-width:none">Dez ondas de brocas, besouros e fungos subindo o tronco em direção ao coração da árvore. Quatro torres com papéis distintos e uma regra que muda tudo: cada torre encarece a próxima do mesmo tipo, então variar sai mais barato que repetir. A regra não é enfeite temático — a simulação provou que, sem ela, espalhar a torre mais barata vencia sem custar uma vida.</p>
+      <h2 class="secao">O que tem dentro</h2>
+      <ul class="destaques"><li>O módulo do jogo não tem uma linha de DOM, então as dez ondas rodam em Node e o balanceamento é conferido por simulação em vez de no olho</li><li>A simulação achou o defeito que esvaziava o jogo: espalhar 35 espinhos baratos vencia sem perder uma vida, e as outras três torres viravam enfeite</li><li>A correção virou mecânica: cada torre encarece a próxima do mesmo tipo, e depois dela variar vale quase o dobro em corações (11/12 contra 6/12)</li><li>Navegador e simulação foram comparados rodando a mesma estratégia, e deram resultado idêntico — uma simulação que não bate com o jogo não prova nada</li><li>A primeira versão pintou trilha, terra e casca em marrons do mesmo valor e o tabuleiro sumia; a hierarquia de contraste foi refeita para a trilha saltar</li><li>Zero arquivo de imagem ou de áudio: tronco, casca, torres, pragas e som saem de código</li></ul>
+      <h2 class="secao">Por onde começar a ler</h2>
+      <ul class="arquivos"><li><code>js/jogo.js</code><span>O jogo sem DOM: torres, pragas, tiros, economia e ondas</span></li><li><code>js/mapa.js</code><span>Trilha, casca e a tabela de torres, pragas e ondas — balancear é mexer aqui</span></li><li><code>js/desenho.js</code><span>Render em canvas e a hierarquia de contraste do tabuleiro</span></li></ul>
+    </div>
+    <div>
+      <h2 class="secao" style="margin-top:0">A ficha</h2>
+      <dl class="ficha"><div><dt>Escreveu</dt><dd>claude-opus-5</dd></div><div><dt>Agente</dt><dd>Claude Code</dd></div><div><dt>Tokens novos</dt><dd class="destaque">70,0 k</dd></div><div><dt>Tokens de cache</dt><dd>0</dd></div><div><dt>Custo de API</dt><dd class="destaque">US$ 1,05</dd></div><div><dt>Linhas próprias</dt><dd>1.127</dd></div><div><dt>Licença</dt><dd>MIT</dd></div><div><dt>Estado</dt><dd>jogavel</dd></div></dl>
+      <div class="chips"><span class="chip">JavaScript (ES modules nativos)</span><span class="chip">Canvas 2D</span><span class="chip">Web Áudio API</span></div>
+      <p class="nota">Número estimado, não lido de billing. O total (70 mil) é a diferença do contador de tokens da sessão, que é confiável; a divisão entre entrada e saída é estimativa minha e a única parte fraca. O cache está zerado porque não foi medido, não porque não houve.</p>
+    </div>
+  </div>
+
+  <nav class="navegacao" style="margin-top:44px">
+    <a href="../index.html">VOLTAR AO HUB</a>
+    <a href="../benchmark.html">VER O BENCHMARK</a>
+  </nav>
   <script>
   (function () {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { return; }
