@@ -160,7 +160,7 @@ secao diz o que se comprou com ele.
 
 - [ ] preencher o `meta.json` (rode `python3 tools/validar.py __SLUG__`)
 - [ ] trocar o jogo de partida pelo seu
-- [ ] tirar uma captura e salvar como `capa.jpg`
+- [ ] tirar uma captura, salvar na pasta e apontar em `capa` no `meta.json`
 """
 
 
@@ -176,7 +176,7 @@ def esqueleto_meta(slug, args, hoje):
         'estado': 'em-progresso',
         'criado': hoje,
         'licenca': args.licenca,
-        'capa': 'capa.jpg',
+        'capa': '',
         'previa': '',
         'resumo': '',
         'autores': [{
