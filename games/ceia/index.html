@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>A CEIA</title>
+<meta name="description" content="Jogo de dedução lógica: cinco convidados, uma ceia e um veneno. Todo enigma tem solução única provada.">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<main id="sala">
+  <header id="cabecalho">
+    <h1>A CEIA</h1>
+    <p id="subtitulo">Alguém envenenou o anfitrião. Preencha a mesa e aponte quem foi.</p>
+    <div id="placar">
+      <span id="noite">NOITE 1</span>
+      <span id="veneno"></span>
+      <span id="erros"></span>
+    </div>
+  </header>
+
+  <section id="tabuleiro">
+    <table id="mesa" aria-label="mesa da ceia">
+      <thead>
+        <tr><th>CONVIDADO</th><th>CADEIRA</th><th>BEBIDA</th><th>PRENDA</th></tr>
+      </thead>
+      <tbody id="linhas"></tbody>
+    </table>
+    <p class="nota">Clique numa célula para trocar o valor. Repetido na mesma coluna fica marcado em vermelho.</p>
+  </section>
+
+  <aside id="pistas-caixa">
+    <h2>O QUE SE SABE</h2>
+    <ol id="pistas"></ol>
+  </aside>
+
+  <footer id="acoes">
+    <button id="acusar" class="botao" disabled>ACUSAR</button>
+    <button id="limpar" class="botao secundario">LIMPAR A MESA</button>
+    <span id="aviso"></span>
+  </footer>
+
+  <section id="acusacao" class="cortina oculto">
+    <h2>QUEM ENVENENOU?</h2>
+    <p class="linha" id="acusacao-dica"></p>
+    <div id="suspeitos"></div>
+    <button id="voltar" class="botao secundario">VOLTAR À MESA</button>
+  </section>
+
+  <section id="menu" class="cortina">
+    <h2>CINCO CONVIDADOS, UM VENENO</h2>
+    <p class="linha">Cada convidado sentou numa cadeira, bebeu uma coisa e trouxe uma prenda.
+      As pistas bastam: <strong>todo enigma aqui tem uma única solução</strong>, e nenhuma
+      pista sobra — as duas coisas são provadas por força bruta antes do enigma existir.</p>
+    <button id="comecar" class="botao">SENTAR À MESA</button>
+  </section>
+
+  <section id="fim" class="cortina oculto">
+    <h2 id="fim-titulo">ERA ELE</h2>
+    <p class="linha" id="fim-resumo"></p>
+    <button id="proxima" class="botao">PRÓXIMA NOITE</button>
+  </section>
+</main>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>

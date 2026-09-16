@@ -1,0 +1,70 @@
+{
+  "esquema": 1,
+  "slug": "ceia",
+  "titulo": "A CEIA",
+  "subtitulo": "Dedução lógica: cinco convidados, uma ceia e um veneno",
+  "genero": "Dedução lógica",
+  "plataforma": "Navegador, desktop e celular",
+  "estado": "jogavel",
+  "criado": "2026-09-16",
+  "licenca": "MIT",
+  "capa": "capa.jpg",
+  "resumo": "Cinco convidados, cada um numa cadeira, com uma bebida e uma prenda. As pistas bastam, e isso não é promessa: o gerador resolve cada enigma por força bruta e exige solução única, depois tira cada pista uma por vez e exige que sem ela a solução deixe de ser única. Pista que dá para remover é pista que o jogador lê e não usa.",
+  "autores": [
+    {
+      "nome": "Lucca Pinto",
+      "github": "luccapinto",
+      "site": "https://luccabuilds.com"
+    }
+  ],
+  "ia": [
+    {
+      "modelo": "claude-opus-5",
+      "provider": "Anthropic",
+      "agente": "Claude Code",
+      "papel": "o jogo inteiro: gerador, solucionador, interface e os testes de unicidade",
+      "chamadas_api": 16,
+      "tokens": {
+        "entrada": 25000,
+        "saida": 6000,
+        "cache_leitura": 0,
+        "cache_escrita": 0
+      },
+      "usd_estimado": 0.47
+    }
+  ],
+  "medicao": {
+    "confianca": "estimado",
+    "metodo": "diferença do orçamento de tokens da sessão entre o início e o fim do jogo",
+    "medido_em": "2026-09-16",
+    "nota": "Número estimado, não lido de billing. O total (31 mil) é a diferença do contador de tokens da sessão, que é confiável; a divisão entre entrada e saída é estimativa minha e a única parte fraca. O cache está zerado porque não foi medido, não porque não houve."
+  },
+  "stack": [
+    "JavaScript (ES modules nativos)",
+    "DOM e CSS",
+    "Web Áudio API"
+  ],
+  "tamanho": {
+    "linhas_proprias": 696,
+    "mb": 0.09,
+    "modulos_js": 3
+  },
+  "destaques": [
+    "Todo enigma tem solução única provada por força bruta, e nenhuma pista sobrando: cada pista é removida uma por vez e a solução precisa deixar de ser única sem ela",
+    "Quarenta enigmas gerados e provados no teste, todos únicos e mínimos, de 11 a 13 pistas cada",
+    "A poda por categoria é o que faz a força bruta caber: as pistas de cadeira filtram as 120 permutações antes de a bebida entrar, e a checagem de minimalidade roda o solucionador uma vez por pista",
+    "Errar diz em qual coluna há erro e quantas células, nunca quais: apontar a célula exata entregaria o enigma em duas tentativas",
+    "Riscar pista já usada é caderno, não regra — não muda nada no jogo, só evita reler a mesma coisa dez vezes",
+    "Zero arquivo de imagem ou de áudio; o módulo do enigma não tem uma linha de DOM, e é isso que permite prová-lo fora do navegador"
+  ],
+  "arquivos_chave": [
+    {
+      "caminho": "js/enigma.js",
+      "papel": "Gerador, solucionador e conferidor: a prova de unicidade e de minimalidade mora aqui"
+    },
+    {
+      "caminho": "js/main.js",
+      "papel": "A mesa em DOM: células que giram, pistas riscáveis e a acusação"
+    }
+  ]
+}
