@@ -171,7 +171,9 @@ def resumo_geral(jogos):
         'autores': len(autores),
         'modelos': len(modelos),
         'linhas': sum(j['_totais']['linhas'] for j in jogos),
-        'usd': sum(j['_totais']['usd'] for j in jogos),
+        # Mesmo motivo do arredondamento em esquema.totais(): sum() de float
+        # mudou de resultado no Python 3.12, e este numero vai para o JSON.
+        'usd': round(sum(j['_totais']['usd'] for j in jogos), 4),
         'tokens_novos': sum(j['_totais']['tokens_novos'] for j in jogos),
         'tokens_cache': sum(j['_totais']['tokens_cache'] for j in jogos),
         'chamadas': sum(j['_totais']['chamadas_api'] for j in jogos),

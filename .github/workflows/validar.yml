@@ -13,12 +13,21 @@ permissions:
 jobs:
   validar:
     runs-on: ubuntu-latest
+    # Duas versoes de proposito. O arquivo gerado tem que ser o mesmo em
+    # qualquer Python, e ja nao foi: o 3.12 passou a usar somatorio compensado
+    # no sum() de float, entao a soma de custos dava 6.99 numa versao e
+    # 6.989999999999999 na outra. O indice ficava "desatualizado" na CI e em dia
+    # na maquina de quem gerou. Rodar em duas versoes pega isso na hora.
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ['3.11', '3.13']
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: ${{ matrix.python }}
 
       # Sem dependencia: os tres scripts sao stdlib de proposito, para qualquer
       # pessoa rodar o mesmo comando na maquina dela antes de abrir o PR.
