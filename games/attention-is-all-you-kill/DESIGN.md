@@ -16,7 +16,7 @@ Data: setembro de 2026.
 | Perspectiva | Primeira pessoa, 3D real |
 | Plataforma | Navegador desktop (Chrome, Firefox, Edge). Mobile é secundário |
 | Engine | Three.js servido localmente, ES modules nativos, sem bundler |
-| Distribuição | Arquivos estáticos servidos pelo nginx do homelab, expostos via Cloudflare Tunnel e via Tailscale |
+| Distribuição | Arquivos estáticos na pasta do jogo, publicados pelo GitHub Pages do repositório |
 | Instalação | Nenhuma. Abre o link e joga |
 | Jogadores | Single-player |
 | Sessão média alvo | 12 a 20 minutos por run |

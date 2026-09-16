@@ -174,7 +174,6 @@ def normalizar(dados: dict, slug: str) -> dict:
         'criado': (dados.get('criado') or '').strip(),
         'licenca': (dados.get('licenca') or '').strip(),
         'capa': (dados.get('capa') or '').strip(),
-        'espelho': (dados.get('espelho') or '').strip(),
         'repo': (dados.get('repo') or '').strip(),
         'resumo': (dados.get('resumo') or '').strip(),
         'autores': [_normalizar_autor(a) for a in _lista(dados.get('autores') or dados.get('autor'))],

@@ -498,9 +498,7 @@ def gerar_hub(jogos):
 
         # O botao principal leva para a pasta do jogo DENTRO do repo, nunca para
         # um endereco externo: o hub nao pode depender de outro servidor estar no
-        # ar para alguem conseguir jogar. Endereco externo entra como espelho.
-        espelho = (f'<a class="secundario" href="{escape(j["espelho"])}">espelho do autor</a>'
-                   if j['espelho'] else '')
+        # ar para alguem conseguir jogar.
         itens = ''.join(f'<li>{escape(d)}</li>' for d in j['destaques'][:3])
 
         cartoes.append(f"""      <article class="jogo">
@@ -523,7 +521,6 @@ def gerar_hub(jogos):
           <footer class="acoes">
             <a class="jogar" href="games/{escape(j['slug'])}/">JOGAR</a>
             <a class="secundario" href="games/{escape(j['slug'])}/README.md">como foi feito</a>
-            {espelho}
           </footer>
         </div>
       </article>""")
