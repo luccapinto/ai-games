@@ -573,6 +573,11 @@ def cabecalho_html(titulo, descricao):
 <div class="envelope">"""
 
 
+# O Pages serve .md como text/markdown, e o navegador mostra o texto cru, com
+# marcacao e tudo. Como "como foi feito" e, segundo o proprio repositorio,
+# metade do valor dele, esse link vai para o GitHub, que renderiza.
+REPO = 'https://github.com/luccapinto/ai-games'
+
 RODAPE_HTML = """  <footer class="rodape">
     Repositório coletivo. O índice, esta página e os arquivos de <code>dados/</code> são gerados
     por <code>tools/build.py</code> a partir dos <code>meta.json</code> de cada jogo.
@@ -803,7 +808,7 @@ def gerar_pagina_jogo(jogo):
     {midia_html(jogo, '../', destaque=True)}
     <div class="jogo-acoes">
       <a class="jogar" href="{pasta}">JOGAR</a>
-      <a class="secundario" href="{pasta}README.md">como foi feito</a>
+      <a class="secundario" href="{REPO}/blob/main/games/{slug}/README.md">como foi feito</a>
       {repo}
     </div>
   </div>

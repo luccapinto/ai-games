@@ -19,15 +19,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
----
-
-This license covers the repository tooling (tools/, docs/, the generated hub
-and benchmark). Each game under games/ keeps its own license, declared in the
-"licenca" field of its meta.json and, where present, in a LICENSE file inside
-the game's own folder. Copyright in each game stays with its author.
-
-Esta licenca cobre a infraestrutura do repositorio (tools/, docs/, o hub e o
-benchmark gerados). Cada jogo em games/ tem a licenca dele, declarada no campo
-"licenca" do meta.json e, quando houver, num LICENSE dentro da pasta do jogo.
-O direito autoral de cada jogo e de quem o fez.

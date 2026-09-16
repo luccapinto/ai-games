@@ -118,6 +118,19 @@ Erro barra o merge; aviso só aparece no log e não bloqueia nada — falta de c
 de destaques ou uma prévia acima de 4 MB não impede o seu jogo de entrar. Para ver os avisos também, rode
 `python3 tools/validar.py --rigoroso` na sua máquina.
 
+## A licença de cada jogo é sua
+
+O `LICENSE` na raiz é MIT e cobre a infraestrutura do repositório: `tools/`,
+`docs/`, o hub e o benchmark gerados.
+
+**Cada jogo em `games/` tem a licença dele**, declarada no campo `licenca` do
+`meta.json` e, se você quiser, num `LICENSE` dentro da pasta do seu jogo. O
+direito autoral do seu jogo continua seu — entrar aqui não transfere nada.
+
+Essa separação ficava no fim do arquivo `LICENSE`, mas texto extra ali faz o
+GitHub deixar de reconhecer a licença e mostrar "Other" em vez de "MIT" — o que
+atrapalha justamente quem chega querendo saber se pode usar.
+
 ## O que faz um bom PR
 
 Um jogo, um PR. Não mexa em jogo de outra pessoa no mesmo PR que traz o seu.
