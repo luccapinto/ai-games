@@ -1,16 +1,114 @@
 {
   "esquema": 1,
   "resumo": {
-    "jogos": 4,
+    "jogos": 6,
     "autores": 1,
     "modelos": 2,
-    "linhas": 14182,
-    "usd": 5.28,
-    "tokens_novos": 2175978,
+    "linhas": 16144,
+    "usd": 6.99,
+    "tokens_novos": 2289978,
     "tokens_cache": 159076224,
-    "chamadas": 746
+    "chamadas": 792
   },
   "jogos": [
+    {
+      "slug": "seiva",
+      "titulo": "SEIVA",
+      "genero": "Defesa de torre",
+      "criado": "2026-09-16",
+      "estado": "jogavel",
+      "licenca": "MIT",
+      "autores": [
+        {
+          "nome": "Lucca Pinto",
+          "github": "luccapinto",
+          "site": "https://luccabuilds.com"
+        }
+      ],
+      "ia": [
+        {
+          "modelo": "claude-opus-5",
+          "provider": "Anthropic",
+          "agente": "Claude Code",
+          "papel": "o jogo inteiro: regras, balanceamento, render, som e o simulador de ondas",
+          "chamadas_api": 24,
+          "tokens": {
+            "entrada": 58000,
+            "saida": 12000,
+            "cache_leitura": 0,
+            "cache_escrita": 0
+          },
+          "usd_estimado": 1.05
+        }
+      ],
+      "medicao": {
+        "metodo": "diferença do orçamento de tokens da sessão entre o início e o fim do jogo",
+        "confianca": "estimado",
+        "medido_em": "2026-09-16",
+        "nota": "Número estimado, não lido de billing. O total (70 mil) é a diferença do contador de tokens da sessão, que é confiável; a divisão entre entrada e saída é estimativa minha e a única parte fraca. O cache está zerado porque não foi medido, não porque não houve."
+      },
+      "totais": {
+        "tokens_entrada": 58000,
+        "tokens_saida": 12000,
+        "tokens_novos": 70000,
+        "tokens_cache": 0,
+        "tokens_totais": 70000,
+        "usd": 1.05,
+        "chamadas_api": 24,
+        "linhas": 1127,
+        "tem_custo": true
+      },
+      "url": "games/seiva/"
+    },
+    {
+      "slug": "processo",
+      "titulo": "PROCESSO",
+      "genero": "Cartas com construção de baralho",
+      "criado": "2026-09-16",
+      "estado": "jogavel",
+      "licenca": "MIT",
+      "autores": [
+        {
+          "nome": "Lucca Pinto",
+          "github": "luccapinto",
+          "site": "https://luccabuilds.com"
+        }
+      ],
+      "ia": [
+        {
+          "modelo": "claude-opus-5",
+          "provider": "Anthropic",
+          "agente": "Claude Code",
+          "papel": "o jogo inteiro: regras, cartas, balanceamento, interface e os simuladores",
+          "chamadas_api": 22,
+          "tokens": {
+            "entrada": 36000,
+            "saida": 8000,
+            "cache_leitura": 0,
+            "cache_escrita": 0
+          },
+          "usd_estimado": 0.66
+        }
+      ],
+      "medicao": {
+        "metodo": "diferença do orçamento de tokens da sessão entre o início e o fim do jogo",
+        "confianca": "estimado",
+        "medido_em": "2026-09-16",
+        "nota": "Número estimado, não lido de billing. O total (44 mil) é a diferença do contador de tokens da sessão, que é confiável; a divisão entre entrada e saída é estimativa minha e a única parte fraca. O cache está zerado porque não foi medido, não porque não houve."
+      },
+      "totais": {
+        "tokens_entrada": 36000,
+        "tokens_saida": 8000,
+        "tokens_novos": 44000,
+        "tokens_cache": 0,
+        "tokens_totais": 44000,
+        "usd": 0.66,
+        "chamadas_api": 22,
+        "linhas": 835,
+        "tem_custo": true
+      },
+      "url": "games/processo/"
+    },
     {
       "slug": "cripta",
       "titulo": "CRIPTA",
@@ -214,16 +312,18 @@
       "jogos": [
         "antena",
         "ceia",
-        "cripta"
+        "cripta",
+        "processo",
+        "seiva"
       ],
-      "n_jogos": 3,
-      "tokens_novos": 282000,
+      "n_jogos": 5,
+      "tokens_novos": 396000,
       "tokens_cache": 0,
-      "chamadas_api": 90,
-      "usd": 4.25,
-      "linhas": 3473,
-      "tokens_por_linha": 81.2,
-      "linhas_por_dolar": 817.18
+      "chamadas_api": 136,
+      "usd": 5.96,
+      "linhas": 5435,
+      "tokens_por_linha": 72.86,
+      "linhas_por_dolar": 911.91
     },
     {
       "nome": "deepseek-flash",
@@ -246,16 +346,18 @@
       "jogos": [
         "antena",
         "ceia",
-        "cripta"
+        "cripta",
+        "processo",
+        "seiva"
       ],
-      "n_jogos": 3,
-      "tokens_novos": 282000,
+      "n_jogos": 5,
+      "tokens_novos": 396000,
       "tokens_cache": 0,
-      "chamadas_api": 90,
-      "usd": 4.25,
-      "linhas": 3473,
-      "tokens_por_linha": 81.2,
-      "linhas_por_dolar": 817.18
+      "chamadas_api": 136,
+      "usd": 5.96,
+      "linhas": 5435,
+      "tokens_por_linha": 72.86,
+      "linhas_por_dolar": 911.91
     },
     {
       "nome": "Hermes Agent (Talos)",
@@ -278,16 +380,18 @@
       "jogos": [
         "antena",
         "ceia",
-        "cripta"
+        "cripta",
+        "processo",
+        "seiva"
       ],
-      "n_jogos": 3,
-      "tokens_novos": 282000,
+      "n_jogos": 5,
+      "tokens_novos": 396000,
       "tokens_cache": 0,
-      "chamadas_api": 90,
-      "usd": 4.25,
-      "linhas": 3473,
-      "tokens_por_linha": 81.2,
-      "linhas_por_dolar": 817.18
+      "chamadas_api": 136,
+      "usd": 5.96,
+      "linhas": 5435,
+      "tokens_por_linha": 72.86,
+      "linhas_por_dolar": 911.91
     },
     {
       "nome": "DeepSeek",

@@ -1,4 +1,6 @@
 slug,titulo,criado,genero,estado,autor,github,modelo,provider,agente,chamadas_api,tokens_entrada,tokens_saida,tokens_novos,tokens_cache,usd_estimado,linhas_do_jogo,confianca
+seiva,SEIVA,2026-09-16,Defesa de torre,jogavel,Lucca Pinto,luccapinto,claude-opus-5,Anthropic,Claude Code,24,58000,12000,70000,0,1.0500,1127,estimado
+processo,PROCESSO,2026-09-16,Cartas com construção de baralho,jogavel,Lucca Pinto,luccapinto,claude-opus-5,Anthropic,Claude Code,22,36000,8000,44000,0,0.6600,835,estimado
 cripta,CRIPTA,2026-09-16,Puzzle,jogavel,Lucca Pinto,luccapinto,claude-opus-5,Anthropic,Claude Code,26,72000,14000,86000,0,1.3000,1044,estimado
 ceia,A CEIA,2026-09-16,Dedução lógica,jogavel,Lucca Pinto,luccapinto,claude-opus-5,Anthropic,Claude Code,16,25000,6000,31000,0,0.4700,696,estimado
 antena,ANTENA,2026-09-16,Plataforma de precisão,jogavel,Lucca Pinto,luccapinto,claude-opus-5,Anthropic,Claude Code,48,140000,25000,165000,0,2.4800,1733,estimado

@@ -1,0 +1,74 @@
+{
+  "esquema": 1,
+  "slug": "seiva",
+  "titulo": "SEIVA",
+  "subtitulo": "Defesa de torre num tronco comido por dentro",
+  "genero": "Defesa de torre",
+  "plataforma": "Navegador, desktop e celular",
+  "estado": "jogavel",
+  "criado": "2026-09-16",
+  "licenca": "MIT",
+  "capa": "capa.jpg",
+  "resumo": "Dez ondas de brocas, besouros e fungos subindo o tronco em direção ao coração da árvore. Quatro torres com papéis distintos e uma regra que muda tudo: cada torre encarece a próxima do mesmo tipo, então variar sai mais barato que repetir. A regra não é enfeite temático — a simulação provou que, sem ela, espalhar a torre mais barata vencia sem custar uma vida.",
+  "autores": [
+    {
+      "nome": "Lucca Pinto",
+      "github": "luccapinto",
+      "site": "https://luccabuilds.com"
+    }
+  ],
+  "ia": [
+    {
+      "modelo": "claude-opus-5",
+      "provider": "Anthropic",
+      "agente": "Claude Code",
+      "papel": "o jogo inteiro: regras, balanceamento, render, som e o simulador de ondas",
+      "chamadas_api": 24,
+      "tokens": {
+        "entrada": 58000,
+        "saida": 12000,
+        "cache_leitura": 0,
+        "cache_escrita": 0
+      },
+      "usd_estimado": 1.05
+    }
+  ],
+  "medicao": {
+    "confianca": "estimado",
+    "metodo": "diferença do orçamento de tokens da sessão entre o início e o fim do jogo",
+    "medido_em": "2026-09-16",
+    "nota": "Número estimado, não lido de billing. O total (70 mil) é a diferença do contador de tokens da sessão, que é confiável; a divisão entre entrada e saída é estimativa minha e a única parte fraca. O cache está zerado porque não foi medido, não porque não houve."
+  },
+  "stack": [
+    "JavaScript (ES modules nativos)",
+    "Canvas 2D",
+    "Web Áudio API"
+  ],
+  "tamanho": {
+    "linhas_proprias": 1127,
+    "mb": 0.07,
+    "modulos_js": 5
+  },
+  "destaques": [
+    "O módulo do jogo não tem uma linha de DOM, então as dez ondas rodam em Node e o balanceamento é conferido por simulação em vez de no olho",
+    "A simulação achou o defeito que esvaziava o jogo: espalhar 35 espinhos baratos vencia sem perder uma vida, e as outras três torres viravam enfeite",
+    "A correção virou mecânica: cada torre encarece a próxima do mesmo tipo, e depois dela variar vale quase o dobro em corações (11/12 contra 6/12)",
+    "Navegador e simulação foram comparados rodando a mesma estratégia, e deram resultado idêntico — uma simulação que não bate com o jogo não prova nada",
+    "A primeira versão pintou trilha, terra e casca em marrons do mesmo valor e o tabuleiro sumia; a hierarquia de contraste foi refeita para a trilha saltar",
+    "Zero arquivo de imagem ou de áudio: tronco, casca, torres, pragas e som saem de código"
+  ],
+  "arquivos_chave": [
+    {
+      "caminho": "js/jogo.js",
+      "papel": "O jogo sem DOM: torres, pragas, tiros, economia e ondas"
+    },
+    {
+      "caminho": "js/mapa.js",
+      "papel": "Trilha, casca e a tabela de torres, pragas e ondas — balancear é mexer aqui"
+    },
+    {
+      "caminho": "js/desenho.js",
+      "papel": "Render em canvas e a hierarquia de contraste do tabuleiro"
+    }
+  ]
+}

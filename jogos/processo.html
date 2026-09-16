@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Benchmark — ai-games</title>
-<meta name="description" content="Quanto custou, em tokens e em dólar, cada jogo feito com IA neste repositório.">
+<title>PROCESSO — ai-games</title>
+<meta name="description" content="Seu requerimento tem cinco instâncias, do atendente que diz que não é com ele até O Setor Responsável, que está fora do ar. Paciência é vida, tempo é energia, e">
 <style>
   :root {
     --bg: #05070d; --painel: #0a1018; --linha: #1b2c38; --ink: #d8e6e4;
@@ -211,51 +211,66 @@
 <body>
 <div class="envelope">
   <header class="topo">
-    <div class="marca"><a href="index.html">AI-GAMES</a> / BENCHMARK</div>
-    <h1>O que custou cada jogo</h1>
-    <p class="sub">Um jogo inteiro é uma tarefa longa, bagunçada e com um juiz honesto no fim:
-      ou dá para jogar, ou não dá. Esta tabela registra quanto cada modelo gastou para chegar lá,
-      declarado por quem fez.</p>
-    <div class="numeros"><div><span>JOGOS</span><strong>6</strong></div><div><span>MODELOS</span><strong>2</strong></div><div><span>TOKENS NOVOS</span><strong>2,3 M</strong></div><div><span>TOKENS DE CACHE</span><strong>159,1 M</strong></div><div><span>CHAMADAS</span><strong>792</strong></div><div><span>CUSTO TOTAL</span><strong>US$ 6,99</strong></div></div>
-    <nav class="navegacao">
-      <a href="index.html">VOLTAR AO HUB</a>
-      <a href="dados/benchmark.csv">CSV</a>
-      <a href="dados/benchmark.json">JSON</a>
-      <a href="https://github.com/luccapinto/ai-games/blob/main/docs/CUSTOS.md">METODOLOGIA</a>
-    </nav>
+    <div class="marca"><a href="../index.html">AI-GAMES</a> / CARTAS COM CONSTRUÇÃO DE BARALHO</div>
+    <h1>PROCESSO</h1>
+    <p class="sub">Jogo de cartas onde o adversário é a repartição</p>
+    <p class="autoria">por <a href="https://github.com/luccapinto">Lucca Pinto</a> · 2026-09-16</p>
   </header>
 
-  <h2 class="secao">Por jogo</h2>
-  <div class="rolagem"><table><thead><tr><th>Jogo</th><th>Quem fez</th><th>Modelo</th><th>Agente</th><th class="num">Tokens novos</th><th class="num">Cache</th><th class="num">Custo</th><th class="num">Linhas</th><th>Medição</th></tr></thead><tbody><tr><td class="txt"><a href="games/seiva/">SEIVA</a></td><td class="txt">Lucca Pinto</td><td class="txt">claude-opus-5</td><td class="txt">Claude Code</td><td class="num">70,0 k</td><td class="num">0</td><td class="num destaque">US$ 1,05</td><td class="num">1.127</td><td><span class="selo estimado">estimado</span></td></tr><tr><td class="txt"><a href="games/processo/">PROCESSO</a></td><td class="txt">Lucca Pinto</td><td class="txt">claude-opus-5</td><td class="txt">Claude Code</td><td class="num">44,0 k</td><td class="num">0</td><td class="num destaque">US$ 0,66</td><td class="num">835</td><td><span class="selo estimado">estimado</span></td></tr><tr><td class="txt"><a href="games/cripta/">CRIPTA</a></td><td class="txt">Lucca Pinto</td><td class="txt">claude-opus-5</td><td class="txt">Claude Code</td><td class="num">86,0 k</td><td class="num">0</td><td class="num destaque">US$ 1,30</td><td class="num">1.044</td><td><span class="selo estimado">estimado</span></td></tr><tr><td class="txt"><a href="games/ceia/">A CEIA</a></td><td class="txt">Lucca Pinto</td><td class="txt">claude-opus-5</td><td class="txt">Claude Code</td><td class="num">31,0 k</td><td class="num">0</td><td class="num destaque">US$ 0,47</td><td class="num">696</td><td><span class="selo estimado">estimado</span></td></tr><tr><td class="txt"><a href="games/antena/">ANTENA</a></td><td class="txt">Lucca Pinto</td><td class="txt">claude-opus-5</td><td class="txt">Claude Code</td><td class="num">165,0 k</td><td class="num">0</td><td class="num destaque">US$ 2,48</td><td class="num">1.733</td><td><span class="selo estimado">estimado</span></td></tr><tr><td class="txt"><a href="games/attention-is-all-you-kill/">ATTENTION IS ALL YOU KILL</a></td><td class="txt">Lucca Pinto</td><td class="txt">deepseek-flash</td><td class="txt">Hermes Agent (Talos)</td><td class="num">1,9 M</td><td class="num">159,1 M</td><td class="num destaque">US$ 1,03</td><td class="num">10.709</td><td><span class="selo medido">medido</span></td></tr></tbody></table></div>
+  <div class="jogo-topo">
+    <div class="midia"><img src="../games/processo/capa.jpg" alt="captura de PROCESSO" loading="eager"></div>
+    <div class="jogo-acoes">
+      <a class="jogar" href="../games/processo/">JOGAR</a>
+      <a class="secundario" href="../games/processo/README.md">como foi feito</a>
+      
+    </div>
+  </div>
 
-  <h2 class="secao">Por modelo</h2>
-  <div class="rolagem"><table><thead><tr><th>Modelo</th><th class="num">Jogos</th><th class="num">Tokens novos</th><th class="num">Cache</th><th class="num">Custo</th><th class="num">Linhas</th><th class="num">Tokens/linha</th><th class="num">Linhas/US$</th></tr></thead><tbody><tr><td class="txt">claude-opus-5</td><td class="num">5</td><td class="num">396,0 k</td><td class="num">0</td><td class="num destaque">US$ 5,96</td><td class="num">5.435</td><td class="num">72,9</td><td class="num">911</td></tr><tr><td class="txt">deepseek-flash</td><td class="num">1</td><td class="num">1,9 M</td><td class="num">159,1 M</td><td class="num destaque">US$ 1,03</td><td class="num">10.709</td><td class="num">176,9</td><td class="num">10.397</td></tr></tbody></table></div>
+  <div class="colunas">
+    <div>
+      <p class="sub" style="max-width:none">Seu requerimento tem cinco instâncias, do atendente que diz que não é com ele até O Setor Responsável, que está fora do ar. Paciência é vida, tempo é energia, e o servidor sempre anuncia o próximo golpe. A taxa de vitória e o valor de cada carta foram medidos rodando milhares de corridas, não estimados no olho.</p>
+      <h2 class="secao">O que tem dentro</h2>
+      <ul class="destaques"><li>Taxa de vitória medida em milhares de corridas simuladas, não estimada: saiu de 0% para 51% depois de uma varredura de parâmetros</li><li>O valor de cada carta foi medido forçando a escolha dela e comparando a vitória, porque contar &#x27;carta mais escolhida&#x27; só mede a tabela de notas do robô e não o jogo</li><li>A medição achou uma carta dominante (forçá-la subia a vitória de 40% para 70%), duas armadilhas e uma carta que nunca compensava — essa foi removida</li><li>Um robô sem duas regras (não se defender quando dá para matar, curar quando a paciência acaba) perdeu 6 de 6 corridas; com elas, ganhou metade. O jogo tem decisão, não sorteio</li><li>Interface em DOM e CSS, não canvas: cada carta é um button de verdade, que navega por Tab e responde a Enter sem código extra</li><li>Zero arquivo de imagem ou de áudio: a textura de papel são duas tramas de gradiente cruzadas</li></ul>
+      <h2 class="secao">Por onde começar a ler</h2>
+      <ul class="arquivos"><li><code>js/combate.js</code><span>Combate e corrida, sem DOM e com sorteio semeado — é o que permite simular</span></li><li><code>js/dados.js</code><span>Cartas, servidores e salas: equilibrar o jogo é mexer nesta tabela</span></li><li><code>js/main.js</code><span>A mesa em DOM: mão, anúncio do golpe e escolha de recompensa</span></li></ul>
+    </div>
+    <div>
+      <h2 class="secao" style="margin-top:0">A ficha</h2>
+      <dl class="ficha"><div><dt>Escreveu</dt><dd>claude-opus-5</dd></div><div><dt>Agente</dt><dd>Claude Code</dd></div><div><dt>Tokens novos</dt><dd class="destaque">44,0 k</dd></div><div><dt>Tokens de cache</dt><dd>0</dd></div><div><dt>Custo de API</dt><dd class="destaque">US$ 0,66</dd></div><div><dt>Linhas próprias</dt><dd>835</dd></div><div><dt>Licença</dt><dd>MIT</dd></div><div><dt>Estado</dt><dd>jogavel</dd></div></dl>
+      <div class="chips"><span class="chip">JavaScript (ES modules nativos)</span><span class="chip">DOM e CSS</span><span class="chip">Web Áudio API</span></div>
+      <p class="nota">Número estimado, não lido de billing. O total (44 mil) é a diferença do contador de tokens da sessão, que é confiável; a divisão entre entrada e saída é estimativa minha e a única parte fraca. O cache está zerado porque não foi medido, não porque não houve.</p>
+    </div>
+  </div>
 
-  <h2 class="secao">Por agente</h2>
-  <div class="rolagem"><table><thead><tr><th>Agente</th><th class="num">Jogos</th><th class="num">Tokens novos</th><th class="num">Cache</th><th class="num">Custo</th><th class="num">Linhas</th><th class="num">Tokens/linha</th><th class="num">Linhas/US$</th></tr></thead><tbody><tr><td class="txt">Claude Code</td><td class="num">5</td><td class="num">396,0 k</td><td class="num">0</td><td class="num destaque">US$ 5,96</td><td class="num">5.435</td><td class="num">72,9</td><td class="num">911</td></tr><tr><td class="txt">Hermes Agent (Talos)</td><td class="num">1</td><td class="num">1,9 M</td><td class="num">159,1 M</td><td class="num destaque">US$ 1,03</td><td class="num">10.709</td><td class="num">176,9</td><td class="num">10.397</td></tr></tbody></table></div>
-  <p class="nota">A mesma tarefa muda de preço conforme a ferramenta que dirige o modelo: quanto
-    contexto ela reenvia, quanto ela acerta de cache, quantas chamadas ela gasta para aplicar uma
-    edição. Por isso agente é uma coluna do benchmark, não um detalhe.</p>
-
-  <h2 class="secao">Por provider</h2>
-  <div class="rolagem"><table><thead><tr><th>Provider</th><th class="num">Jogos</th><th class="num">Tokens novos</th><th class="num">Cache</th><th class="num">Custo</th><th class="num">Linhas</th><th class="num">Tokens/linha</th><th class="num">Linhas/US$</th></tr></thead><tbody><tr><td class="txt">Anthropic</td><td class="num">5</td><td class="num">396,0 k</td><td class="num">0</td><td class="num destaque">US$ 5,96</td><td class="num">5.435</td><td class="num">72,9</td><td class="num">911</td></tr><tr><td class="txt">DeepSeek</td><td class="num">1</td><td class="num">1,9 M</td><td class="num">159,1 M</td><td class="num destaque">US$ 1,03</td><td class="num">10.709</td><td class="num">176,9</td><td class="num">10.397</td></tr></tbody></table></div>
-
-  <h2 class="secao">Como ler isto</h2>
-  <p class="nota"><strong>Tokens novos</strong> é entrada mais saída. <strong>Cache</strong> fica
-    à parte porque depende da ferramenta, não do trabalho: numa sessão longa cada turno reenvia o
-    contexto acumulado, e quanto disso vira leitura barata de cache é decisão do agente. Somar os
-    dois num número só compara agentes, não jogos.</p>
-  <p class="nota"><strong>Linhas por dólar</strong> é uma medida de escala, não de qualidade. Um
-    modelo que escreve um jogo enxuto e bom perde nessa coluna para um que despeja código. Leia
-    junto com o jogo: ele está a um clique, e ou é divertido, ou não é.</p>
-  <p class="nota"><strong>Medição</strong> diz de onde veio o número: <em>medido</em> saiu da
-    contabilidade da própria ferramenta, <em>estimado</em> foi reconstruído por quem fez,
-    <em>parcial</em> cobre só parte das sessões. Ninguém audita a declaração de ninguém — o que
-    o repositório garante é que ela está escrita, datada e versionada ao lado do código.</p>
-  <p class="nota">Isto <strong>não</strong> é um benchmark controlado: jogos diferentes, pessoas
-    diferentes, ambições diferentes. O que ele mostra é a ordem de grandeza real de construir algo
-    que funciona conversando com um modelo — o número que nenhum eval de tarefa curta dá.</p>
-
+  <nav class="navegacao" style="margin-top:44px">
+    <a href="../index.html">VOLTAR AO HUB</a>
+    <a href="../benchmark.html">VER O BENCHMARK</a>
+  </nav>
+  <script>
+  (function () {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { return; }
+    var alvos = document.querySelectorAll('[data-previa]');
+    if (!alvos.length || !('IntersectionObserver' in window)) { return; }
+    var observador = new IntersectionObserver(function (entradas) {
+      entradas.forEach(function (entrada) {
+        var el = entrada.target;
+        if (entrada.isIntersecting) {
+          if (el.tagName === 'VIDEO') {
+            if (!el.getAttribute('src')) { el.setAttribute('src', el.dataset.previa); }
+            var tocando = el.play();
+            if (tocando && tocando.catch) { tocando.catch(function () {}); }
+          } else if (el.dataset.previa) {
+            el.src = el.dataset.previa;
+            observador.unobserve(el);
+          }
+        } else if (el.tagName === 'VIDEO') {
+          el.pause();
+        }
+      });
+    }, { rootMargin: '150px' });
+    alvos.forEach(function (el) { observador.observe(el); });
+  })();
+  </script>
   <footer class="rodape">
     Repositório coletivo. O índice, esta página e os arquivos de <code>dados/</code> são gerados
     por <code>tools/build.py</code> a partir dos <code>meta.json</code> de cada jogo.

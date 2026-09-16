@@ -1,0 +1,88 @@
+/* Seletor e classe em ASCII. Acento aqui nao da erro: da silencio. */
+:root {
+  --tronco: #1b1410;
+  --casca: #4d3727;
+  --seiva: #f0be5a;
+  --folha: #8fd98a;
+  --perigo: #e8776b;
+  --texto: #e8dcc4;
+  --fraco: #9a866a;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; height: 100%; background: #0e0a07; color: var(--texto);
+  font-family: var(--mono); overflow: hidden; overscroll-behavior: none;
+  -webkit-text-size-adjust: 100%;
+}
+#palco {
+  position: relative; width: 100vw; height: 100vh; height: 100dvh;
+  display: grid; place-items: center; padding: 10px;
+  background: radial-gradient(ellipse at 50% 30%, rgba(120, 90, 40, .12), transparent 60%), #0e0a07;
+  user-select: none; -webkit-user-select: none;
+}
+#quadro { display: flex; flex-direction: column; gap: 8px; align-items: center; max-width: 100%; }
+
+#hud {
+  display: flex; gap: 24px; align-items: baseline; font-size: 13px;
+  letter-spacing: 2px; color: var(--fraco); white-space: nowrap;
+}
+#hud-onda { color: var(--texto); }
+#hud-seiva { color: var(--seiva); font-variant-numeric: tabular-nums; }
+#hud-seiva::before { content: "\1F4A7 "; }
+#hud-vidas { color: var(--perigo); font-variant-numeric: tabular-nums; }
+#hud-vidas::before { content: "\2665 "; }
+
+#tela {
+  display: block; image-rendering: pixelated; background: var(--tronco);
+  box-shadow: 0 0 0 1px #33241a, 0 18px 60px rgba(0, 0, 0, .8);
+  cursor: pointer; max-width: 100%;
+}
+
+#barra { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: center; }
+#torres { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+.torre {
+  font-family: var(--mono); font-size: 11px; letter-spacing: 1px; padding: 8px 11px;
+  background: #241a12; color: var(--texto); border: 1px solid #4a3627; cursor: pointer;
+  display: flex; flex-direction: column; gap: 2px; align-items: center; min-width: 74px;
+}
+.torre .custo { color: var(--seiva); font-size: 12px; font-variant-numeric: tabular-nums; }
+.torre.ligada { border-color: var(--folha); background: #2e2617; }
+.torre.cara { opacity: .42; }
+.torre:focus-visible { outline: 2px solid var(--folha); outline-offset: 2px; }
+
+#acoes { display: flex; gap: 6px; }
+.botao {
+  font-family: var(--mono); font-size: 12px; letter-spacing: 2px; padding: 10px 18px;
+  border: 0; background: var(--seiva); color: #2e1f06; font-weight: 700; cursor: pointer;
+}
+.botao:disabled { opacity: .4; cursor: default; }
+.botao.secundario { background: transparent; color: var(--fraco); border: 1px solid #4a3627; }
+.botao:focus-visible { outline: 2px solid var(--folha); outline-offset: 2px; }
+
+#descricao {
+  margin: 0; height: 17px; font-size: 11px; color: var(--fraco); text-align: center;
+  letter-spacing: .5px;
+}
+
+.cortina {
+  position: absolute; inset: 0; display: grid; place-content: center; justify-items: center;
+  gap: 14px; padding: 24px; text-align: center; background: rgba(14, 10, 7, .95);
+  backdrop-filter: blur(3px); z-index: 5;
+}
+.cortina.oculto { display: none; }
+.cortina h1 {
+  margin: 0; font-size: clamp(38px, 11vw, 74px); letter-spacing: 12px; color: var(--seiva);
+  text-shadow: 0 0 30px rgba(240, 190, 90, .35);
+}
+.cortina h2 { margin: 0; font-size: clamp(19px, 5vw, 28px); letter-spacing: 4px; color: var(--folha); }
+.cortina h2.ruim { color: var(--perigo); }
+.linha { margin: 0; max-width: 46ch; font-size: 13px; line-height: 1.7; color: #b9a684; }
+.aviso-custo { color: var(--fraco); font-size: 12px; }
+.aviso-custo strong { color: var(--folha); }
+
+@media (max-width: 700px) {
+  #hud { gap: 14px; font-size: 11px; }
+  .torre { min-width: 64px; font-size: 10px; padding: 7px 8px; }
+  .botao { padding: 9px 13px; font-size: 11px; }
+}
