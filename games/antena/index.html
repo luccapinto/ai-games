@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ANTENA</title>
+<meta name="description" content="Plataforma de precisão: uma sonda de reparo sobe uma torre de antena no meio da tempestade.">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="palco">
+  <canvas id="tela" width="512" height="288" aria-label="ANTENA, jogo de plataforma"></canvas>
+
+  <div id="hud" aria-hidden="true">
+    <span id="hud-fase">TORRE 1</span>
+    <span id="hud-fagulhas">0/0</span>
+    <span id="hud-mortes">0</span>
+    <span id="hud-tempo">0:00</span>
+  </div>
+
+  <div id="dica" class="aviso"></div>
+  <div id="girar">VIRE O CELULAR PARA UMA TELA MAIOR</div>
+
+  <section id="menu" class="cortina">
+    <h1>ANTENA</h1>
+    <p class="linha">A tempestade derrubou a torre de transmissão.<br>
+      Você é a sonda de reparo. Suba até o topo.</p>
+    <table class="controles">
+      <tr><th>mover</th><td><kbd>A</kbd> <kbd>D</kbd> ou <kbd>&larr;</kbd> <kbd>&rarr;</kbd></td></tr>
+      <tr><th>pular</th><td><kbd>espaço</kbd> ou <kbd>W</kbd></td></tr>
+      <tr><th>investida</th><td><kbd>J</kbd> ou <kbd>shift</kbd></td></tr>
+      <tr><th>recomeçar a torre</th><td><kbd>R</kbd></td></tr>
+      <tr><th>pausar</th><td><kbd>P</kbd> ou <kbd>esc</kbd></td></tr>
+    </table>
+    <button id="comecar" class="botao">COMEÇAR</button>
+    <p class="rodape">No celular, os controles aparecem na tela.</p>
+  </section>
+
+  <section id="pausa" class="cortina oculto">
+    <h2>PAUSA</h2>
+    <button id="voltar" class="botao">CONTINUAR</button>
+    <button id="reiniciar" class="botao secundario">RECOMEÇAR A TORRE</button>
+  </section>
+
+  <section id="fim" class="cortina oculto">
+    <h2>TRANSMISSÃO RESTABELECIDA</h2>
+    <p class="linha" id="fim-resumo"></p>
+    <button id="denovo" class="botao">JOGAR DE NOVO</button>
+  </section>
+
+  <div id="toque" class="oculto" aria-hidden="true">
+    <button class="tecla" data-tecla="esquerda">&larr;</button>
+    <button class="tecla" data-tecla="direita">&rarr;</button>
+    <button class="tecla acao" data-tecla="investida">&#10132;</button>
+    <button class="tecla acao" data-tecla="pular">&#9650;</button>
+  </div>
+</div>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CRIPTA</title>
+<meta name="description" content="Puzzle de empurrar caixa com gravidade num túmulo soterrado. Oito salas, todas com solução provada.">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="palco">
+  <canvas id="tela" width="480" height="288" aria-label="CRIPTA, jogo de puzzle"></canvas>
+
+  <div id="hud" aria-hidden="true">
+    <span id="hud-sala">SALA 1</span>
+    <span id="hud-placas"></span>
+    <span id="hud-jogadas">0</span>
+  </div>
+
+  <div id="dica" class="aviso"></div>
+
+  <section id="menu" class="cortina">
+    <h1>CRIPTA</h1>
+    <p class="linha">Um túmulo soterrado, caixas de pedra e nenhuma forma de puxá-las.
+      Oito salas. Todas têm solução — isso foi provado, não prometido.</p>
+    <table class="controles">
+      <tr><th>andar</th><td><kbd>&larr;</kbd> <kbd>&rarr;</kbd> ou <kbd>A</kbd> <kbd>D</kbd></td></tr>
+      <tr><th>subir na caixa</th><td><kbd>&uarr;</kbd> + direção</td></tr>
+      <tr><th>desfazer</th><td><kbd>Z</kbd></td></tr>
+      <tr><th>recomeçar a sala</th><td><kbd>R</kbd></td></tr>
+    </table>
+    <button id="comecar" class="botao">DESCER</button>
+    <p class="rodape">No celular, os controles aparecem na tela.</p>
+  </section>
+
+  <section id="fim" class="cortina oculto">
+    <h2>VOCÊ SAIU DA CRIPTA</h2>
+    <p class="linha" id="fim-resumo"></p>
+    <button id="denovo" class="botao">DESCER DE NOVO</button>
+  </section>
+
+  <div id="toque" class="oculto" aria-hidden="true">
+    <button class="tecla" data-tecla="esquerda">&larr;</button>
+    <button class="tecla" data-tecla="subir">&uarr;</button>
+    <button class="tecla" data-tecla="direita">&rarr;</button>
+    <button class="tecla acao" data-tecla="desfazer">&#8634;</button>
+  </div>
+</div>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>

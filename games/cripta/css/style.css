@@ -1,0 +1,94 @@
+/* Seletor e classe em ASCII. Acento aqui nao da erro: da silencio. */
+:root {
+  --terra: #17100c;
+  --pedra: #57432f;
+  --madeira: #b5813c;
+  --turquesa: #7ee8d0;
+  --texto: #e4d3b0;
+  --fraco: #9c8a63;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; height: 100%; background: #0b0705; color: var(--texto);
+  font-family: var(--mono); overflow: hidden; overscroll-behavior: none;
+  -webkit-text-size-adjust: 100%;
+}
+#palco {
+  position: relative; width: 100vw; height: 100vh; height: 100dvh;
+  display: grid; place-items: center;
+  background: radial-gradient(ellipse at 50% 40%, rgba(120, 78, 40, .14), transparent 62%), #0b0705;
+  touch-action: none; user-select: none; -webkit-user-select: none;
+}
+#tela {
+  display: block; image-rendering: pixelated; background: var(--terra);
+  box-shadow: 0 0 0 1px #33241a, 0 24px 80px rgba(0, 0, 0, .85);
+}
+#hud {
+  position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+  display: flex; align-items: baseline; gap: 20px; flex-wrap: nowrap;
+  white-space: nowrap; max-width: 100vw;
+  padding: 10px 16px; font-size: 12px; letter-spacing: 2px;
+  color: var(--fraco); pointer-events: none; text-shadow: 0 2px 6px #000;
+}
+#hud-sala { color: var(--texto); }
+#hud-placas { color: var(--turquesa); }
+#hud-jogadas { font-variant-numeric: tabular-nums; }
+#hud-jogadas::before { content: "\21C4 "; }
+
+.aviso {
+  position: absolute; left: 50%; bottom: 11%; transform: translateX(-50%);
+  padding: 9px 18px; font-size: 13px; letter-spacing: 1px; color: var(--texto);
+  background: rgba(23, 16, 12, .9); border: 1px solid #4a3627;
+  opacity: 0; transition: opacity .25s; pointer-events: none;
+  max-width: 92vw; text-align: center; line-height: 1.5;
+}
+.aviso.mostra { opacity: 1; }
+
+.cortina {
+  position: absolute; inset: 0; display: grid; place-content: center;
+  justify-items: center; gap: 14px; padding: 24px; text-align: center;
+  background: rgba(11, 7, 5, .94); backdrop-filter: blur(3px); z-index: 5;
+}
+.cortina.oculto { display: none; }
+.cortina h1 {
+  margin: 0; font-size: clamp(38px, 11vw, 74px); letter-spacing: 12px;
+  color: var(--madeira); text-shadow: 0 0 30px rgba(181, 129, 60, .4);
+}
+.cortina h2 { margin: 0; font-size: clamp(19px, 5vw, 28px); letter-spacing: 4px; color: var(--turquesa); }
+.linha { margin: 0; max-width: 44ch; font-size: 13px; line-height: 1.7; color: #b7a179; }
+.rodape { margin: 0; font-size: 11px; color: #7a6749; }
+.controles { border-collapse: collapse; font-size: 12px; color: #b7a179; }
+.controles th { text-align: right; font-weight: 400; padding: 4px 12px 4px 0; color: #7a6749; }
+.controles td { text-align: left; padding: 4px 0; }
+kbd {
+  display: inline-block; border: 1px solid #5a4229; border-bottom-width: 2px;
+  padding: 2px 7px; margin-right: 3px; font-size: 11px; color: var(--texto); background: #241a12;
+}
+.botao {
+  font-family: var(--mono); font-size: 13px; letter-spacing: 3px; padding: 13px 34px;
+  border: 0; background: var(--madeira); color: #2a1a06; font-weight: 700; cursor: pointer;
+  transition: filter .15s;
+}
+.botao:hover, .botao:focus-visible { filter: brightness(1.12); }
+.botao:focus-visible { outline: 2px solid var(--turquesa); outline-offset: 3px; }
+
+#toque {
+  position: absolute; inset: auto 0 0 0; display: flex; justify-content: space-between;
+  padding: 0 14px 22px; z-index: 4; pointer-events: none;
+}
+#toque.oculto { display: none; }
+#toque .tecla {
+  pointer-events: auto; width: 66px; height: 66px; margin: 0 5px; border-radius: 50%;
+  border: 1px solid #5a4229; background: rgba(36, 26, 18, .8); color: var(--texto);
+  font-size: 22px; font-family: var(--mono); cursor: pointer;
+}
+#toque .tecla:active { background: rgba(181, 129, 60, .35); }
+#toque .acao { border-color: #2f6b60; color: var(--turquesa); }
+
+@media (max-width: 560px) {
+  #hud { gap: 12px; font-size: 10px; letter-spacing: 1px; padding: 7px 8px; }
+  .aviso { font-size: 11px; padding: 7px 12px; bottom: 15%; max-width: 88vw; }
+  #toque .tecla { width: 58px; height: 58px; }
+}
+@media (prefers-reduced-motion: reduce) { .aviso { transition: none; } }
