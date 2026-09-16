@@ -1,0 +1,236 @@
+/* Seletor e nome de classe em ASCII. Acento aqui nao da erro: da silencio, e o
+   layout morre sem nada no console. */
+:root {
+  --noite: #070b16;
+  --ferro: #141c30;
+  --sonda: #ffcf6b;
+  --raio: #dff0ff;
+  --perigo: #ff5a6a;
+  --texto: #cdd9ef;
+  --fraco: #6c7fa3;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  background: #04060d;
+  color: var(--texto);
+  font-family: var(--mono);
+  overflow: hidden;
+  overscroll-behavior: none;
+  -webkit-text-size-adjust: 100%;
+}
+
+#palco {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(ellipse at 50% 120%, rgba(60, 96, 160, .22), transparent 60%),
+    #04060d;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* A tela e escalada por JS em passo inteiro quando cabe: pixel de tamanho
+   irregular e o que faz jogo de pixel parecer borrado. */
+#tela {
+  display: block;
+  image-rendering: pixelated;
+  background: var(--noite);
+  box-shadow: 0 0 0 1px #1b2740, 0 24px 80px rgba(0, 0, 0, .8);
+}
+
+/* ---- HUD ---- */
+#hud {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: baseline;
+  gap: 18px;
+  /* Sem nowrap o HUD quebra em tres linhas no celular e a ordem embaralha. */
+  flex-wrap: nowrap;
+  white-space: nowrap;
+  max-width: 100vw;
+  padding: 10px 16px;
+  font-size: 12px;
+  letter-spacing: 2px;
+  color: var(--fraco);
+  pointer-events: none;
+  text-shadow: 0 2px 6px #000;
+}
+#hud-fase { color: var(--raio); }
+#hud-fagulhas { color: var(--sonda); }
+#hud-mortes::before { content: "\2620 "; }
+#hud-tempo { font-variant-numeric: tabular-nums; }
+
+/* ---- aviso no meio da tela ---- */
+.aviso {
+  position: absolute;
+  left: 50%;
+  bottom: 12%;
+  transform: translateX(-50%);
+  padding: 9px 18px;
+  font-size: 13px;
+  letter-spacing: 1px;
+  color: var(--raio);
+  background: rgba(7, 11, 22, .82);
+  border: 1px solid #22314f;
+  opacity: 0;
+  transition: opacity .25s;
+  pointer-events: none;
+  max-width: 92vw;
+  text-align: center;
+  line-height: 1.5;
+}
+.aviso.mostra { opacity: 1; }
+
+/* ---- cortinas (menu, pausa, fim) ---- */
+.cortina {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 14px;
+  padding: 24px;
+  text-align: center;
+  background: rgba(4, 6, 13, .93);
+  backdrop-filter: blur(3px);
+  z-index: 5;
+}
+.cortina.oculto { display: none; }
+
+.cortina h1 {
+  margin: 0;
+  font-size: clamp(38px, 11vw, 74px);
+  letter-spacing: 10px;
+  color: var(--sonda);
+  text-shadow: 0 0 26px rgba(255, 207, 107, .45);
+}
+.cortina h2 {
+  margin: 0;
+  font-size: clamp(20px, 5vw, 30px);
+  letter-spacing: 5px;
+  color: var(--raio);
+}
+.linha {
+  margin: 0;
+  max-width: 42ch;
+  font-size: 13px;
+  line-height: 1.7;
+  color: #93a6c6;
+}
+.rodape {
+  margin: 0;
+  font-size: 11px;
+  color: #54658a;
+}
+
+.controles {
+  border-collapse: collapse;
+  font-size: 12px;
+  color: #93a6c6;
+}
+.controles th {
+  text-align: right;
+  font-weight: 400;
+  padding: 4px 12px 4px 0;
+  color: #54658a;
+}
+.controles td { text-align: left; padding: 4px 0; }
+kbd {
+  display: inline-block;
+  border: 1px solid #2b3a5c;
+  border-bottom-width: 2px;
+  padding: 2px 7px;
+  margin-right: 3px;
+  font-size: 11px;
+  color: var(--texto);
+  background: #101728;
+}
+
+.botao {
+  font-family: var(--mono);
+  font-size: 13px;
+  letter-spacing: 3px;
+  padding: 13px 34px;
+  border: 0;
+  background: var(--sonda);
+  color: #2a1c00;
+  font-weight: 700;
+  cursor: pointer;
+  transition: filter .15s;
+}
+.botao:hover, .botao:focus-visible { filter: brightness(1.12); }
+.botao:focus-visible { outline: 2px solid var(--raio); outline-offset: 3px; }
+.botao.secundario {
+  background: transparent;
+  color: #93a6c6;
+  border: 1px solid #2b3a5c;
+}
+
+/* ---- controle de toque ---- */
+#toque {
+  position: absolute;
+  inset: auto 0 0 0;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 14px 22px;
+  z-index: 4;
+  pointer-events: none;
+}
+#toque.oculto { display: none; }
+#toque .tecla {
+  pointer-events: auto;
+  width: 68px;
+  height: 68px;
+  margin: 0 5px;
+  border-radius: 50%;
+  border: 1px solid #2b3a5c;
+  background: rgba(16, 23, 40, .72);
+  color: var(--texto);
+  font-size: 22px;
+  font-family: var(--mono);
+  cursor: pointer;
+}
+#toque .tecla:active { background: rgba(255, 207, 107, .3); }
+#toque .acao { border-color: #4a3a12; color: var(--sonda); }
+
+@media (prefers-reduced-motion: reduce) {
+  .aviso { transition: none; }
+}
+
+/* ---- telas estreitas ---- */
+@media (max-width: 560px) {
+  #hud { gap: 11px; font-size: 10px; letter-spacing: 1px; padding: 7px 8px; }
+  .aviso { font-size: 11px; padding: 7px 12px; bottom: 15%; max-width: 88vw; }
+  #toque .tecla { width: 60px; height: 60px; }
+}
+
+/* Em pe a tela sobra de altura e falta de largura. O aviso nao atrapalha, e
+   quem virar ganha uma tela bem maior. */
+@media (orientation: portrait) and (pointer: coarse) {
+  #girar { display: block; }
+}
+#girar {
+  display: none;
+  position: absolute;
+  top: 34%;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: #4e5f80;
+  pointer-events: none;
+  text-align: center;
+}

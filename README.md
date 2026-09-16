@@ -9,8 +9,8 @@ registrados ao lado.
 costs. Each game is a self-contained, playable folder that records the model that
 wrote it, the agent that drove it, and the tokens it burned.*
 
-**1 jogo** de **1 pessoa**, 10.709 linhas de código,
-1,9 M tokens novos e US$ 1,03 de API no total.
+**2 jogos** de **1 pessoa**, 12.442 linhas de código,
+2,1 M tokens novos e US$ 3,51 de API no total.
 
 👉 **[Jogar tudo](https://luccapinto.github.io/ai-games/)** · **[Ver o benchmark](https://luccapinto.github.io/ai-games/benchmark.html)** · **[Mandar o seu jogo](CONTRIBUTING.md)**
 
@@ -18,6 +18,7 @@ wrote it, the agent that drove it, and the tokens it burned.*
 
 | Jogo | Gênero | Quem fez | Modelo | Tokens novos | Custo | Jogar |
 | --- | --- | --- | --- | --- | --- | --- |
+| **ANTENA** [`antena`](games/antena/README.md) | Plataforma de precisão | Lucca Pinto | claude-opus-5 | 165,0 k | US$ 2,48 | [jogar](https://luccapinto.github.io/ai-games/games/antena/) |
 | **ATTENTION IS ALL YOU KILL** [`attention-is-all-you-kill`](games/attention-is-all-you-kill/README.md) | FPS roguelike | Lucca Pinto | deepseek-flash | 1,9 M | US$ 1,03 | [jogar](https://luccapinto.github.io/ai-games/games/attention-is-all-you-kill/) |
 
 ## O benchmark
@@ -25,6 +26,7 @@ wrote it, the agent that drove it, and the tokens it burned.*
 | Modelo | Jogos | Tokens novos | Cache | Custo | Linhas |
 | --- | --- | --- | --- | --- | --- |
 | deepseek-flash | 1 | 1,9 M | 159,1 M | US$ 1,03 | 10.709 |
+| claude-opus-5 | 1 | 165,0 k | 0 | US$ 2,48 | 1.733 |
 
 Tokens novos são entrada + saída. Cache aparece em coluna separada de propósito:
 quanto do contexto vira leitura de cache depende da ferramenta que dirigiu o
@@ -89,6 +91,25 @@ pagar preço cheio por ele outra vez. Sem cache, o custo destes jogos seria uma
 ordem de grandeza maior.
 
 ## Os jogos por dentro
+
+### ANTENA
+
+A tempestade derrubou a torre de transmissão e você é a sonda de reparo. Dez torres, cada uma numa tela só, com pulo de altura variável, investida de oito direções e salto de parede. Morrer devolve ao início da torre na hora: a ideia é tentar de novo em menos de um segundo, não punir.
+
+O que tem dentro:
+
+- Dez torres de tela única, todas provadamente termináveis: a física não toca no DOM, então roda no Node e uma busca em feixe procura a sequência de teclas que chega na antena
+- A busca pegou uma fase impossível (a primeira plataforma estava a 8 tiles do chão, e o salto sobe 3) e outra que só passava pelo motivo errado
+- Os vãos são desenhados contra medidas reais, tiradas com o jogo rodando: salto alcança 3,1 tiles de altura, investida lateral vence vão de 6
+- Coyote time, buffer de pulo e perdão de canto: a culpa de um salto perdido é do jogador, nunca do relógio
+- Zero arquivo de imagem ou de áudio: chuva, relâmpago, metal, espinho e som saem todos de código
+- Passo lógico fixo em 60 Hz, para uma fase calibrada não virar impossível num monitor de 144
+
+- **Quem fez:** Lucca Pinto
+- **Modelo:** claude-opus-5 via Anthropic, dirigido por Claude Code — 165,0 k tokens novos, 0 de cache, 48 chamadas, US$ 2,48
+- **Custo total:** US$ 2,48 (estimado)
+- **Tamanho:** 1.733 linhas de código próprio, 0,1 MB
+- **Pasta:** [`games/antena/`](games/antena/README.md)
 
 ### ATTENTION IS ALL YOU KILL
 

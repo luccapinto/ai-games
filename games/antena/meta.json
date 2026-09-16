@@ -1,0 +1,78 @@
+{
+  "esquema": 1,
+  "slug": "antena",
+  "titulo": "ANTENA",
+  "subtitulo": "Plataforma de precisão numa torre de transmissão sob tempestade",
+  "genero": "Plataforma de precisão",
+  "plataforma": "Navegador, desktop e celular",
+  "estado": "jogavel",
+  "criado": "2026-09-16",
+  "licenca": "MIT",
+  "capa": "capa.jpg",
+  "resumo": "A tempestade derrubou a torre de transmissão e você é a sonda de reparo. Dez torres, cada uma numa tela só, com pulo de altura variável, investida de oito direções e salto de parede. Morrer devolve ao início da torre na hora: a ideia é tentar de novo em menos de um segundo, não punir.",
+  "autores": [
+    {
+      "nome": "Lucca Pinto",
+      "github": "luccapinto",
+      "site": "https://luccabuilds.com"
+    }
+  ],
+  "ia": [
+    {
+      "modelo": "claude-opus-5",
+      "provider": "Anthropic",
+      "agente": "Claude Code",
+      "papel": "o jogo inteiro: física, fases, render, som e o arranjo de teste",
+      "chamadas_api": 48,
+      "tokens": {
+        "entrada": 140000,
+        "saida": 25000,
+        "cache_leitura": 0,
+        "cache_escrita": 0
+      },
+      "usd_estimado": 2.48
+    }
+  ],
+  "medicao": {
+    "confianca": "estimado",
+    "metodo": "diferença do orçamento de tokens da sessão entre o início e o fim do jogo",
+    "medido_em": "2026-09-16",
+    "nota": "Número estimado, não lido de billing. O total (165 mil) é a diferença do contador de tokens da sessão, que é confiável; a divisão entre entrada e saída é estimativa minha e a única parte fraca. O cache está zerado porque não foi medido, não porque não houve: a ferramenta certamente usou cache, e por isso o custo real de fatura é menor que o estimado aqui."
+  },
+  "stack": [
+    "JavaScript (ES modules nativos)",
+    "Canvas 2D",
+    "Web Áudio API"
+  ],
+  "tamanho": {
+    "linhas_proprias": 1733,
+    "mb": 0.08,
+    "modulos_js": 7
+  },
+  "destaques": [
+    "Dez torres de tela única, todas provadamente termináveis: a física não toca no DOM, então roda no Node e uma busca em feixe procura a sequência de teclas que chega na antena",
+    "A busca pegou uma fase impossível (a primeira plataforma estava a 8 tiles do chão, e o salto sobe 3) e outra que só passava pelo motivo errado",
+    "Os vãos são desenhados contra medidas reais, tiradas com o jogo rodando: salto alcança 3,1 tiles de altura, investida lateral vence vão de 6",
+    "Coyote time, buffer de pulo e perdão de canto: a culpa de um salto perdido é do jogador, nunca do relógio",
+    "Zero arquivo de imagem ou de áudio: chuva, relâmpago, metal, espinho e som saem todos de código",
+    "Passo lógico fixo em 60 Hz, para uma fase calibrada não virar impossível num monitor de 144"
+  ],
+  "arquivos_chave": [
+    {
+      "caminho": "js/sonda.js",
+      "papel": "A física do jogador: pulo variável, coyote time, buffer, investida e salto de parede"
+    },
+    {
+      "caminho": "js/fases.js",
+      "papel": "As dez torres e as medidas de alcance contra as quais elas foram desenhadas"
+    },
+    {
+      "caminho": "js/mundo.js",
+      "papel": "Grade de tiles, colisão e a regra de qual face do espinho fere"
+    },
+    {
+      "caminho": "js/desenho.js",
+      "papel": "Render em canvas: tempestade, torre, corrente de ar e partículas"
+    }
+  ]
+}
