@@ -1,0 +1,74 @@
+{
+  "esquema": 1,
+  "slug": "processo",
+  "titulo": "PROCESSO",
+  "subtitulo": "Jogo de cartas onde o adversário é a repartição",
+  "genero": "Cartas com construção de baralho",
+  "plataforma": "Navegador, desktop e celular",
+  "estado": "jogavel",
+  "criado": "2026-09-16",
+  "licenca": "MIT",
+  "capa": "capa.jpg",
+  "resumo": "Seu requerimento tem cinco instâncias, do atendente que diz que não é com ele até O Setor Responsável, que está fora do ar. Paciência é vida, tempo é energia, e o servidor sempre anuncia o próximo golpe. A taxa de vitória e o valor de cada carta foram medidos rodando milhares de corridas, não estimados no olho.",
+  "autores": [
+    {
+      "nome": "Lucca Pinto",
+      "github": "luccapinto",
+      "site": "https://luccabuilds.com"
+    }
+  ],
+  "ia": [
+    {
+      "modelo": "claude-opus-5",
+      "provider": "Anthropic",
+      "agente": "Claude Code",
+      "papel": "o jogo inteiro: regras, cartas, balanceamento, interface e os simuladores",
+      "chamadas_api": 22,
+      "tokens": {
+        "entrada": 36000,
+        "saida": 8000,
+        "cache_leitura": 0,
+        "cache_escrita": 0
+      },
+      "usd_estimado": 0.66
+    }
+  ],
+  "medicao": {
+    "confianca": "estimado",
+    "metodo": "diferença do orçamento de tokens da sessão entre o início e o fim do jogo",
+    "medido_em": "2026-09-16",
+    "nota": "Número estimado, não lido de billing. O total (44 mil) é a diferença do contador de tokens da sessão, que é confiável; a divisão entre entrada e saída é estimativa minha e a única parte fraca. O cache está zerado porque não foi medido, não porque não houve."
+  },
+  "stack": [
+    "JavaScript (ES modules nativos)",
+    "DOM e CSS",
+    "Web Áudio API"
+  ],
+  "tamanho": {
+    "linhas_proprias": 835,
+    "mb": 0.07,
+    "modulos_js": 4
+  },
+  "destaques": [
+    "Taxa de vitória medida em milhares de corridas simuladas, não estimada: saiu de 0% para 51% depois de uma varredura de parâmetros",
+    "O valor de cada carta foi medido forçando a escolha dela e comparando a vitória, porque contar 'carta mais escolhida' só mede a tabela de notas do robô e não o jogo",
+    "A medição achou uma carta dominante (forçá-la subia a vitória de 40% para 70%), duas armadilhas e uma carta que nunca compensava — essa foi removida",
+    "Um robô sem duas regras (não se defender quando dá para matar, curar quando a paciência acaba) perdeu 6 de 6 corridas; com elas, ganhou metade. O jogo tem decisão, não sorteio",
+    "Interface em DOM e CSS, não canvas: cada carta é um button de verdade, que navega por Tab e responde a Enter sem código extra",
+    "Zero arquivo de imagem ou de áudio: a textura de papel são duas tramas de gradiente cruzadas"
+  ],
+  "arquivos_chave": [
+    {
+      "caminho": "js/combate.js",
+      "papel": "Combate e corrida, sem DOM e com sorteio semeado — é o que permite simular"
+    },
+    {
+      "caminho": "js/dados.js",
+      "papel": "Cartas, servidores e salas: equilibrar o jogo é mexer nesta tabela"
+    },
+    {
+      "caminho": "js/main.js",
+      "papel": "A mesa em DOM: mão, anúncio do golpe e escolha de recompensa"
+    }
+  ]
+}

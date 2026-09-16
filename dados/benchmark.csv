@@ -1,2 +1,3 @@
 slug,titulo,criado,genero,estado,autor,github,modelo,provider,agente,chamadas_api,tokens_entrada,tokens_saida,tokens_novos,tokens_cache,usd_estimado,linhas_do_jogo,confianca
+processo,PROCESSO,2026-09-16,Cartas com construção de baralho,jogavel,Lucca Pinto,luccapinto,claude-opus-5,Anthropic,Claude Code,22,36000,8000,44000,0,0.6600,835,estimado
 attention-is-all-you-kill,ATTENTION IS ALL YOU KILL,2026-09-10,FPS roguelike,jogavel,Lucca Pinto,luccapinto,deepseek-flash,DeepSeek,Hermes Agent (Talos),656,1294216,599762,1893978,159076224,1.0300,10709,medido

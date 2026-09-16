@@ -1,0 +1,133 @@
+/* Seletor e classe em ASCII. Acento aqui nao da erro: da silencio. */
+:root {
+  --papel: #efe7d6;
+  --papel-escuro: #ded3bd;
+  --tinta: #23201a;
+  --tinta-fraca: #6d675a;
+  --carimbo: #b3312a;
+  --deferido: #3f7d52;
+  --linha: #bfb49a;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; min-height: 100%; background: #cfc4ab; color: var(--tinta);
+  font-family: var(--mono); -webkit-text-size-adjust: 100%;
+}
+body {
+  /* Textura de papel: duas tramas cruzadas, sem arquivo de imagem. */
+  background-image:
+    repeating-linear-gradient(0deg, rgba(0,0,0,.022) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(90deg, rgba(0,0,0,.022) 0 1px, transparent 1px 3px);
+}
+
+#mesa {
+  position: relative; max-width: 880px; margin: 0 auto; min-height: 100vh;
+  min-height: 100dvh; background: var(--papel); padding: 14px 16px 18px;
+  display: flex; flex-direction: column; gap: 12px;
+  box-shadow: 0 0 0 1px var(--linha), 0 0 60px rgba(60, 45, 20, .25);
+}
+
+/* ---- topo ---- */
+#topo { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.medidor { display: flex; align-items: center; gap: 7px; }
+.rotulo { font-size: 9px; letter-spacing: 2px; color: var(--tinta-fraca); }
+.numero { font-size: 15px; font-variant-numeric: tabular-nums; font-weight: 700; }
+.numero.grande { font-size: 22px; color: var(--carimbo); }
+.barra { width: 120px; height: 9px; background: var(--papel-escuro); border: 1px solid var(--linha); }
+.barra.grande { width: min(340px, 70vw); height: 15px; }
+.barra > div { height: 100%; background: var(--deferido); transition: width .2s; }
+#barra-servidor { background: var(--carimbo); }
+#sala-atual { font-size: 11px; letter-spacing: 3px; color: var(--tinta-fraca); }
+.guarda, .forca {
+  font-size: 11px; padding: 2px 6px; border: 1px solid var(--linha);
+  background: var(--papel-escuro); font-variant-numeric: tabular-nums;
+}
+.guarda::before { content: "\1F6E1 "; }
+.forca::before { content: "\2694 "; }
+.oculto { display: none; }
+
+/* ---- servidor ---- */
+/* O servidor ocupa o vazio do meio: sem isto a mesa ficava com um buraco de
+   300px entre o anuncio e a mao, e a composicao desandava. */
+#servidor {
+  text-align: center; display: flex; flex-direction: column; gap: 10px;
+  align-items: center; justify-content: center; flex: 1; min-height: 190px;
+}
+#carimbo-servidor {
+  border: 3px double var(--carimbo); color: var(--carimbo); padding: 7px 22px;
+  transform: rotate(-1.4deg);
+}
+#carimbo-servidor h2 { margin: 0; font-size: clamp(16px, 4vw, 24px); letter-spacing: 4px; }
+#carimbo-servidor p { margin: 2px 0 0; font-size: 11px; font-style: italic; letter-spacing: .5px; }
+#servidor-numeros { display: flex; gap: 10px; align-items: center; font-size: 15px; font-weight: 700; }
+#intencao {
+  margin: 0; font-size: 13px; letter-spacing: .5px; padding: 5px 14px;
+  background: var(--papel-escuro); border-left: 3px solid var(--carimbo);
+}
+
+/* ---- mao ---- */
+#mao {
+  display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;
+  align-items: stretch; align-content: center; min-height: 168px;
+  padding-top: 4px; border-top: 1px dashed var(--linha);
+}
+.carta {
+  width: 108px; min-height: 152px; background: var(--papel); border: 1px solid var(--tinta);
+  box-shadow: 2px 2px 0 var(--linha); padding: 8px 8px 9px; cursor: pointer;
+  display: flex; flex-direction: column; gap: 5px; text-align: left;
+  font-family: var(--mono); color: var(--tinta); transition: transform .12s, box-shadow .12s;
+}
+.carta:hover:not(:disabled), .carta:focus-visible:not(:disabled) {
+  transform: translateY(-7px); box-shadow: 3px 6px 0 var(--linha); outline: none;
+}
+.carta:focus-visible { border-width: 2px; }
+.carta:disabled { opacity: .42; cursor: not-allowed; box-shadow: none; }
+.carta .custo {
+  align-self: flex-end; width: 21px; height: 21px; border-radius: 50%;
+  background: var(--carimbo); color: var(--papel); font-size: 12px; font-weight: 700;
+  display: grid; place-items: center;
+}
+.carta .nome { font-size: 11px; font-weight: 700; letter-spacing: .5px; line-height: 1.25; }
+.carta .texto { font-size: 10px; color: var(--tinta-fraca); line-height: 1.4; flex: 1; }
+.carta .selo { font-size: 8px; letter-spacing: 2px; color: var(--tinta-fraca); text-transform: uppercase; }
+
+/* ---- rodape ---- */
+#rodape { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+#monte-info { font-size: 10px; color: var(--tinta-fraca); letter-spacing: 1px; }
+.botao {
+  font-family: var(--mono); font-size: 12px; letter-spacing: 2px; padding: 11px 22px;
+  border: 1px solid var(--tinta); background: var(--tinta); color: var(--papel);
+  cursor: pointer; font-weight: 700;
+}
+.botao.secundario { background: transparent; color: var(--tinta-fraca); border-color: var(--linha); }
+.botao:focus-visible { outline: 2px solid var(--carimbo); outline-offset: 2px; }
+
+/* ---- cortinas ---- */
+.cortina {
+  position: absolute; inset: 0; display: grid; place-content: center; justify-items: center;
+  gap: 14px; padding: 26px; text-align: center; background: rgba(239, 231, 214, .97); z-index: 6;
+}
+.cortina.oculto { display: none; }
+.cortina h1 {
+  margin: 0; font-size: clamp(34px, 10vw, 66px); letter-spacing: 10px; color: var(--carimbo);
+  border: 4px double var(--carimbo); padding: 8px 24px; transform: rotate(-2deg);
+}
+.cortina h2 { margin: 0; font-size: clamp(18px, 5vw, 26px); letter-spacing: 5px; color: var(--deferido); }
+.cortina h2.indeferido { color: var(--carimbo); }
+.linha { margin: 0; max-width: 46ch; font-size: 13px; line-height: 1.7; }
+.linha.miudo { font-size: 11px; color: var(--tinta-fraca); }
+#opcoes { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+
+@media (max-width: 560px) {
+  #mesa { padding: 10px 10px 14px; gap: 9px; }
+  .carta { width: 92px; min-height: 134px; padding: 6px; }
+  .carta .nome { font-size: 10px; }
+  .carta .texto { font-size: 9px; }
+  .barra { width: 84px; }
+  #mao { gap: 5px; min-height: 142px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .carta, .barra > div { transition: none; }
+  .carta:hover:not(:disabled) { transform: none; }
+}
