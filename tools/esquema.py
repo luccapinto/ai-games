@@ -222,7 +222,12 @@ def totais(jogo: dict) -> dict:
     entrada = sum(i['tokens']['entrada'] for i in jogo['ia'])
     saida = sum(i['tokens']['saida'] for i in jogo['ia'])
     cache = sum(i['tokens']['cache_leitura'] + i['tokens']['cache_escrita'] for i in jogo['ia'])
-    usd = sum(i['usd_estimado'] or 0 for i in jogo['ia'])
+    # Arredondar a soma nao e capricho: o Python 3.12 passou a usar somatorio
+    # compensado no sum() de float, entao a MESMA soma da valores diferentes
+    # em 3.11 e em 3.12+. Sem isto, o arquivo gerado depende da versao do
+    # Python de quem rodou, e build.py --conferir acusa desatualizado numa
+    # maquina que so tem uma versao diferente da CI.
+    usd = round(sum(i['usd_estimado'] or 0 for i in jogo['ia']), 4)
     return {
         'tokens_entrada': entrada,
         'tokens_saida': saida,
