@@ -1,0 +1,74 @@
+{
+  "esquema": 1,
+  "slug": "cripta",
+  "titulo": "CRIPTA",
+  "subtitulo": "Puzzle de empurrar caixa com gravidade num túmulo soterrado",
+  "genero": "Puzzle",
+  "plataforma": "Navegador, desktop e celular",
+  "estado": "jogavel",
+  "criado": "2026-09-16",
+  "licenca": "MIT",
+  "capa": "capa.jpg",
+  "resumo": "Oito salas de uma tumba soterrada, onde a caixa só é empurrada e nunca puxada, e a gravidade vale para todo mundo. Caixa sem chão cai; caixa sem saída vira degrau. Todas as salas têm solução provada por busca em largura, e as soluções encontradas são reproduzidas no jogo de verdade para confirmar.",
+  "autores": [
+    {
+      "nome": "Lucca Pinto",
+      "github": "luccapinto",
+      "site": "https://luccabuilds.com"
+    }
+  ],
+  "ia": [
+    {
+      "modelo": "claude-opus-5",
+      "provider": "Anthropic",
+      "agente": "Claude Code",
+      "papel": "o jogo inteiro: regras, salas, render, som e os dois solucionadores",
+      "chamadas_api": 26,
+      "tokens": {
+        "entrada": 72000,
+        "saida": 14000,
+        "cache_leitura": 0,
+        "cache_escrita": 0
+      },
+      "usd_estimado": 1.30
+    }
+  ],
+  "medicao": {
+    "confianca": "estimado",
+    "metodo": "diferença do orçamento de tokens da sessão entre o início e o fim do jogo",
+    "medido_em": "2026-09-16",
+    "nota": "Número estimado, não lido de billing. O total (86 mil) é a diferença do contador de tokens da sessão, que é confiável; a divisão entre entrada e saída é estimativa minha e a única parte fraca. O cache está zerado porque não foi medido, não porque não houve: a ferramenta certamente usou cache, e por isso o custo real de fatura é menor que o estimado aqui."
+  },
+  "stack": [
+    "JavaScript (ES modules nativos)",
+    "Canvas 2D",
+    "Web Áudio API"
+  ],
+  "tamanho": {
+    "linhas_proprias": 1044,
+    "mb": 0.07,
+    "modulos_js": 5
+  },
+  "destaques": [
+    "Oito salas com solução provada por busca em largura, que também devolve o mínimo de jogadas de cada uma",
+    "As soluções achadas pela busca são reproduzidas no navegador, no jogo de verdade: como é por turnos, não há timing envolvido e a prova é exata",
+    "Na primeira rodada as dez salas eram insolúveis, e a busca expôs o porquê: não dava para subir em cima de uma caixa, o que dissolve o gênero inteiro",
+    "Desfazer com histórico completo, porque num jogo de empurrar caixa um erro de três jogadas atrás significaria refazer a sala inteira",
+    "A vinheta do lampião foi de 74% para 26% depois que uma captura mostrou que ela escondia metade do tabuleiro: em puzzle isso não é clima, é sabotagem",
+    "Zero arquivo de imagem ou de áudio: pedra, madeira, lampião e som saem de código"
+  ],
+  "arquivos_chave": [
+    {
+      "caminho": "js/estado.js",
+      "papel": "As regras: empurrar, subir, gravidade, placas e o desfazer"
+    },
+    {
+      "caminho": "js/nivel.js",
+      "papel": "As oito salas e as duas regras de desenho que elas seguem"
+    },
+    {
+      "caminho": "js/desenho.js",
+      "papel": "Render em canvas: pedra, madeira, lampião e poeira"
+    }
+  ]
+}
