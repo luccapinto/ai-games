@@ -1,16 +1,65 @@
 {
   "esquema": 1,
   "resumo": {
-    "jogos": 2,
+    "jogos": 4,
     "autores": 1,
     "modelos": 2,
-    "linhas": 11405,
-    "usd": 1.5,
-    "tokens_novos": 1924978,
+    "linhas": 14182,
+    "usd": 5.28,
+    "tokens_novos": 2175978,
     "tokens_cache": 159076224,
-    "chamadas": 672
+    "chamadas": 746
   },
   "jogos": [
+    {
+      "slug": "cripta",
+      "titulo": "CRIPTA",
+      "genero": "Puzzle",
+      "criado": "2026-09-16",
+      "estado": "jogavel",
+      "licenca": "MIT",
+      "autores": [
+        {
+          "nome": "Lucca Pinto",
+          "github": "luccapinto",
+          "site": "https://luccabuilds.com"
+        }
+      ],
+      "ia": [
+        {
+          "modelo": "claude-opus-5",
+          "provider": "Anthropic",
+          "agente": "Claude Code",
+          "papel": "o jogo inteiro: regras, salas, render, som e os dois solucionadores",
+          "chamadas_api": 26,
+          "tokens": {
+            "entrada": 72000,
+            "saida": 14000,
+            "cache_leitura": 0,
+            "cache_escrita": 0
+          },
+          "usd_estimado": 1.3
+        }
+      ],
+      "medicao": {
+        "metodo": "diferença do orçamento de tokens da sessão entre o início e o fim do jogo",
+        "confianca": "estimado",
+        "medido_em": "2026-09-16",
+        "nota": "Número estimado, não lido de billing. O total (86 mil) é a diferença do contador de tokens da sessão, que é confiável; a divisão entre entrada e saída é estimativa minha e a única parte fraca. O cache está zerado porque não foi medido, não porque não houve: a ferramenta certamente usou cache, e por isso o custo real de fatura é menor que o estimado aqui."
+      },
+      "totais": {
+        "tokens_entrada": 72000,
+        "tokens_saida": 14000,
+        "tokens_novos": 86000,
+        "tokens_cache": 0,
+        "tokens_totais": 86000,
+        "usd": 1.3,
+        "chamadas_api": 26,
+        "linhas": 1044,
+        "tem_custo": true
+      },
+      "url": "games/cripta/"
+    },
     {
       "slug": "ceia",
       "titulo": "A CEIA",
@@ -59,6 +108,55 @@
         "tem_custo": true
       },
       "url": "games/ceia/"
+    },
+    {
+      "slug": "antena",
+      "titulo": "ANTENA",
+      "genero": "Plataforma de precisão",
+      "criado": "2026-09-16",
+      "estado": "jogavel",
+      "licenca": "MIT",
+      "autores": [
+        {
+          "nome": "Lucca Pinto",
+          "github": "luccapinto",
+          "site": "https://luccabuilds.com"
+        }
+      ],
+      "ia": [
+        {
+          "modelo": "claude-opus-5",
+          "provider": "Anthropic",
+          "agente": "Claude Code",
+          "papel": "o jogo inteiro: física, fases, render, som e o arranjo de teste",
+          "chamadas_api": 48,
+          "tokens": {
+            "entrada": 140000,
+            "saida": 25000,
+            "cache_leitura": 0,
+            "cache_escrita": 0
+          },
+          "usd_estimado": 2.48
+        }
+      ],
+      "medicao": {
+        "metodo": "diferença do orçamento de tokens da sessão entre o início e o fim do jogo",
+        "confianca": "estimado",
+        "medido_em": "2026-09-16",
+        "nota": "Número estimado, não lido de billing. O total (165 mil) é a diferença do contador de tokens da sessão, que é confiável; a divisão entre entrada e saída é estimativa minha e a única parte fraca. O cache está zerado porque não foi medido, não porque não houve: a ferramenta certamente usou cache, e por isso o custo real de fatura é menor que o estimado aqui."
+      },
+      "totais": {
+        "tokens_entrada": 140000,
+        "tokens_saida": 25000,
+        "tokens_novos": 165000,
+        "tokens_cache": 0,
+        "tokens_totais": 165000,
+        "usd": 2.48,
+        "chamadas_api": 48,
+        "linhas": 1733,
+        "tem_custo": true
+      },
+      "url": "games/antena/"
     },
     {
       "slug": "attention-is-all-you-kill",
@@ -112,6 +210,22 @@
   ],
   "por_modelo": [
     {
+      "nome": "claude-opus-5",
+      "jogos": [
+        "antena",
+        "ceia",
+        "cripta"
+      ],
+      "n_jogos": 3,
+      "tokens_novos": 282000,
+      "tokens_cache": 0,
+      "chamadas_api": 90,
+      "usd": 4.25,
+      "linhas": 3473,
+      "tokens_por_linha": 81.2,
+      "linhas_por_dolar": 817.18
+    },
+    {
       "nome": "deepseek-flash",
       "jogos": [
         "attention-is-all-you-kill"
@@ -124,23 +238,25 @@
       "linhas": 10709,
       "tokens_por_linha": 176.86,
       "linhas_por_dolar": 10397.09
-    },
-    {
-      "nome": "claude-opus-5",
-      "jogos": [
-        "ceia"
-      ],
-      "n_jogos": 1,
-      "tokens_novos": 31000,
-      "tokens_cache": 0,
-      "chamadas_api": 16,
-      "usd": 0.47,
-      "linhas": 696,
-      "tokens_por_linha": 44.54,
-      "linhas_por_dolar": 1480.85
     }
   ],
   "por_agente": [
+    {
+      "nome": "Claude Code",
+      "jogos": [
+        "antena",
+        "ceia",
+        "cripta"
+      ],
+      "n_jogos": 3,
+      "tokens_novos": 282000,
+      "tokens_cache": 0,
+      "chamadas_api": 90,
+      "usd": 4.25,
+      "linhas": 3473,
+      "tokens_por_linha": 81.2,
+      "linhas_por_dolar": 817.18
+    },
     {
       "nome": "Hermes Agent (Talos)",
       "jogos": [
@@ -154,23 +270,25 @@
       "linhas": 10709,
       "tokens_por_linha": 176.86,
       "linhas_por_dolar": 10397.09
-    },
-    {
-      "nome": "Claude Code",
-      "jogos": [
-        "ceia"
-      ],
-      "n_jogos": 1,
-      "tokens_novos": 31000,
-      "tokens_cache": 0,
-      "chamadas_api": 16,
-      "usd": 0.47,
-      "linhas": 696,
-      "tokens_por_linha": 44.54,
-      "linhas_por_dolar": 1480.85
     }
   ],
   "por_provider": [
+    {
+      "nome": "Anthropic",
+      "jogos": [
+        "antena",
+        "ceia",
+        "cripta"
+      ],
+      "n_jogos": 3,
+      "tokens_novos": 282000,
+      "tokens_cache": 0,
+      "chamadas_api": 90,
+      "usd": 4.25,
+      "linhas": 3473,
+      "tokens_por_linha": 81.2,
+      "linhas_por_dolar": 817.18
+    },
     {
       "nome": "DeepSeek",
       "jogos": [
@@ -184,20 +302,6 @@
       "linhas": 10709,
       "tokens_por_linha": 176.86,
       "linhas_por_dolar": 10397.09
-    },
-    {
-      "nome": "Anthropic",
-      "jogos": [
-        "ceia"
-      ],
-      "n_jogos": 1,
-      "tokens_novos": 31000,
-      "tokens_cache": 0,
-      "chamadas_api": 16,
-      "usd": 0.47,
-      "linhas": 696,
-      "tokens_por_linha": 44.54,
-      "linhas_por_dolar": 1480.85
     }
   ]
 }
