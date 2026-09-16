@@ -1,16 +1,65 @@
 {
   "esquema": 1,
   "resumo": {
-    "jogos": 1,
+    "jogos": 2,
     "autores": 1,
-    "modelos": 1,
-    "linhas": 10709,
-    "usd": 1.03,
-    "tokens_novos": 1893978,
+    "modelos": 2,
+    "linhas": 11836,
+    "usd": 2.08,
+    "tokens_novos": 1963978,
     "tokens_cache": 159076224,
-    "chamadas": 656
+    "chamadas": 680
   },
   "jogos": [
+    {
+      "slug": "seiva",
+      "titulo": "SEIVA",
+      "genero": "Defesa de torre",
+      "criado": "2026-09-16",
+      "estado": "jogavel",
+      "licenca": "MIT",
+      "autores": [
+        {
+          "nome": "Lucca Pinto",
+          "github": "luccapinto",
+          "site": "https://luccabuilds.com"
+        }
+      ],
+      "ia": [
+        {
+          "modelo": "claude-opus-5",
+          "provider": "Anthropic",
+          "agente": "Claude Code",
+          "papel": "o jogo inteiro: regras, balanceamento, render, som e o simulador de ondas",
+          "chamadas_api": 24,
+          "tokens": {
+            "entrada": 58000,
+            "saida": 12000,
+            "cache_leitura": 0,
+            "cache_escrita": 0
+          },
+          "usd_estimado": 1.05
+        }
+      ],
+      "medicao": {
+        "metodo": "diferença do orçamento de tokens da sessão entre o início e o fim do jogo",
+        "confianca": "estimado",
+        "medido_em": "2026-09-16",
+        "nota": "Número estimado, não lido de billing. O total (70 mil) é a diferença do contador de tokens da sessão, que é confiável; a divisão entre entrada e saída é estimativa minha e a única parte fraca. O cache está zerado porque não foi medido, não porque não houve."
+      },
+      "totais": {
+        "tokens_entrada": 58000,
+        "tokens_saida": 12000,
+        "tokens_novos": 70000,
+        "tokens_cache": 0,
+        "tokens_totais": 70000,
+        "usd": 1.05,
+        "chamadas_api": 24,
+        "linhas": 1127,
+        "tem_custo": true
+      },
+      "url": "games/seiva/"
+    },
     {
       "slug": "attention-is-all-you-kill",
       "titulo": "ATTENTION IS ALL YOU KILL",
@@ -75,6 +124,20 @@
       "linhas": 10709,
       "tokens_por_linha": 176.86,
       "linhas_por_dolar": 10397.09
+    },
+    {
+      "nome": "claude-opus-5",
+      "jogos": [
+        "seiva"
+      ],
+      "n_jogos": 1,
+      "tokens_novos": 70000,
+      "tokens_cache": 0,
+      "chamadas_api": 24,
+      "usd": 1.05,
+      "linhas": 1127,
+      "tokens_por_linha": 62.11,
+      "linhas_por_dolar": 1073.33
     }
   ],
   "por_agente": [
@@ -91,6 +154,20 @@
       "linhas": 10709,
       "tokens_por_linha": 176.86,
       "linhas_por_dolar": 10397.09
+    },
+    {
+      "nome": "Claude Code",
+      "jogos": [
+        "seiva"
+      ],
+      "n_jogos": 1,
+      "tokens_novos": 70000,
+      "tokens_cache": 0,
+      "chamadas_api": 24,
+      "usd": 1.05,
+      "linhas": 1127,
+      "tokens_por_linha": 62.11,
+      "linhas_por_dolar": 1073.33
     }
   ],
   "por_provider": [
@@ -107,6 +184,20 @@
       "linhas": 10709,
       "tokens_por_linha": 176.86,
       "linhas_por_dolar": 10397.09
+    },
+    {
+      "nome": "Anthropic",
+      "jogos": [
+        "seiva"
+      ],
+      "n_jogos": 1,
+      "tokens_novos": 70000,
+      "tokens_cache": 0,
+      "chamadas_api": 24,
+      "usd": 1.05,
+      "linhas": 1127,
+      "tokens_por_linha": 62.11,
+      "linhas_por_dolar": 1073.33
     }
   ]
 }

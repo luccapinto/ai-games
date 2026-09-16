@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SEIVA</title>
+<meta name="description" content="Defesa de torre num tronco de árvore: espinho, esporo, resina e ferrão contra brocas, besouros e fungos.">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="palco">
+  <div id="quadro">
+    <div id="hud">
+      <span id="hud-onda">ONDA 0/10</span>
+      <span id="hud-seiva">70</span>
+      <span id="hud-vidas">12</span>
+    </div>
+
+    <canvas id="tela" width="640" height="384" aria-label="SEIVA, jogo de defesa de torre"></canvas>
+
+    <div id="barra">
+      <div id="torres"></div>
+      <div id="acoes">
+        <button id="onda" class="botao">MANDAR ONDA</button>
+        <button id="velocidade" class="botao secundario" title="acelerar">1&times;</button>
+      </div>
+    </div>
+    <p id="descricao"></p>
+  </div>
+
+  <section id="menu" class="cortina">
+    <h1>SEIVA</h1>
+    <p class="linha">O tronco está sendo comido por dentro. Plante espinho, esporo,
+      resina e ferrão na terra ao redor da trilha e segure dez ondas.</p>
+    <p class="linha aviso-custo">Cada torre encarece a próxima <strong>do mesmo tipo</strong>.
+      A árvore não sustenta mais do mesmo: variar sai mais barato que repetir.</p>
+    <button id="comecar" class="botao">COMEÇAR</button>
+  </section>
+
+  <section id="fim" class="cortina oculto">
+    <h2 id="fim-titulo">O TRONCO AGUENTOU</h2>
+    <p class="linha" id="fim-resumo"></p>
+    <button id="denovo" class="botao">JOGAR DE NOVO</button>
+  </section>
+</div>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
