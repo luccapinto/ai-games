@@ -9,8 +9,8 @@ registrados ao lado.
 costs. Each game is a self-contained, playable folder that records the model that
 wrote it, the agent that drove it, and the tokens it burned.*
 
-**1 jogo** de **1 pessoa**, 10.709 linhas de código,
-1,9 M tokens novos e US$ 1,03 de API no total.
+**2 jogos** de **1 pessoa**, 11.753 linhas de código,
+2,0 M tokens novos e US$ 2,33 de API no total.
 
 👉 **[Jogar tudo](https://luccapinto.github.io/ai-games/)** · **[Ver o benchmark](https://luccapinto.github.io/ai-games/benchmark.html)** · **[Mandar o seu jogo](CONTRIBUTING.md)**
 
@@ -18,6 +18,7 @@ wrote it, the agent that drove it, and the tokens it burned.*
 
 | Jogo | Gênero | Quem fez | Modelo | Tokens novos | Custo | Jogar |
 | --- | --- | --- | --- | --- | --- | --- |
+| **CRIPTA** [`cripta`](games/cripta/README.md) | Puzzle | Lucca Pinto | claude-opus-5 | 86,0 k | US$ 1,30 | [jogar](https://luccapinto.github.io/ai-games/games/cripta/) |
 | **ATTENTION IS ALL YOU KILL** [`attention-is-all-you-kill`](games/attention-is-all-you-kill/README.md) | FPS roguelike | Lucca Pinto | deepseek-flash | 1,9 M | US$ 1,03 | [jogar](https://luccapinto.github.io/ai-games/games/attention-is-all-you-kill/) |
 
 ## O benchmark
@@ -25,6 +26,7 @@ wrote it, the agent that drove it, and the tokens it burned.*
 | Modelo | Jogos | Tokens novos | Cache | Custo | Linhas |
 | --- | --- | --- | --- | --- | --- |
 | deepseek-flash | 1 | 1,9 M | 159,1 M | US$ 1,03 | 10.709 |
+| claude-opus-5 | 1 | 86,0 k | 0 | US$ 1,30 | 1.044 |
 
 Tokens novos são entrada + saída. Cache aparece em coluna separada de propósito:
 quanto do contexto vira leitura de cache depende da ferramenta que dirigiu o
@@ -89,6 +91,25 @@ pagar preço cheio por ele outra vez. Sem cache, o custo destes jogos seria uma
 ordem de grandeza maior.
 
 ## Os jogos por dentro
+
+### CRIPTA
+
+Oito salas de uma tumba soterrada, onde a caixa só é empurrada e nunca puxada, e a gravidade vale para todo mundo. Caixa sem chão cai; caixa sem saída vira degrau. Todas as salas têm solução provada por busca em largura, e as soluções encontradas são reproduzidas no jogo de verdade para confirmar.
+
+O que tem dentro:
+
+- Oito salas com solução provada por busca em largura, que também devolve o mínimo de jogadas de cada uma
+- As soluções achadas pela busca são reproduzidas no navegador, no jogo de verdade: como é por turnos, não há timing envolvido e a prova é exata
+- Na primeira rodada as dez salas eram insolúveis, e a busca expôs o porquê: não dava para subir em cima de uma caixa, o que dissolve o gênero inteiro
+- Desfazer com histórico completo, porque num jogo de empurrar caixa um erro de três jogadas atrás significaria refazer a sala inteira
+- A vinheta do lampião foi de 74% para 26% depois que uma captura mostrou que ela escondia metade do tabuleiro: em puzzle isso não é clima, é sabotagem
+- Zero arquivo de imagem ou de áudio: pedra, madeira, lampião e som saem de código
+
+- **Quem fez:** Lucca Pinto
+- **Modelo:** claude-opus-5 via Anthropic, dirigido por Claude Code — 86,0 k tokens novos, 0 de cache, 26 chamadas, US$ 1,30
+- **Custo total:** US$ 1,30 (estimado)
+- **Tamanho:** 1.044 linhas de código próprio, 0,1 MB
+- **Pasta:** [`games/cripta/`](games/cripta/README.md)
 
 ### ATTENTION IS ALL YOU KILL
 

@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ai-games — jogos feitos com IA</title>
-<meta name="description" content="Vitrine de jogos feitos com IA: cada um roda no navegador, com o modelo que escreveu e quanto custou ao lado.">
+<title>CRIPTA — ai-games</title>
+<meta name="description" content="Oito salas de uma tumba soterrada, onde a caixa só é empurrada e nunca puxada, e a gravidade vale para todo mundo. Caixa sem chão cai; caixa sem saída vira degr">
 <style>
   :root {
     --bg: #05070d; --painel: #0a1018; --linha: #1b2c38; --ink: #d8e6e4;
@@ -211,51 +211,41 @@
 <body>
 <div class="envelope">
   <header class="topo">
-    <div class="marca">AI-GAMES</div>
-    <h1>O que a IA está construindo</h1>
-    <p class="sub">Repositório coletivo de jogos feitos conversando com modelos. Todos abrem no
-      navegador, sem instalar nada. Ao lado de cada um está quem escreveu e quanto custou —
-      porque um jogo bom por dez dólares e um jogo bom por um dólar não são a mesma coisa.</p>
-    <div class="numeros"><div><span>JOGOS</span><strong>2</strong></div><div><span>MODELOS</span><strong>2</strong></div><div><span>CUSTO DE API</span><strong>US$ 2,33</strong></div></div>
-    <nav class="navegacao">
-      <a class="destaque" href="https://github.com/luccapinto/ai-games/blob/main/CONTRIBUTING.md">MANDAR O SEU JOGO</a>
-      <a href="benchmark.html">VER O BENCHMARK</a>
-      <a href="dados/benchmark.csv">BAIXAR OS DADOS</a>
-      <a href="https://github.com/luccapinto/ai-games">CÓDIGO</a>
-    </nav>
+    <div class="marca"><a href="../index.html">AI-GAMES</a> / PUZZLE</div>
+    <h1>CRIPTA</h1>
+    <p class="sub">Puzzle de empurrar caixa com gravidade num túmulo soterrado</p>
+    <p class="autoria">por <a href="https://github.com/luccapinto">Lucca Pinto</a> · 2026-09-16</p>
   </header>
 
-  <div class="grade">
-      <article class="cartao">
-        <div class="midia"><img src="games/cripta/capa.jpg" alt="captura de CRIPTA" loading="lazy"></div>
-        <div class="cartao-corpo">
-          <h3><a href="jogos/cripta.html">CRIPTA</a></h3>
-          <span class="genero">Puzzle</span>
-          <p class="autoria">por <a href="https://github.com/luccapinto">Lucca Pinto</a></p>
-          <div class="chips"><span class="chip modelo">claude-opus-5</span><span class="chip custo">US$ 1,30</span></div>
-          <div class="empurra"></div>
-          <a class="jogar" href="games/cripta/">JOGAR</a>
-        </div>
-      </article>
-      <article class="cartao">
-        <div class="midia"><img src="games/attention-is-all-you-kill/capa.jpg" alt="captura de ATTENTION IS ALL YOU KILL" loading="lazy"></div>
-        <div class="cartao-corpo">
-          <h3><a href="jogos/attention-is-all-you-kill.html">ATTENTION IS ALL YOU KILL</a></h3>
-          <span class="genero">FPS roguelike</span>
-          <p class="autoria">por <a href="https://github.com/luccapinto">Lucca Pinto</a></p>
-          <div class="chips"><span class="chip modelo">deepseek-flash</span><span class="chip custo">US$ 1,03</span></div>
-          <div class="empurra"></div>
-          <a class="jogar" href="games/attention-is-all-you-kill/">JOGAR</a>
-        </div>
-      </article>
-      <article class="cartao convite">
-        <h3>O próximo jogo pode ser o seu</h3>
-        <p>Faça um jogo conversando com qualquer modelo, em qualquer ferramenta.
-          Rode <code>python3 tools/novo_jogo.py meu-jogo</code>, preencha o
-          <code>meta.json</code> com o que o modelo gastou e abra um PR.</p>
-        <a class="jogar" href="https://github.com/luccapinto/ai-games/blob/main/CONTRIBUTING.md">MANDAR O MEU</a>
-      </article>
+  <div class="jogo-topo">
+    <div class="midia"><img src="../games/cripta/capa.jpg" alt="captura de CRIPTA" loading="eager"></div>
+    <div class="jogo-acoes">
+      <a class="jogar" href="../games/cripta/">JOGAR</a>
+      <a class="secundario" href="../games/cripta/README.md">como foi feito</a>
+      
+    </div>
   </div>
+
+  <div class="colunas">
+    <div>
+      <p class="sub" style="max-width:none">Oito salas de uma tumba soterrada, onde a caixa só é empurrada e nunca puxada, e a gravidade vale para todo mundo. Caixa sem chão cai; caixa sem saída vira degrau. Todas as salas têm solução provada por busca em largura, e as soluções encontradas são reproduzidas no jogo de verdade para confirmar.</p>
+      <h2 class="secao">O que tem dentro</h2>
+      <ul class="destaques"><li>Oito salas com solução provada por busca em largura, que também devolve o mínimo de jogadas de cada uma</li><li>As soluções achadas pela busca são reproduzidas no navegador, no jogo de verdade: como é por turnos, não há timing envolvido e a prova é exata</li><li>Na primeira rodada as dez salas eram insolúveis, e a busca expôs o porquê: não dava para subir em cima de uma caixa, o que dissolve o gênero inteiro</li><li>Desfazer com histórico completo, porque num jogo de empurrar caixa um erro de três jogadas atrás significaria refazer a sala inteira</li><li>A vinheta do lampião foi de 74% para 26% depois que uma captura mostrou que ela escondia metade do tabuleiro: em puzzle isso não é clima, é sabotagem</li><li>Zero arquivo de imagem ou de áudio: pedra, madeira, lampião e som saem de código</li></ul>
+      <h2 class="secao">Por onde começar a ler</h2>
+      <ul class="arquivos"><li><code>js/estado.js</code><span>As regras: empurrar, subir, gravidade, placas e o desfazer</span></li><li><code>js/nivel.js</code><span>As oito salas e as duas regras de desenho que elas seguem</span></li><li><code>js/desenho.js</code><span>Render em canvas: pedra, madeira, lampião e poeira</span></li></ul>
+    </div>
+    <div>
+      <h2 class="secao" style="margin-top:0">A ficha</h2>
+      <dl class="ficha"><div><dt>Escreveu</dt><dd>claude-opus-5</dd></div><div><dt>Agente</dt><dd>Claude Code</dd></div><div><dt>Tokens novos</dt><dd class="destaque">86,0 k</dd></div><div><dt>Tokens de cache</dt><dd>0</dd></div><div><dt>Custo de API</dt><dd class="destaque">US$ 1,30</dd></div><div><dt>Linhas próprias</dt><dd>1.044</dd></div><div><dt>Licença</dt><dd>MIT</dd></div><div><dt>Estado</dt><dd>jogavel</dd></div></dl>
+      <div class="chips"><span class="chip">JavaScript (ES modules nativos)</span><span class="chip">Canvas 2D</span><span class="chip">Web Áudio API</span></div>
+      <p class="nota">Número estimado, não lido de billing. O total (86 mil) é a diferença do contador de tokens da sessão, que é confiável; a divisão entre entrada e saída é estimativa minha e a única parte fraca. O cache está zerado porque não foi medido, não porque não houve: a ferramenta certamente usou cache, e por isso o custo real de fatura é menor que o estimado aqui.</p>
+    </div>
+  </div>
+
+  <nav class="navegacao" style="margin-top:44px">
+    <a href="../index.html">VOLTAR AO HUB</a>
+    <a href="../benchmark.html">VER O BENCHMARK</a>
+  </nav>
   <script>
   (function () {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { return; }
