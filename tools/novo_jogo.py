@@ -177,6 +177,7 @@ def esqueleto_meta(slug, args, hoje):
         'criado': hoje,
         'licenca': args.licenca,
         'capa': 'capa.jpg',
+        'previa': '',
         'resumo': '',
         'autores': [{
             'nome': args.autor or '',
