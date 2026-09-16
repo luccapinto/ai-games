@@ -1,0 +1,105 @@
+/* Seletor e classe em ASCII. Acento aqui nao da erro: da silencio. */
+:root {
+  --noite: #14161f;
+  --toalha: #1d2030;
+  --linha: #333a52;
+  --vela: #f2cf7a;
+  --prata: #cdd3e4;
+  --sangue: #c4544c;
+  --certo: #6fc08a;
+  --fraco: #7b83a0;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; min-height: 100%; background: #0c0e15; color: var(--prata);
+  font-family: var(--mono); -webkit-text-size-adjust: 100%;
+}
+#sala {
+  position: relative; max-width: 980px; margin: 0 auto; min-height: 100vh;
+  min-height: 100dvh; padding: 18px 16px 22px;
+  display: grid; gap: 14px;
+  grid-template-areas: "cab cab" "tab pis" "aco aco";
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  align-content: center;
+  background: radial-gradient(ellipse at 50% 0%, rgba(242, 207, 122, .07), transparent 55%), #0c0e15;
+}
+
+#cabecalho { grid-area: cab; text-align: center; }
+#cabecalho h1 {
+  margin: 0; font-size: clamp(26px, 6vw, 44px); letter-spacing: 12px; color: var(--vela);
+}
+#subtitulo { margin: 5px 0 0; font-size: 12px; color: var(--fraco); }
+#placar { margin-top: 9px; display: flex; gap: 16px; justify-content: center; font-size: 11px; letter-spacing: 2px; }
+#noite { color: var(--prata); }
+#veneno { color: var(--sangue); }
+#erros { color: var(--fraco); }
+
+#tabuleiro { grid-area: tab; }
+#mesa {
+  width: 100%; border-collapse: collapse; background: var(--toalha);
+  border: 1px solid var(--linha); font-size: 12px;
+}
+#mesa th {
+  font-weight: 400; font-size: 9px; letter-spacing: 2px; color: var(--fraco);
+  padding: 8px 6px; border-bottom: 1px solid var(--linha); text-align: center;
+}
+#mesa td { border-bottom: 1px solid var(--linha); padding: 0; text-align: center; }
+#mesa tr:last-child td { border-bottom: 0; }
+#mesa td.nome {
+  font-size: 12px; letter-spacing: 1px; color: var(--vela); padding: 9px 8px;
+  text-align: left; border-right: 1px solid var(--linha);
+}
+.celula {
+  width: 100%; min-height: 40px; background: transparent; border: 0; cursor: pointer;
+  font-family: var(--mono); font-size: 12px; color: var(--prata); padding: 11px 4px;
+  letter-spacing: .5px;
+}
+.celula:hover { background: rgba(242, 207, 122, .09); }
+.celula:focus-visible { outline: 2px solid var(--vela); outline-offset: -2px; }
+.celula.vazia { color: #464e68; }
+.celula.repetida { background: rgba(196, 84, 76, .22); color: var(--sangue); }
+.nota { margin: 7px 0 0; font-size: 10px; color: var(--fraco); line-height: 1.5; }
+
+#pistas-caixa { grid-area: pis; }
+#pistas-caixa h2 { margin: 0 0 7px; font-size: 10px; letter-spacing: 3px; color: var(--fraco); }
+#pistas {
+  margin: 0; padding: 0 0 0 20px; font-size: 11.5px; line-height: 1.65;
+  display: grid; gap: 5px; color: var(--prata);
+}
+#pistas li { cursor: default; }
+#pistas li.riscada { color: #4d5570; text-decoration: line-through; }
+
+#acoes { grid-area: aco; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+#aviso { font-size: 11px; color: var(--sangue); }
+.botao {
+  font-family: var(--mono); font-size: 12px; letter-spacing: 2px; padding: 11px 22px;
+  border: 1px solid var(--vela); background: var(--vela); color: #241c06;
+  cursor: pointer; font-weight: 700;
+}
+.botao:disabled { opacity: .35; cursor: not-allowed; }
+.botao.secundario { background: transparent; color: var(--fraco); border-color: var(--linha); }
+.botao:focus-visible { outline: 2px solid var(--prata); outline-offset: 2px; }
+
+.cortina {
+  position: absolute; inset: 0; display: grid; place-content: center; justify-items: center;
+  gap: 14px; padding: 26px; text-align: center; background: rgba(12, 14, 21, .96); z-index: 6;
+}
+.cortina.oculto { display: none; }
+.cortina h2 { margin: 0; font-size: clamp(18px, 5vw, 26px); letter-spacing: 5px; color: var(--vela); }
+.cortina h2.errou { color: var(--sangue); }
+.linha { margin: 0; max-width: 48ch; font-size: 13px; line-height: 1.7; color: #9aa3bd; }
+.linha strong { color: var(--prata); }
+#suspeitos { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+.suspeito {
+  font-family: var(--mono); font-size: 12px; letter-spacing: 2px; padding: 14px 18px;
+  border: 1px solid var(--linha); background: var(--toalha); color: var(--prata); cursor: pointer;
+}
+.suspeito:hover { border-color: var(--sangue); color: var(--sangue); }
+
+@media (max-width: 720px) {
+  #sala { grid-template-areas: "cab" "tab" "pis" "aco"; grid-template-columns: 1fr; }
+  #mesa { font-size: 11px; }
+  .celula { font-size: 11px; padding: 10px 2px; min-height: 36px; }
+  #pistas { font-size: 11px; }
+}

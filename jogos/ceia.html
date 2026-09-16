@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ai-games — jogos feitos com IA</title>
-<meta name="description" content="Vitrine de jogos feitos com IA: cada um roda no navegador, com o modelo que escreveu e quanto custou ao lado.">
+<title>A CEIA — ai-games</title>
+<meta name="description" content="Cinco convidados, cada um numa cadeira, com uma bebida e uma prenda. As pistas bastam, e isso não é promessa: o gerador resolve cada enigma por força bruta e ex">
 <style>
   :root {
     --bg: #05070d; --painel: #0a1018; --linha: #1b2c38; --ink: #d8e6e4;
@@ -211,51 +211,41 @@
 <body>
 <div class="envelope">
   <header class="topo">
-    <div class="marca">AI-GAMES</div>
-    <h1>O que a IA está construindo</h1>
-    <p class="sub">Repositório coletivo de jogos feitos conversando com modelos. Todos abrem no
-      navegador, sem instalar nada. Ao lado de cada um está quem escreveu e quanto custou —
-      porque um jogo bom por dez dólares e um jogo bom por um dólar não são a mesma coisa.</p>
-    <div class="numeros"><div><span>JOGOS</span><strong>2</strong></div><div><span>MODELOS</span><strong>2</strong></div><div><span>CUSTO DE API</span><strong>US$ 1,50</strong></div></div>
-    <nav class="navegacao">
-      <a class="destaque" href="https://github.com/luccapinto/ai-games/blob/main/CONTRIBUTING.md">MANDAR O SEU JOGO</a>
-      <a href="benchmark.html">VER O BENCHMARK</a>
-      <a href="dados/benchmark.csv">BAIXAR OS DADOS</a>
-      <a href="https://github.com/luccapinto/ai-games">CÓDIGO</a>
-    </nav>
+    <div class="marca"><a href="../index.html">AI-GAMES</a> / DEDUÇÃO LÓGICA</div>
+    <h1>A CEIA</h1>
+    <p class="sub">Dedução lógica: cinco convidados, uma ceia e um veneno</p>
+    <p class="autoria">por <a href="https://github.com/luccapinto">Lucca Pinto</a> · 2026-09-16</p>
   </header>
 
-  <div class="grade">
-      <article class="cartao">
-        <div class="midia"><img src="games/ceia/capa.jpg" alt="captura de A CEIA" loading="lazy"></div>
-        <div class="cartao-corpo">
-          <h3><a href="jogos/ceia.html">A CEIA</a></h3>
-          <span class="genero">Dedução lógica</span>
-          <p class="autoria">por <a href="https://github.com/luccapinto">Lucca Pinto</a></p>
-          <div class="chips"><span class="chip modelo">claude-opus-5</span><span class="chip custo">US$ 0,47</span></div>
-          <div class="empurra"></div>
-          <a class="jogar" href="games/ceia/">JOGAR</a>
-        </div>
-      </article>
-      <article class="cartao">
-        <div class="midia"><img src="games/attention-is-all-you-kill/capa.jpg" alt="captura de ATTENTION IS ALL YOU KILL" loading="lazy"></div>
-        <div class="cartao-corpo">
-          <h3><a href="jogos/attention-is-all-you-kill.html">ATTENTION IS ALL YOU KILL</a></h3>
-          <span class="genero">FPS roguelike</span>
-          <p class="autoria">por <a href="https://github.com/luccapinto">Lucca Pinto</a></p>
-          <div class="chips"><span class="chip modelo">deepseek-flash</span><span class="chip custo">US$ 1,03</span></div>
-          <div class="empurra"></div>
-          <a class="jogar" href="games/attention-is-all-you-kill/">JOGAR</a>
-        </div>
-      </article>
-      <article class="cartao convite">
-        <h3>O próximo jogo pode ser o seu</h3>
-        <p>Faça um jogo conversando com qualquer modelo, em qualquer ferramenta.
-          Rode <code>python3 tools/novo_jogo.py meu-jogo</code>, preencha o
-          <code>meta.json</code> com o que o modelo gastou e abra um PR.</p>
-        <a class="jogar" href="https://github.com/luccapinto/ai-games/blob/main/CONTRIBUTING.md">MANDAR O MEU</a>
-      </article>
+  <div class="jogo-topo">
+    <div class="midia"><img src="../games/ceia/capa.jpg" alt="captura de A CEIA" loading="eager"></div>
+    <div class="jogo-acoes">
+      <a class="jogar" href="../games/ceia/">JOGAR</a>
+      <a class="secundario" href="../games/ceia/README.md">como foi feito</a>
+      
+    </div>
   </div>
+
+  <div class="colunas">
+    <div>
+      <p class="sub" style="max-width:none">Cinco convidados, cada um numa cadeira, com uma bebida e uma prenda. As pistas bastam, e isso não é promessa: o gerador resolve cada enigma por força bruta e exige solução única, depois tira cada pista uma por vez e exige que sem ela a solução deixe de ser única. Pista que dá para remover é pista que o jogador lê e não usa.</p>
+      <h2 class="secao">O que tem dentro</h2>
+      <ul class="destaques"><li>Todo enigma tem solução única provada por força bruta, e nenhuma pista sobrando: cada pista é removida uma por vez e a solução precisa deixar de ser única sem ela</li><li>Quarenta enigmas gerados e provados no teste, todos únicos e mínimos, de 11 a 13 pistas cada</li><li>A poda por categoria é o que faz a força bruta caber: as pistas de cadeira filtram as 120 permutações antes de a bebida entrar, e a checagem de minimalidade roda o solucionador uma vez por pista</li><li>Errar diz em qual coluna há erro e quantas células, nunca quais: apontar a célula exata entregaria o enigma em duas tentativas</li><li>Riscar pista já usada é caderno, não regra — não muda nada no jogo, só evita reler a mesma coisa dez vezes</li><li>Zero arquivo de imagem ou de áudio; o módulo do enigma não tem uma linha de DOM, e é isso que permite prová-lo fora do navegador</li></ul>
+      <h2 class="secao">Por onde começar a ler</h2>
+      <ul class="arquivos"><li><code>js/enigma.js</code><span>Gerador, solucionador e conferidor: a prova de unicidade e de minimalidade mora aqui</span></li><li><code>js/main.js</code><span>A mesa em DOM: células que giram, pistas riscáveis e a acusação</span></li></ul>
+    </div>
+    <div>
+      <h2 class="secao" style="margin-top:0">A ficha</h2>
+      <dl class="ficha"><div><dt>Escreveu</dt><dd>claude-opus-5</dd></div><div><dt>Agente</dt><dd>Claude Code</dd></div><div><dt>Tokens novos</dt><dd class="destaque">31,0 k</dd></div><div><dt>Tokens de cache</dt><dd>0</dd></div><div><dt>Custo de API</dt><dd class="destaque">US$ 0,47</dd></div><div><dt>Linhas próprias</dt><dd>696</dd></div><div><dt>Licença</dt><dd>MIT</dd></div><div><dt>Estado</dt><dd>jogavel</dd></div></dl>
+      <div class="chips"><span class="chip">JavaScript (ES modules nativos)</span><span class="chip">DOM e CSS</span><span class="chip">Web Áudio API</span></div>
+      <p class="nota">Número estimado, não lido de billing. O total (31 mil) é a diferença do contador de tokens da sessão, que é confiável; a divisão entre entrada e saída é estimativa minha e a única parte fraca. O cache está zerado porque não foi medido, não porque não houve.</p>
+    </div>
+  </div>
+
+  <nav class="navegacao" style="margin-top:44px">
+    <a href="../index.html">VOLTAR AO HUB</a>
+    <a href="../benchmark.html">VER O BENCHMARK</a>
+  </nav>
   <script>
   (function () {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { return; }

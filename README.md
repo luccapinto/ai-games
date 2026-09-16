@@ -9,8 +9,8 @@ registrados ao lado.
 costs. Each game is a self-contained, playable folder that records the model that
 wrote it, the agent that drove it, and the tokens it burned.*
 
-**1 jogo** de **1 pessoa**, 10.709 linhas de código,
-1,9 M tokens novos e US$ 1,03 de API no total.
+**2 jogos** de **1 pessoa**, 11.405 linhas de código,
+1,9 M tokens novos e US$ 1,50 de API no total.
 
 👉 **[Jogar tudo](https://luccapinto.github.io/ai-games/)** · **[Ver o benchmark](https://luccapinto.github.io/ai-games/benchmark.html)** · **[Mandar o seu jogo](CONTRIBUTING.md)**
 
@@ -18,6 +18,7 @@ wrote it, the agent that drove it, and the tokens it burned.*
 
 | Jogo | Gênero | Quem fez | Modelo | Tokens novos | Custo | Jogar |
 | --- | --- | --- | --- | --- | --- | --- |
+| **A CEIA** [`ceia`](games/ceia/README.md) | Dedução lógica | Lucca Pinto | claude-opus-5 | 31,0 k | US$ 0,47 | [jogar](https://luccapinto.github.io/ai-games/games/ceia/) |
 | **ATTENTION IS ALL YOU KILL** [`attention-is-all-you-kill`](games/attention-is-all-you-kill/README.md) | FPS roguelike | Lucca Pinto | deepseek-flash | 1,9 M | US$ 1,03 | [jogar](https://luccapinto.github.io/ai-games/games/attention-is-all-you-kill/) |
 
 ## O benchmark
@@ -25,6 +26,7 @@ wrote it, the agent that drove it, and the tokens it burned.*
 | Modelo | Jogos | Tokens novos | Cache | Custo | Linhas |
 | --- | --- | --- | --- | --- | --- |
 | deepseek-flash | 1 | 1,9 M | 159,1 M | US$ 1,03 | 10.709 |
+| claude-opus-5 | 1 | 31,0 k | 0 | US$ 0,47 | 696 |
 
 Tokens novos são entrada + saída. Cache aparece em coluna separada de propósito:
 quanto do contexto vira leitura de cache depende da ferramenta que dirigiu o
@@ -89,6 +91,25 @@ pagar preço cheio por ele outra vez. Sem cache, o custo destes jogos seria uma
 ordem de grandeza maior.
 
 ## Os jogos por dentro
+
+### A CEIA
+
+Cinco convidados, cada um numa cadeira, com uma bebida e uma prenda. As pistas bastam, e isso não é promessa: o gerador resolve cada enigma por força bruta e exige solução única, depois tira cada pista uma por vez e exige que sem ela a solução deixe de ser única. Pista que dá para remover é pista que o jogador lê e não usa.
+
+O que tem dentro:
+
+- Todo enigma tem solução única provada por força bruta, e nenhuma pista sobrando: cada pista é removida uma por vez e a solução precisa deixar de ser única sem ela
+- Quarenta enigmas gerados e provados no teste, todos únicos e mínimos, de 11 a 13 pistas cada
+- A poda por categoria é o que faz a força bruta caber: as pistas de cadeira filtram as 120 permutações antes de a bebida entrar, e a checagem de minimalidade roda o solucionador uma vez por pista
+- Errar diz em qual coluna há erro e quantas células, nunca quais: apontar a célula exata entregaria o enigma em duas tentativas
+- Riscar pista já usada é caderno, não regra — não muda nada no jogo, só evita reler a mesma coisa dez vezes
+- Zero arquivo de imagem ou de áudio; o módulo do enigma não tem uma linha de DOM, e é isso que permite prová-lo fora do navegador
+
+- **Quem fez:** Lucca Pinto
+- **Modelo:** claude-opus-5 via Anthropic, dirigido por Claude Code — 31,0 k tokens novos, 0 de cache, 16 chamadas, US$ 0,47
+- **Custo total:** US$ 0,47 (estimado)
+- **Tamanho:** 696 linhas de código próprio, 0,1 MB
+- **Pasta:** [`games/ceia/`](games/ceia/README.md)
 
 ### ATTENTION IS ALL YOU KILL
 
