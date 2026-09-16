@@ -34,7 +34,7 @@ no validador é barato; número falso no benchmark contamina a tabela de todo mu
 | `licenca` | sim | `MIT`, `CC BY 4.0`, `GPL-3.0`... A do seu jogo, não a do repo |
 | `resumo` | sim | Dois ou três períodos. É o texto do cartão no hub |
 | `capa` | recomendado | Nome do arquivo de imagem **dentro da pasta**: `capa.jpg` |
-| `espelho` | não | URL onde você também publicou. Entra como link secundário |
+| `previa` | não | Loop curto que toca no cartão: `.webp`, `.gif`, `.mp4` ou `.webm`, também dentro da pasta. Quem tem prévia precisa ter capa |
 | `repo` | não | URL do repositório do jogo, se ele também mora fora daqui |
 
 `estado` é sobre o que a pessoa encontra ao clicar em JOGAR, não sobre a

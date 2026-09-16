@@ -28,6 +28,7 @@ import esquema  # noqa: E402
 RAIZ = pathlib.Path(__file__).resolve().parent.parent
 PASTA_JOGOS = RAIZ / 'games'
 PASTA_DADOS = RAIZ / 'dados'
+PASTA_PAGINAS = RAIZ / 'jogos'
 
 # Onde o repositorio fica publicado. Vale so para os links do README: no GitHub,
 # um link para .html mostra o codigo-fonte da pagina, nao a pagina. O hub e o
@@ -345,86 +346,199 @@ CSS = """
     --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   }
   * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
   body {
     margin: 0; background: var(--bg); color: var(--ink);
-    font-family: var(--mono); line-height: 1.55;
-    background-image: radial-gradient(circle at 20% -10%, rgba(53,240,216,.08), transparent 45%),
-                      radial-gradient(circle at 90% 0%, rgba(255,179,71,.06), transparent 40%);
+    font-family: var(--mono); line-height: 1.6; font-size: 15px;
+    background-image: radial-gradient(circle at 15% -10%, rgba(53,240,216,.10), transparent 50%),
+                      radial-gradient(circle at 90% 0%, rgba(255,179,71,.06), transparent 42%);
     background-repeat: no-repeat;
   }
-  .envelope { max-width: 1080px; margin: 0 auto; padding: 64px 22px 96px; }
-  header.topo { border-bottom: 1px solid var(--linha); padding-bottom: 28px; margin-bottom: 44px; }
+  img, video { max-width: 100%; }
+  a { color: var(--neon); }
+  /* Foco visivel: navegacao por teclado precisa saber onde esta. */
+  a:focus-visible, button:focus-visible {
+    outline: 2px solid var(--neon); outline-offset: 3px;
+  }
+  .envelope { max-width: 1160px; margin: 0 auto; padding: 60px 22px 96px; }
+
+  /* ---- cabecalho ---- */
+  header.topo { border-bottom: 1px solid var(--linha); padding-bottom: 32px; margin-bottom: 44px; }
   .marca { font-size: 12px; letter-spacing: 6px; color: var(--neon); }
   .marca a { color: var(--neon); text-decoration: none; }
-  h1 { font-size: clamp(30px, 6vw, 52px); margin: 12px 0 10px; letter-spacing: -1px; }
-  h2.secao { font-size: 15px; letter-spacing: 3px; color: var(--ambar); margin: 48px 0 14px;
-             text-transform: uppercase; }
-  .sub { color: var(--muted); max-width: 62ch; font-size: 14px; }
-  .numeros { display: flex; flex-wrap: wrap; gap: 30px; margin-top: 26px; }
-  .numeros div span { display: block; color: var(--muted); font-size: 10px; letter-spacing: 2px; }
-  .numeros div strong { font-size: 22px; color: var(--ambar); }
-  .navegacao { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 26px; }
-  .navegacao a { color: var(--ink); text-decoration: none; font-size: 11px; letter-spacing: 2px;
-                 border: 1px solid var(--linha); padding: 9px 16px; }
-  .navegacao a:hover { border-color: var(--neon); color: var(--neon); }
-  .navegacao a.destaque { background: var(--neon); color: #04201c; border-color: var(--neon);
-                          font-weight: 700; }
+  h1 {
+    font-size: clamp(34px, 7vw, 64px); margin: 16px 0 12px;
+    letter-spacing: -1.5px; line-height: 1.02; font-weight: 700;
+  }
+  .sub { color: var(--muted); max-width: 64ch; font-size: 15px; }
+  h2.secao {
+    font-size: 14px; letter-spacing: 3px; color: var(--ambar); margin: 52px 0 16px;
+    text-transform: uppercase; font-weight: 700;
+  }
 
-  .jogo { display: grid; grid-template-columns: minmax(0, 380px) 1fr; gap: 26px;
-          background: var(--painel); border: 1px solid var(--linha);
-          padding: 20px; margin-bottom: 28px; align-items: start; }
-  .capa { width: 100%; display: block; border: 1px solid var(--linha); background: #000; }
-  .capa.vazia { aspect-ratio: 16/9; display: grid; place-items: center; color: var(--muted);
-                font-size: 12px; }
-  .corpo h2 { margin: 0 0 4px; font-size: 21px; letter-spacing: .5px; }
-  .genero { color: var(--neon); font-size: 11px; letter-spacing: 2px; }
-  .autoria { color: var(--muted); font-size: 11px; margin: 6px 0 0; }
+  .numeros { display: flex; flex-wrap: wrap; gap: 34px; margin-top: 30px; }
+  .numeros div span {
+    display: block; color: var(--muted); font-size: 10px; letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+  .numeros div strong {
+    font-size: 26px; color: var(--ambar); font-variant-numeric: tabular-nums;
+  }
+
+  .navegacao { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 30px; }
+  .navegacao a {
+    color: var(--ink); text-decoration: none; font-size: 11px; letter-spacing: 2px;
+    border: 1px solid var(--linha); padding: 11px 18px; transition: border-color .15s, color .15s;
+  }
+  .navegacao a:hover { border-color: var(--neon); color: var(--neon); }
+  .navegacao a.destaque {
+    background: var(--neon); color: #04201c; border-color: var(--neon); font-weight: 700;
+  }
+  .navegacao a.destaque:hover { filter: brightness(1.12); color: #04201c; }
+
+  /* ---- a grade de jogos ---- */
+  .grade {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 20px; align-items: stretch;
+  }
+  .cartao {
+    background: var(--painel); border: 1px solid var(--linha);
+    display: flex; flex-direction: column; min-width: 0;
+    transition: border-color .15s, transform .15s;
+  }
+  .cartao:hover { border-color: rgba(53,240,216,.45); transform: translateY(-2px); }
+  .midia { position: relative; aspect-ratio: 16 / 9; background: #000; overflow: hidden; }
+  .midia img, .midia video {
+    width: 100%; height: 100%; object-fit: cover; display: block;
+  }
+  .midia.vazia {
+    display: grid; place-items: center; color: var(--muted); font-size: 12px;
+  }
+  .marca-previa {
+    position: absolute; top: 9px; right: 9px; background: rgba(5,7,13,.82);
+    border: 1px solid rgba(53,240,216,.5); color: var(--neon);
+    font-size: 9px; letter-spacing: 1px; padding: 3px 7px;
+  }
+  .cartao-corpo { padding: 16px 16px 18px; display: flex; flex-direction: column; flex: 1; }
+  .cartao-corpo h3 { margin: 0; font-size: 17px; letter-spacing: -.3px; line-height: 1.25; }
+  .cartao-corpo h3 a { color: var(--ink); text-decoration: none; }
+  .cartao-corpo h3 a:hover { color: var(--neon); }
+  .genero {
+    color: var(--neon); font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+    margin-top: 6px; display: block;
+  }
+  .autoria { color: var(--muted); font-size: 12px; margin: 8px 0 0; }
   .autoria a { color: var(--muted); }
-  .resumo { color: #a9c0bd; font-size: 13px; margin: 14px 0; }
-  .destaques { margin: 0 0 18px; padding-left: 18px; color: var(--muted); font-size: 12px; }
-  .destaques li { margin-bottom: 5px; }
-  .ficha { display: flex; flex-wrap: wrap; gap: 22px; margin: 0 0 20px; padding: 14px 0;
-           border-top: 1px solid var(--linha); border-bottom: 1px solid var(--linha); }
-  .ficha dt { color: var(--muted); font-size: 10px; letter-spacing: 2px; }
-  .ficha dd { margin: 2px 0 0; font-size: 15px; }
-  footer.acoes { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
-  .jogar { background: var(--neon); color: #04201c; font-weight: 700; padding: 11px 20px;
-           text-decoration: none; font-size: 12px; letter-spacing: 2px; }
+  .autoria a:hover { color: var(--ink); }
+
+  /* O chip e o tempero: modelo e custo, nada alem disso no cartao. */
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0 0; }
+  .chip {
+    font-size: 10px; letter-spacing: .5px; padding: 4px 9px; border: 1px solid var(--linha);
+    color: var(--muted); white-space: nowrap;
+  }
+  .chip.modelo { color: var(--neon); border-color: rgba(53,240,216,.4); }
+  .chip.custo {
+    color: var(--ambar); border-color: rgba(255,179,71,.4); font-variant-numeric: tabular-nums;
+  }
+  .empurra { flex: 1; min-height: 14px; }
+  .jogar {
+    background: var(--neon); color: #04201c; font-weight: 700; padding: 13px;
+    text-decoration: none; font-size: 12px; letter-spacing: 3px; text-align: center;
+    display: block; transition: filter .15s;
+  }
   .jogar:hover { filter: brightness(1.15); }
-  .secundario { color: var(--muted); text-decoration: none; font-size: 11px; letter-spacing: 1px;
-                border-bottom: 1px solid var(--linha); padding-bottom: 1px; }
+  .secundario {
+    color: var(--muted); text-decoration: none; font-size: 11px; letter-spacing: 1px;
+    border-bottom: 1px solid var(--linha); padding-bottom: 1px;
+  }
   .secundario:hover { color: var(--ink); border-color: var(--neon); }
 
-  .convite { border: 1px dashed var(--linha); padding: 26px; margin-bottom: 28px;
-             background: rgba(53,240,216,.03); }
-  .convite h2 { margin: 0 0 8px; font-size: 18px; }
-  .convite p { color: var(--muted); font-size: 13px; max-width: 70ch; }
-  .convite code { color: var(--ambar); }
+  /* O convite e membro permanente da grade, nao um caso especial de quando ha
+     poucos jogos: com um jogo so a grade tem duas celulas e se justifica. */
+  .cartao.convite {
+    border-style: dashed; background: rgba(53,240,216,.03);
+    justify-content: center; padding: 26px 20px; min-height: 260px;
+  }
+  .cartao.convite:hover { transform: none; }
+  .cartao.convite h3 { font-size: 17px; margin: 0 0 10px; }
+  .cartao.convite p { color: var(--muted); font-size: 13px; margin: 0 0 16px; }
+  .cartao.convite code { color: var(--ambar); font-size: 12px; }
 
+  /* ---- pagina de um jogo ---- */
+  .jogo-topo { margin-bottom: 30px; }
+  .jogo-topo .midia { aspect-ratio: 16 / 9; border: 1px solid var(--linha); }
+  .jogo-acoes { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; margin-top: 22px; }
+  .jogo-acoes .jogar { display: inline-block; padding: 15px 42px; }
+  .colunas { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 40px; }
+  .destaques { margin: 0; padding-left: 20px; color: var(--ink); font-size: 14px; }
+  .destaques li { margin-bottom: 9px; }
+  .ficha {
+    margin: 0; border: 1px solid var(--linha); background: var(--painel); padding: 4px 18px;
+  }
+  .ficha div {
+    display: flex; justify-content: space-between; gap: 16px; align-items: baseline;
+    padding: 11px 0; border-bottom: 1px solid var(--linha);
+  }
+  .ficha div:last-child { border-bottom: 0; }
+  .ficha dt {
+    color: var(--muted); font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+  }
+  .ficha dd {
+    margin: 0; font-size: 14px; text-align: right; font-variant-numeric: tabular-nums;
+  }
+  .ficha dd.destaque { color: var(--ambar); }
+  .arquivos { list-style: none; padding: 0; margin: 0; font-size: 13px; }
+  .arquivos li { padding: 9px 0; border-bottom: 1px solid var(--linha); }
+  .arquivos li:last-child { border-bottom: 0; }
+  .arquivos code { color: var(--neon); }
+  .arquivos span { display: block; color: var(--muted); font-size: 12px; margin-top: 3px; }
+
+  /* ---- tabelas do benchmark ---- */
   .rolagem { overflow-x: auto; border: 1px solid var(--linha); background: var(--painel); }
   table { border-collapse: collapse; width: 100%; font-size: 12px; min-width: 620px; }
-  th, td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--linha); }
+  th, td { padding: 11px 14px; text-align: left; border-bottom: 1px solid var(--linha); }
   td.txt { white-space: normal; min-width: 92px; }
-  th { color: var(--muted); font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
-       font-weight: 400; }
+  th {
+    color: var(--muted); font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+    font-weight: 400;
+  }
   tbody tr:hover { background: rgba(53,240,216,.04); }
   td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
   td.destaque { color: var(--ambar); }
   td a { color: var(--ink); text-decoration: none; border-bottom: 1px solid var(--linha); }
   td a:hover { color: var(--neon); }
-  .selo { font-size: 9px; letter-spacing: 1px; padding: 2px 7px; border: 1px solid var(--linha);
-          color: var(--muted); text-transform: uppercase; }
+  .selo {
+    font-size: 9px; letter-spacing: 1px; padding: 2px 7px; border: 1px solid var(--linha);
+    color: var(--muted); text-transform: uppercase;
+  }
   .selo.medido { color: var(--neon); border-color: rgba(53,240,216,.4); }
   .selo.parcial { color: var(--ambar); border-color: rgba(255,179,71,.4); }
-  .nota { color: var(--muted); font-size: 12px; max-width: 74ch; margin: 14px 0 0; }
+  .nota { color: var(--muted); font-size: 13px; max-width: 76ch; margin: 14px 0 0; }
   .nota strong { color: var(--ink); }
 
-  footer.rodape { border-top: 1px solid var(--linha); margin-top: 50px; padding-top: 22px;
-                  color: var(--muted); font-size: 11px; }
+  footer.rodape {
+    border-top: 1px solid var(--linha); margin-top: 60px; padding-top: 24px;
+    color: var(--muted); font-size: 12px;
+  }
   footer.rodape a { color: var(--neon); }
-  @media (max-width: 760px) {
-    .jogo { grid-template-columns: 1fr; }
+
+  @media (max-width: 900px) {
+    .colunas { grid-template-columns: 1fr; gap: 30px; }
+  }
+  @media (max-width: 560px) {
     .envelope { padding: 40px 16px 70px; }
+    .grade { grid-template-columns: 1fr; }
+    .numeros { gap: 22px; }
+    .numeros div strong { font-size: 22px; }
+    .jogo-acoes .jogar { display: block; width: 100%; }
+  }
+
+  /* Uma grade inteira de coisa se mexendo e exatamente o caso em que isto
+     importa. O JS tambem confere, para nao chegar a trocar a imagem. */
+  @media (prefers-reduced-motion: reduce) {
+    * { animation-duration: .001ms !important; transition-duration: .001ms !important; }
+    .cartao:hover { transform: none; }
   }
 """
 
@@ -478,74 +592,136 @@ def bloco_numeros(pares):
 # hub
 # --------------------------------------------------------------------------
 
+# A previa so entra depois que o elemento aparece na tela, e nunca entra se a
+# pessoa pediu menos movimento no sistema. Sem JS nada disso roda e a capa fica
+# onde esta: por isso o src da capa vem no HTML e a previa vem em data-previa,
+# em vez do contrario.
+SCRIPT_PREVIA = """  <script>
+  (function () {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { return; }
+    var alvos = document.querySelectorAll('[data-previa]');
+    if (!alvos.length || !('IntersectionObserver' in window)) { return; }
+    var observador = new IntersectionObserver(function (entradas) {
+      entradas.forEach(function (entrada) {
+        var el = entrada.target;
+        if (entrada.isIntersecting) {
+          if (el.tagName === 'VIDEO') {
+            if (!el.getAttribute('src')) { el.setAttribute('src', el.dataset.previa); }
+            var tocando = el.play();
+            if (tocando && tocando.catch) { tocando.catch(function () {}); }
+          } else if (el.dataset.previa) {
+            el.src = el.dataset.previa;
+            observador.unobserve(el);
+          }
+        } else if (el.tagName === 'VIDEO') {
+          el.pause();
+        }
+      });
+    }, { rootMargin: '150px' });
+    alvos.forEach(function (el) { observador.observe(el); });
+  })();
+  </script>"""
+
+
+def creditos_html(jogo):
+    creditos = []
+    for a in jogo['autores']:
+        if a['github']:
+            creditos.append(f'<a href="https://github.com/{escape(a["github"])}">{escape(a["nome"])}</a>')
+        elif a['nome']:
+            creditos.append(escape(a['nome']))
+    return ' e '.join(creditos) or 'n/d'
+
+
+def midia_html(jogo, prefixo='', destaque=False):
+    """A capa e o que o HTML entrega; a previa e so uma promessa em data-previa.
+
+    Nessa ordem de proposito: sem JS, com conexao ruim ou com movimento reduzido,
+    o que sobra e a capa — e nao um quadro preto esperando video que nao veio.
+    """
+    base = f'{prefixo}games/{escape(jogo["slug"])}/'
+    capa = jogo['capa']
+    previa = jogo['previa']
+    tem_capa = capa and (jogo['_pasta'] / capa).exists()
+    tem_previa = previa and (jogo['_pasta'] / previa).exists()
+
+    if not tem_capa and not tem_previa:
+        return '<div class="midia vazia">sem captura</div>'
+
+    alt = f'captura de {escape(jogo["titulo"])}'
+    src_capa = f'{base}{escape(capa)}' if tem_capa else ''
+    carregar = 'eager' if destaque else 'lazy'
+    selo = '<span class="marca-previa">&#9654; PRÉVIA</span>' if tem_previa else ''
+
+    if not tem_previa:
+        return (f'<div class="midia"><img src="{src_capa}" alt="{alt}" '
+                f'loading="{carregar}"></div>')
+
+    src_previa = f'{base}{escape(previa)}'
+    if previa.lower().endswith(('.mp4', '.webm')):
+        # preload=none: numa grade de doze jogos, doze videos baixando de uma vez
+        # e o celular da pessoa pagando a conta antes de ela ver qualquer coisa.
+        corpo = (f'<video data-previa="{src_previa}" poster="{src_capa}" muted loop '
+                 f'playsinline preload="none" aria-label="{alt}"></video>')
+    else:
+        corpo = (f'<img src="{src_capa}" data-previa="{src_previa}" alt="{alt}" '
+                 f'loading="{carregar}">')
+    return f'<div class="midia">{corpo}{selo}</div>'
+
+
+def cartao_jogo(jogo):
+    t = jogo['_totais']
+    slug = escape(jogo['slug'])
+    chips = f'<span class="chip modelo">{escape(lista_modelos(jogo))}</span>'
+    if t['usd']:
+        chips += f'<span class="chip custo">{moeda(t["usd"])}</span>'
+
+    return f"""      <article class="cartao">
+        {midia_html(jogo)}
+        <div class="cartao-corpo">
+          <h3><a href="jogos/{slug}.html">{escape(jogo['titulo'])}</a></h3>
+          <span class="genero">{escape(jogo['genero'])}</span>
+          <p class="autoria">por {creditos_html(jogo)}</p>
+          <div class="chips">{chips}</div>
+          <div class="empurra"></div>
+          <a class="jogar" href="games/{slug}/">JOGAR</a>
+        </div>
+      </article>"""
+
+
 def gerar_hub(jogos):
     r = resumo_geral(jogos)
-    cartoes = []
 
-    for j in jogos:
-        t = j['_totais']
-        capa = j['capa']
-        src = f'games/{j["slug"]}/{capa}' if capa and (j['_pasta'] / capa).exists() else ''
-        imagem = (f'<img class="capa" src="{escape(src)}" alt="captura de {escape(j["titulo"])}" loading="lazy">'
-                  if src else '<div class="capa vazia">sem captura</div>')
+    cartoes = [cartao_jogo(j) for j in jogos]
 
-        creditos = []
-        for a in j['autores']:
-            if a['github']:
-                creditos.append(f'<a href="https://github.com/{escape(a["github"])}">{escape(a["nome"])}</a>')
-            elif a['nome']:
-                creditos.append(escape(a['nome']))
-
-        # O botao principal leva para a pasta do jogo DENTRO do repo, nunca para
-        # um endereco externo: o hub nao pode depender de outro servidor estar no
-        # ar para alguem conseguir jogar. Endereco externo entra como espelho.
-        espelho = (f'<a class="secundario" href="{escape(j["espelho"])}">espelho do autor</a>'
-                   if j['espelho'] else '')
-        itens = ''.join(f'<li>{escape(d)}</li>' for d in j['destaques'][:3])
-
-        cartoes.append(f"""      <article class="jogo">
-        {imagem}
-        <div class="corpo">
-          <header>
-            <h2>{escape(j['titulo'])}</h2>
-            <span class="genero">{escape(j['genero'])}</span>
-            <p class="autoria">por {' e '.join(creditos) or 'n/d'}</p>
-          </header>
-          <p class="resumo">{escape(j['resumo'])}</p>
-          <ul class="destaques">{itens}</ul>
-          <dl class="ficha">
-            <div><dt>Escreveu</dt><dd>{escape(lista_modelos(j))}</dd></div>
-            <div><dt>Agente</dt><dd>{escape(lista_agentes(j))}</dd></div>
-            <div><dt>Tokens novos</dt><dd>{compacto(t['tokens_novos'])}</dd></div>
-            <div><dt>Custo</dt><dd>{moeda(t['usd'])}</dd></div>
-            <div><dt>Linhas</dt><dd>{milhar(t['linhas'])}</dd></div>
-          </dl>
-          <footer class="acoes">
-            <a class="jogar" href="games/{escape(j['slug'])}/">JOGAR</a>
-            <a class="secundario" href="games/{escape(j['slug'])}/README.md">como foi feito</a>
-            {espelho}
-          </footer>
-        </div>
+    # O convite entra como celula da grade, nao como secao depois dela. Com um
+    # jogo so isso e o que separa "grade com duas celulas" de "site abandonado",
+    # e com doze ele continua no fim sem tomar espaco de ninguem.
+    cartoes.append("""      <article class="cartao convite">
+        <h3>O próximo jogo pode ser o seu</h3>
+        <p>Faça um jogo conversando com qualquer modelo, em qualquer ferramenta.
+          Rode <code>python3 tools/novo_jogo.py meu-jogo</code>, preencha o
+          <code>meta.json</code> com o que o modelo gastou e abra um PR.</p>
+        <a class="jogar" href="https://github.com/luccapinto/ai-games/blob/main/CONTRIBUTING.md">MANDAR O MEU</a>
       </article>""")
 
+    # Tres numeros, nao oito: aqui eles sao o gancho ("tudo isso por US$ 1,03"),
+    # e a lista completa e o benchmark.
     numeros = bloco_numeros([
         ('JOGOS', str(r['jogos'])),
-        ('QUEM FEZ', str(r['autores'])),
         ('MODELOS', str(r['modelos'])),
-        ('LINHAS', milhar(r['linhas'])),
-        ('TOKENS NOVOS', compacto(r['tokens_novos'])),
         ('CUSTO DE API', moeda(r['usd'])),
     ])
 
     html = f"""{cabecalho_html('ai-games — jogos feitos com IA',
-                               'Repositório coletivo de jogos feitos com IA, com o modelo que escreveu, '
-                               'os tokens gastos e o custo de cada um.')}
+                               'Vitrine de jogos feitos com IA: cada um roda no navegador, com o '
+                               'modelo que escreveu e quanto custou ao lado.')}
   <header class="topo">
     <div class="marca">AI-GAMES</div>
-    <h1>Jogos feitos conversando com IA</h1>
-    <p class="sub">Repositório coletivo. Cada jogo vive numa pasta própria e roda sozinho no
-      navegador. Ao lado de cada um está quem fez, qual modelo escreveu, quantos tokens custou
-      e quanto saiu de API.</p>
+    <h1>O que a IA está construindo</h1>
+    <p class="sub">Repositório coletivo de jogos feitos conversando com modelos. Todos abrem no
+      navegador, sem instalar nada. Ao lado de cada um está quem escreveu e quanto custou —
+      porque um jogo bom por dez dólares e um jogo bom por um dólar não são a mesma coisa.</p>
     {numeros}
     <nav class="navegacao">
       <a class="destaque" href="https://github.com/luccapinto/ai-games/blob/main/CONTRIBUTING.md">MANDAR O SEU JOGO</a>
@@ -555,21 +731,104 @@ def gerar_hub(jogos):
     </nav>
   </header>
 
+  <div class="grade">
 {chr(10).join(cartoes)}
-
-      <section class="convite">
-        <h2>O próximo jogo pode ser o seu</h2>
-        <p>Faça um jogo conversando com qualquer modelo, em qualquer ferramenta. Rode
-          <code>python3 tools/novo_jogo.py meu-jogo</code>, preencha o <code>meta.json</code> com
-          o que o modelo gastou e abra um PR. O jogo entra no hub e os números entram no
-          benchmark — inclusive se o modelo tiver ido mal: resultado ruim medido também é dado.</p>
-      </section>
-
+  </div>
+{SCRIPT_PREVIA}
 {RODAPE_HTML}"""
 
     _conferir_css_ascii(html, 'index.html')
     return html
 
+
+# --------------------------------------------------------------------------
+# HTML: a pagina de um jogo
+# --------------------------------------------------------------------------
+# Mora em jogos/<slug>.html, nunca em games/<slug>/index.html: aquele arquivo e
+# o jogo. Esta e a pagina que se manda para quem ainda nao decidiu jogar, entao
+# ela leva o detalhe que nao cabe no cartao da grade.
+
+def gerar_pagina_jogo(jogo):
+    t = jogo['_totais']
+    slug = escape(jogo['slug'])
+    pasta = f'../games/{slug}/'
+
+    destaques = ''.join(f'<li>{escape(d)}</li>' for d in jogo['destaques'])
+    bloco_destaques = ('<h2 class="secao">O que tem dentro</h2>\n'
+                       f'      <ul class="destaques">{destaques}</ul>' if destaques else '')
+
+    arquivos = ''.join(
+        f'<li><code>{escape(a.get("caminho", ""))}</code>'
+        f'<span>{escape(a.get("papel", ""))}</span></li>'
+        for a in jogo['arquivos_chave'] if a.get('caminho'))
+    bloco_arquivos = ('<h2 class="secao">Por onde começar a ler</h2>\n'
+                      f'      <ul class="arquivos">{arquivos}</ul>' if arquivos else '')
+
+    ficha = ''
+    for rotulo, valor, forte in (
+        ('Escreveu', escape(lista_modelos(jogo)), False),
+        ('Agente', escape(lista_agentes(jogo)), False),
+        ('Tokens novos', compacto(t['tokens_novos']), True),
+        ('Tokens de cache', compacto(t['tokens_cache']), False),
+        ('Custo de API', moeda(t['usd']), True),
+        ('Linhas próprias', milhar(t['linhas']), False),
+        ('Licença', escape(jogo['licenca']) or 'n/d', False),
+        ('Estado', escape(jogo['estado']), False),
+    ):
+        classe = ' class="destaque"' if forte else ''
+        ficha += f'<div><dt>{rotulo}</dt><dd{classe}>{valor}</dd></div>'
+
+    stack = ''.join(f'<span class="chip">{escape(s)}</span>' for s in jogo['stack'])
+    bloco_stack = f'<div class="chips">{stack}</div>' if stack else ''
+
+    subtitulo = f'<p class="sub">{escape(jogo["subtitulo"])}</p>' if jogo['subtitulo'] else ''
+    repo = (f'<a class="secundario" href="{escape(jogo["repo"])}">repositório do jogo</a>'
+            if jogo['repo'] else '')
+    nota = jogo['medicao']['nota']
+    bloco_nota = f'<p class="nota">{escape(nota)}</p>' if nota else ''
+    marca_genero = f' / {escape(jogo["genero"].upper())}' if jogo['genero'] else ''
+
+    html = f"""{cabecalho_html(f'{jogo["titulo"]} — ai-games',
+                               jogo['resumo'][:160] or f'{jogo["titulo"]}, um jogo feito com IA.')}
+  <header class="topo">
+    <div class="marca"><a href="../index.html">AI-GAMES</a>{marca_genero}</div>
+    <h1>{escape(jogo['titulo'])}</h1>
+    {subtitulo}
+    <p class="autoria">por {creditos_html(jogo)} · {escape(jogo['criado'])}</p>
+  </header>
+
+  <div class="jogo-topo">
+    {midia_html(jogo, '../', destaque=True)}
+    <div class="jogo-acoes">
+      <a class="jogar" href="{pasta}">JOGAR</a>
+      <a class="secundario" href="{pasta}README.md">como foi feito</a>
+      {repo}
+    </div>
+  </div>
+
+  <div class="colunas">
+    <div>
+      <p class="sub" style="max-width:none">{escape(jogo['resumo'])}</p>
+      {bloco_destaques}
+      {bloco_arquivos}
+    </div>
+    <div>
+      <h2 class="secao" style="margin-top:0">A ficha</h2>
+      <dl class="ficha">{ficha}</dl>
+      {bloco_stack}
+      {bloco_nota}
+    </div>
+  </div>
+
+  <nav class="navegacao" style="margin-top:44px">
+    <a href="../index.html">VOLTAR AO HUB</a>
+    <a href="../benchmark.html">VER O BENCHMARK</a>
+  </nav>
+{SCRIPT_PREVIA}
+{RODAPE_HTML}"""
+
+    _conferir_css_ascii(html, f'jogos/{jogo["slug"]}.html')
+    return html
 
 # --------------------------------------------------------------------------
 # benchmark
@@ -786,22 +1045,38 @@ def main(argv):
         PASTA_DADOS / 'benchmark.json': gerar_json(jogos),
         PASTA_DADOS / 'benchmark.csv': gerar_csv(jogos),
     }
+    for j in jogos:
+        saidas[PASTA_PAGINAS / f'{j["slug"]}.html'] = gerar_pagina_jogo(j)
+
+    # Jogo que saiu de games/ deixa para tras a pagina dele, e pagina orfa
+    # continua no ar linkando para uma pasta que nao existe mais. Some aqui.
+    orfas = sorted(p for p in PASTA_PAGINAS.glob('*.html') if p not in saidas)
 
     if conferir:
         velhos = [c for c, novo in saidas.items()
                   if not c.exists() or c.read_text(encoding='utf-8') != novo]
-        if velhos:
-            print('desatualizado: ' + ', '.join(c.relative_to(RAIZ).as_posix() for c in velhos),
-                  file=sys.stderr)
+        if velhos or orfas:
+            if velhos:
+                print('desatualizado: '
+                      + ', '.join(c.relative_to(RAIZ).as_posix() for c in velhos),
+                      file=sys.stderr)
+            if orfas:
+                print('pagina sem jogo correspondente: '
+                      + ', '.join(p.relative_to(RAIZ).as_posix() for p in orfas),
+                      file=sys.stderr)
             print('rode: python3 tools/build.py', file=sys.stderr)
             return 1
         print(f'em dia: {len(jogos)} jogo(s), {len(saidas)} arquivo(s) gerado(s)')
         return 0 if not recusados else 1
 
     PASTA_DADOS.mkdir(exist_ok=True)
-    for caminho, conteudo in saidas.items():
+    PASTA_PAGINAS.mkdir(exist_ok=True)
+    for p in orfas:
+        p.unlink()
+        print(f'removida: {p.relative_to(RAIZ).as_posix()}')
+    for caminho, conteudo in sorted(saidas.items()):
         caminho.write_text(conteudo, encoding='utf-8')
-        print(f'{caminho.relative_to(RAIZ).as_posix():<24} {len(conteudo):>7} bytes')
+        print(f'{caminho.relative_to(RAIZ).as_posix():<28} {len(conteudo):>7} bytes')
 
     print(f'\n{len(jogos)} jogo(s): {", ".join(j["slug"] for j in jogos)}')
     return 1 if recusados else 0

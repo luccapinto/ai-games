@@ -2,8 +2,7 @@
 
 FPS roguelike de dungeon, single-player, rodando no navegador. Você é uma instância de pesos abertos descendo o datacenter das grandes labs.
 
-- **Jogar:** abra o `index.html` desta pasta, ou va pelo hub. Também esta
-  publicado em https://attention.luccabuilds.com como espelho
+- **Jogar:** abra o `index.html` desta pasta, ou va pelo hub
 - **Design completo:** [DESIGN.md](./DESIGN.md)
 - **Parte de:** [ai-games](../../README.md), o hub dos jogos que fiz com IA
 
@@ -204,20 +203,6 @@ capa, que é uma captura do jogo rodando.
 
 Este jogo e um site estático, então publicar e copiar a pasta. Servido de
 qualquer lugar, inclusive do GitHub Pages deste repositório, ele funciona igual.
-
-O espelho em attention.luccabuilds.com roda no homelab, com um script que cópia o
-jogo para o diretorio servido pelo nginx
-(`~/homelab-config/docker/nginx-landing/sites/attention-is-all-you-kill/`) e
-carimba um `?v=<timestamp>` em todos os imports. Isso existe porque o navegador
-guardava modulos antigos em cache e o que aparecia na tela não era o que estava
-publicado. O nginx também esta com `no-cache` para js e css, então o carimbo e
-redundancia proposital.
-
-Infra: server block próprio no `nginx.conf` do repo `homelab-config` e ingress no
-túnel Cloudflare (`cloudflared.service`).
-
-Depois de editar o `nginx.conf`, e preciso `docker restart landing-pages`, porque
-o bind mount segura o inode antigo e um reload simples não pega a mudança.
 
 ## Próximos passos (versão 2)
 

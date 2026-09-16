@@ -107,14 +107,15 @@ Todo PR passa por `python3 tools/validar.py` e `python3 tools/build.py
 
 - o `meta.json` tem tudo que o índice precisa e nada torto
 - o jogo tem mesmo um `index.html`, e a capa que ele declara existe
+- se declarou `previa`, o arquivo existe e está num formato que o navegador toca
 - os tokens estão preenchidos (é o que faz do repositório um benchmark)
 - o README, o hub e os dados foram regenerados depois da sua mudança
 
 Se esquecer de rodar `python3 tools/build.py`, a CI avisa em vez de deixar o
 índice entrar desatualizado.
 
-Erro barra o merge; aviso só aparece no log e não bloqueia nada — falta de capa
-ou de destaques não impede o seu jogo de entrar. Para ver os avisos também, rode
+Erro barra o merge; aviso só aparece no log e não bloqueia nada — falta de capa,
+de destaques ou uma prévia acima de 4 MB não impede o seu jogo de entrar. Para ver os avisos também, rode
 `python3 tools/validar.py --rigoroso` na sua máquina.
 
 ## O que faz um bom PR

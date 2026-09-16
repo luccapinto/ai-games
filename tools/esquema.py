@@ -37,6 +37,16 @@ CONFIANCAS = ('medido', 'estimado', 'parcial')
 
 CAMPOS_TOKENS = ('entrada', 'saida', 'cache_leitura', 'cache_escrita')
 
+# A previa e o loop que toca no cartao do hub. Video e imagem animada
+# entram; formato que o navegador nao toca sozinho, nao. Sempre mudo e sem
+# controle: quem quiser som e interacao clica em JOGAR.
+EXTENSOES_PREVIA = ('.webp', '.gif', '.mp4', '.webm')
+
+# Acima disso a previa continua valendo, mas vira aviso. Quem abre o hub pelo
+# celular paga essa conta; recusar um PR por alguns KB custa mais
+# contribuicao do que ganha.
+PREVIA_MB_MAX = 4.0
+
 RE_SLUG = re.compile(r'^[a-z0-9]+(?:-[a-z0-9]+)*$')
 RE_DATA = re.compile(r'^\d{4}-\d{2}-\d{2}$')
 RE_GITHUB = re.compile(r'^[A-Za-z0-9](?:[A-Za-z0-9]|-(?=[A-Za-z0-9])){0,38}$')
@@ -174,7 +184,7 @@ def normalizar(dados: dict, slug: str) -> dict:
         'criado': (dados.get('criado') or '').strip(),
         'licenca': (dados.get('licenca') or '').strip(),
         'capa': (dados.get('capa') or '').strip(),
-        'espelho': (dados.get('espelho') or '').strip(),
+        'previa': (dados.get('previa') or '').strip(),
         'repo': (dados.get('repo') or '').strip(),
         'resumo': (dados.get('resumo') or '').strip(),
         'autores': [_normalizar_autor(a) for a in _lista(dados.get('autores') or dados.get('autor'))],
@@ -356,6 +366,20 @@ def validar(bruto: dict, slug: str, pasta=None) -> list:
     if not jogo['destaques']:
         achados.append(Problema('destaques', 'faltando: tres bastam', grave=False))
 
+    # --- previa -----------------------------------------------------------
+    if jogo['previa']:
+        if not jogo['previa'].lower().endswith(EXTENSOES_PREVIA):
+            achados.append(Problema('previa',
+                                    f'"{jogo["previa"]}" nao termina em '
+                                    f'{", ".join(EXTENSOES_PREVIA)}'))
+        # A capa e o que aparece antes de o video decodificar, e o que fica
+        # quando a pessoa pediu menos movimento no sistema, e o que vai no
+        # cartao de compartilhamento. Previa sem capa e cartao que pisca vazio.
+        if not jogo['capa']:
+            achados.append(Problema('capa',
+                                    'obrigatoria quando ha previa: e o que aparece '
+                                    'antes de a previa carregar'))
+
     # --- o que o arquivo promete que existe -------------------------------
     if pasta is not None:
         if not (pasta / 'index.html').exists():
@@ -364,8 +388,22 @@ def validar(bruto: dict, slug: str, pasta=None) -> list:
         if jogo['capa']:
             if not (pasta / jogo['capa']).exists():
                 achados.append(Problema('capa', f'"{jogo["capa"]}" nao existe na pasta'))
-        else:
+        elif not jogo['previa']:
+            # Com previa, a falta da capa ja saiu como erro la em cima; repetir
+            # aqui como aviso so faz a pessoa procurar dois problemas onde ha um.
             achados.append(Problema('capa', 'faltando: o cartao do hub fica sem imagem', grave=False))
+        if jogo['previa']:
+            arquivo = pasta / jogo['previa']
+            if not arquivo.exists():
+                achados.append(Problema('previa', f'"{jogo["previa"]}" nao existe na pasta'))
+            else:
+                mb = arquivo.stat().st_size / (1024 * 1024)
+                if mb > PREVIA_MB_MAX:
+                    achados.append(Problema(
+                        'previa',
+                        f'{mb:.1f} MB passa dos {PREVIA_MB_MAX:.0f} MB recomendados: '
+                        f'quem abre o hub pelo celular baixa isso',
+                        grave=False))
         for n, arq in enumerate(jogo['arquivos_chave']):
             caminho = arq.get('caminho', '')
             if caminho and not (pasta / caminho).exists():
