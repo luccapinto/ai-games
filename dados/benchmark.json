@@ -1,16 +1,65 @@
 {
   "esquema": 1,
   "resumo": {
-    "jogos": 1,
+    "jogos": 2,
     "autores": 1,
-    "modelos": 1,
-    "linhas": 10709,
-    "usd": 1.03,
-    "tokens_novos": 1893978,
+    "modelos": 2,
+    "linhas": 12442,
+    "usd": 3.51,
+    "tokens_novos": 2058978,
     "tokens_cache": 159076224,
-    "chamadas": 656
+    "chamadas": 704
   },
   "jogos": [
+    {
+      "slug": "antena",
+      "titulo": "ANTENA",
+      "genero": "Plataforma de precisão",
+      "criado": "2026-09-16",
+      "estado": "jogavel",
+      "licenca": "MIT",
+      "autores": [
+        {
+          "nome": "Lucca Pinto",
+          "github": "luccapinto",
+          "site": "https://luccabuilds.com"
+        }
+      ],
+      "ia": [
+        {
+          "modelo": "claude-opus-5",
+          "provider": "Anthropic",
+          "agente": "Claude Code",
+          "papel": "o jogo inteiro: física, fases, render, som e o arranjo de teste",
+          "chamadas_api": 48,
+          "tokens": {
+            "entrada": 140000,
+            "saida": 25000,
+            "cache_leitura": 0,
+            "cache_escrita": 0
+          },
+          "usd_estimado": 2.48
+        }
+      ],
+      "medicao": {
+        "metodo": "diferença do orçamento de tokens da sessão entre o início e o fim do jogo",
+        "confianca": "estimado",
+        "medido_em": "2026-09-16",
+        "nota": "Número estimado, não lido de billing. O total (165 mil) é a diferença do contador de tokens da sessão, que é confiável; a divisão entre entrada e saída é estimativa minha e a única parte fraca. O cache está zerado porque não foi medido, não porque não houve: a ferramenta certamente usou cache, e por isso o custo real de fatura é menor que o estimado aqui."
+      },
+      "totais": {
+        "tokens_entrada": 140000,
+        "tokens_saida": 25000,
+        "tokens_novos": 165000,
+        "tokens_cache": 0,
+        "tokens_totais": 165000,
+        "usd": 2.48,
+        "chamadas_api": 48,
+        "linhas": 1733,
+        "tem_custo": true
+      },
+      "url": "games/antena/"
+    },
     {
       "slug": "attention-is-all-you-kill",
       "titulo": "ATTENTION IS ALL YOU KILL",
@@ -75,6 +124,20 @@
       "linhas": 10709,
       "tokens_por_linha": 176.86,
       "linhas_por_dolar": 10397.09
+    },
+    {
+      "nome": "claude-opus-5",
+      "jogos": [
+        "antena"
+      ],
+      "n_jogos": 1,
+      "tokens_novos": 165000,
+      "tokens_cache": 0,
+      "chamadas_api": 48,
+      "usd": 2.48,
+      "linhas": 1733,
+      "tokens_por_linha": 95.21,
+      "linhas_por_dolar": 698.79
     }
   ],
   "por_agente": [
@@ -91,6 +154,20 @@
       "linhas": 10709,
       "tokens_por_linha": 176.86,
       "linhas_por_dolar": 10397.09
+    },
+    {
+      "nome": "Claude Code",
+      "jogos": [
+        "antena"
+      ],
+      "n_jogos": 1,
+      "tokens_novos": 165000,
+      "tokens_cache": 0,
+      "chamadas_api": 48,
+      "usd": 2.48,
+      "linhas": 1733,
+      "tokens_por_linha": 95.21,
+      "linhas_por_dolar": 698.79
     }
   ],
   "por_provider": [
@@ -107,6 +184,20 @@
       "linhas": 10709,
       "tokens_por_linha": 176.86,
       "linhas_por_dolar": 10397.09
+    },
+    {
+      "nome": "Anthropic",
+      "jogos": [
+        "antena"
+      ],
+      "n_jogos": 1,
+      "tokens_novos": 165000,
+      "tokens_cache": 0,
+      "chamadas_api": 48,
+      "usd": 2.48,
+      "linhas": 1733,
+      "tokens_por_linha": 95.21,
+      "linhas_por_dolar": 698.79
     }
   ]
 }
