@@ -1,3 +1,4 @@
 slug,titulo,criado,genero,estado,autor,github,modelo,provider,agente,chamadas_api,tokens_entrada,tokens_saida,tokens_novos,tokens_cache,usd_estimado,linhas_do_jogo,confianca
+cripta,CRIPTA,2026-09-16,Puzzle,jogavel,Lucca Pinto,luccapinto,claude-opus-5,Anthropic,Claude Code,26,72000,14000,86000,0,1.3000,1044,estimado
 antena,ANTENA,2026-09-16,Plataforma de precisão,jogavel,Lucca Pinto,luccapinto,claude-opus-5,Anthropic,Claude Code,48,140000,25000,165000,0,2.4800,1733,estimado
 attention-is-all-you-kill,ATTENTION IS ALL YOU KILL,2026-09-10,FPS roguelike,jogavel,Lucca Pinto,luccapinto,deepseek-flash,DeepSeek,Hermes Agent (Talos),656,1294216,599762,1893978,159076224,1.0300,10709,medido
