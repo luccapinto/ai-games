@@ -22,7 +22,7 @@ import {
 } from './mapa.js';
 import { PLANTAS } from './planta.js';
 import {
-  ARMAS, equipar, equiparForjada, tracar, custoDaMunicao,
+  ARMAS, equipar, equiparForjada, tracar, golpear, custoDaMunicao,
 } from './armas.js';
 import {
   composicaoDaRodada, intervaloDeNascimento, RODADA_DO_CHEFE,
@@ -64,7 +64,7 @@ export function criarJogo(indiceMapa = 0, opcoes = {}) {
     eventos: [],
     mensagem: null,
     estatisticas: {
-      mortes: 0, cabecas: 0, tiros: 0, acertos: 0, tabuasRepostas: 0,
+      mortes: 0, cabecas: 0, tiros: 0, acertos: 0, golpes: 0, tabuasRepostas: 0,
       pontosGanhos: 0, portasAbertas: 0, rodadaMaxima: opcoes.rodada || 1,
     },
     jogador: {
@@ -252,10 +252,14 @@ function moverJogador(jogo, comandos, dt) {
   const norma = Math.hypot(frente, lado) || 1;
   frente /= norma;
   lado /= norma;
+  // A DIREITA do jogador e (sin ang, -cos ang): produto vetorial da frente
+  // (cos, sin, 0) com o "para cima" do mundo (0, 0, 1). A primeira versao usava
+  // (-sin, cos), que e a ESQUERDA — apertar D andava para a esquerda da tela, e
+  // nenhuma prova pegava porque o mapeamento morava no arquivo de DOM.
   const cos = Math.cos(j.ang);
   const sen = Math.sin(j.ang);
-  const dx = (cos * frente - sen * lado) * base * dt;
-  const dy = (sen * frente + cos * lado) * base * dt;
+  const dx = (cos * frente + sen * lado) * base * dt;
+  const dy = (sen * frente - cos * lado) * base * dt;
   mover(jogo.mapa, j, dx, dy, CONFIG.raioDoJogador);
 }
 
@@ -350,16 +354,27 @@ function atirar(jogo, eventos) {
   }
   arma.esfriando = 1 / cadenciaEfetiva(jogo, arma);
   if (arma.tipo !== 'corpo') arma.noPente -= 1;
-  jogo.estatisticas.tiros++;
+  // Golpe nao entra na precisao: precisao e quantos dos seus TIROS acertaram, e
+  // picareta varre um arco de 100 graus. Somar os dois dava um numero que subia
+  // quando o jogador batia no escuro sem mirar em nada.
 
   const direcao = { x: Math.cos(j.ang), y: Math.sin(j.ang), z: j.inclinacao };
   const origem = { x: j.x, y: j.y, z: j.baixado ? 0.5 : CONFIG.alturaDoOlho };
   const alvos = jogo.vivos.filter(z => z.estado !== 'morto').map(comoAlvo);
-  const acertos = tracar(
-    (x, y) => solidoParaTiro(jogo.mapa, x, y),
-    origem, direcao, arma, alvos, jogo.sorteio,
-  );
-  eventos.push({ tipo: 'tiro', arma: arma.chave, acertos: acertos.length });
+  // Golpe e tiro sao caminhos diferentes, e o evento tambem: quem desenha e
+  // quem toca som precisa saber que nao houve disparo — a picareta nao tem
+  // clarao de cano nem estouro.
+  const corpoACorpo = arma.tipo === 'corpo';
+  if (corpoACorpo) jogo.estatisticas.golpes++;
+  else jogo.estatisticas.tiros++;
+  const acertos = corpoACorpo
+    ? golpear((x, y) => solidoParaTiro(jogo.mapa, x, y), origem, direcao, arma, alvos)
+    : tracar((x, y) => solidoParaTiro(jogo.mapa, x, y), origem, direcao, arma, alvos, jogo.sorteio);
+  eventos.push({
+    tipo: corpoACorpo ? 'golpe' : 'tiro',
+    arma: arma.chave,
+    acertos: acertos.length,
+  });
 
   const jaContado = new Set();
   for (const acerto of acertos) {

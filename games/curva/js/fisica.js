@@ -49,11 +49,16 @@ export const KART = {
   // impede isso de virar rodopio e o teto de deriva la embaixo: 0,11 rad de
   // aderencia, 0,34 rad de lado.
   atritoDoDrift: 0.8,
-  // Teto de giro do modo de aderencia, como fracao do que o pneu daria. 0,65 e
-  // uma DECISAO de jogo, e a mais importante deste arquivo: com 1,0 o kart fazia
-  // o grampo de 10 m sem derrapar, e ai derrapar era so custo — medido, ganho de
-  // -0,05 s no grampo. Com 0,65 o grampo exige a rotacao que so o gatilho da, e
-  // o mini-turbo passa a pagar a conta. Aderencia e macia e larga; drift gira.
+  // Teto de giro do modo de aderencia, como fracao do que o pneu daria. E uma
+  // DECISAO de jogo, e a mais importante deste arquivo: com 1,0 o kart fazia o
+  // grampo de 10 m sem derrapar, e ai derrapar era so custo — medido, ganho de
+  // -0,05 s no grampo.
+  //
+  // Fica em 0,65, e a tentativa de subir para 0,85 foi medida e revertida: com
+  // 0,85 a aderencia resolvia o grampo e derrapar passou a CUSTAR 1,43 s por
+  // volta na BAIXADA — o gatilho deixava de ter razao de existir. O que estava
+  // ruim nao era o teto, era a RESPOSTA: o kart levava meio segundo para chegar
+  // na velocidade de giro pedida. Isso virou o servo de guinada, la embaixo.
   fatorDeGiroEmAderencia: 0.65,
   // Curvatura em que o teto de giro da aderencia deixa de dar conta e o gatilho
   // passa a ser obrigatorio: raio de 33 m. `linha.js` usa isto para saber com
@@ -62,6 +67,21 @@ export const KART = {
   // persegue uma velocidade que a tecnica dela nao entrega.
   curvaturaDeDrift: 0.03,
   fatorDeGiroNoDrift: 2.4,
+  trancoDoDrift: 1.35,
+  // Servo de guinada: quanto o chassi "persegue" a velocidade de giro pedida.
+  // Nao levanta o teto (o teto e do pneu); encurta o tempo de chegar nele.
+  servoDeGuinada: 4.2,
+  // Teto absoluto de velocidade de giro, em rad/s. O teto do pneu cresce como
+  // 1/v: a 13 km/h ele pedia 6,6 rad/s, numero que nao quer dizer nada num kart
+  // e que era inofensivo enquanto o pneu nao entregava. Com o servo ele passou a
+  // ser entregue — dirigindo no navegador o kart RODOPIAVA no lugar a 3,65 rad/s
+  // ao apertar o gatilho saindo da largada.
+  //
+  // Sao dois limites, e o de baixa e geometrico: um kart nao gira mais rapido do
+  // que `velocidade / raio minimo`, senao ele nao esta virando, esta piruetando.
+  // 3,2 m e o raio de manobra de um kart de verdade.
+  giroMaximoAbsoluto: 2.2,
+  raioMinimo: 3.2,
   derivaDeAderencia: 0.11,
   derivaDoDrift: 0.24,
   controleDeDeriva: 40,
@@ -164,7 +184,8 @@ export function passoCarro(carro, comandos, ctx, dt = DT) {
   // do que a aderencia deixaria, e e para isso que se derrapa.
   const giroMaximo = ((atrito * g) / Math.max(5, rapidez))
     * (querDrift ? KART.fatorDeGiroNoDrift : KART.fatorDeGiroEmAderencia);
-  const pedido = volante * giroMaximo;
+  const tetoDeGiro = Math.min(KART.giroMaximoAbsoluto, rapidez / KART.raioMinimo);
+  const pedido = Math.max(-tetoDeGiro, Math.min(tetoDeGiro, volante * giroMaximo));
   const esterco = KART.esterco;
   const delta = Math.max(-esterco, Math.min(esterco,
     (pedido * (L + SUBESTERCO * rapidez * rapidez / g)) / Math.max(4, rapidez)));
@@ -237,6 +258,25 @@ export function passoCarro(carro, comandos, ctx, dt = DT) {
   // teto. Abaixo dele o pneu manda sozinho; acima, a guinada e puxada de volta.
   // O gatilho de drift levanta esse teto de 0,11 para 0,34 rad, e e so por isso
   // que derrapar e uma tecnica em vez de um acidente.
+  // Empurrao de entrada: no primeiro quadro com o gatilho segurado e volante
+  // virado, o kart ganha um tranco de guinada. Sem isso, apertar o gatilho nao
+  // produzia NADA de imediato — a traseira ia saindo aos poucos, e o jogador nao
+  // sentia o comando responder. Kart de jogo precisa entrar de lado no quadro em
+  // que se pede.
+  if (querDrift && !carro.driftavaAntes && rapidez > 6 && Math.abs(volante) > 0.25) {
+    carro.omega += Math.sign(volante) * KART.trancoDoDrift;
+  }
+  carro.driftavaAntes = querDrift;
+
+  // Servo de guinada: puxa a velocidade de giro para a que o volante pediu. O
+  // teto continua sendo do pneu — `pedido` ja e limitado pelo atrito da
+  // superficie — entao isto nao cria aderencia nenhuma: so tira o meio segundo
+  // de espera entre virar o volante e o kart girar, que era o que fazia a
+  // pilotagem parecer de barco.
+  if (rapidez > 3) {
+    momento += KART.servoDeGuinada * KART.inercia * (pedido - carro.omega);
+  }
+
   const deriva = Math.atan2(carro.vy, Math.max(4, rapidez));
   const teto = querDrift ? KART.derivaDoDrift : KART.derivaDeAderencia;
   if (rapidez > 4 && Math.abs(deriva) > teto) {
@@ -266,6 +306,21 @@ export function passoCarro(carro, comandos, ctx, dt = DT) {
     carro.vy *= 0.9;
   } else {
     carro.sentidoDoRodopio = 0;
+  }
+
+  // Piao de baixa velocidade. Abaixo de 4 m/s o controle de deriva nao age de
+  // proposito (deriva medida com vx pequeno nao quer dizer nada), e ai o proprio
+  // pneu girava o kart no lugar: dirigindo no navegador, gatilho e volante
+  // cheios saindo da largada davam 2,3 rad/s a 8 km/h — o kart piruetava em vez
+  // de virar. O limite e geometrico: giro no maximo `velocidade / raio minimo`,
+  // com um piso pequeno para ainda dar para se desencalhar de frente para um
+  // muro.
+  if (carro.rodopio <= 0) {
+    const tetoGeometrico = Math.min(KART.giroMaximoAbsoluto,
+      Math.max(0.7, rapidez / KART.raioMinimo));
+    if (Math.abs(carro.omega) > tetoGeometrico) {
+      carro.omega = Math.sign(carro.omega) * tetoGeometrico;
+    }
   }
 
   if (rapidez < 1.6) {

@@ -79,6 +79,13 @@ export function passoDoZumbi(z, ctx, dt) {
         janela.ocupadaPor = z.id;
         z.estado = janela.tabuas > 0 ? 'arrancando' : 'entrando';
         z.relogio = 0;
+        // Quem arranca tabua fica DENTRO DO VAO da janela, e nao na rocha do
+        // lado de fora. Isto nao e enfeite: a celula de fora e solida para bala,
+        // entao o zumbi que rasgava a sua barricada era inalvejavel — o jogador
+        // via o braco entre as tabuas e nao tinha o que fazer. A janela e o
+        // unico buraco por onde o tiro passa, e e nele que ele tem de estar.
+        z.x = janela.x + 0.5;
+        z.y = janela.y + 0.5;
       }
       break;
     }
@@ -104,8 +111,8 @@ export function passoDoZumbi(z, ctx, dt) {
       // intervalo ele nao morde. E a janela de tiro gratis que o jogador ganha
       // por estar de frente para a janela.
       const t = Math.min(1, z.relogio / 0.6);
-      z.x = z.janela.fora.x + 0.5 + (z.janela.dentro.x - z.janela.fora.x) * t;
-      z.y = z.janela.fora.y + 0.5 + (z.janela.dentro.y - z.janela.fora.y) * t;
+      z.x = z.janela.x + 0.5 + (z.janela.dentro.x - z.janela.x) * t;
+      z.y = z.janela.y + 0.5 + (z.janela.dentro.y - z.janela.y) * t;
       if (t >= 1) {
         z.estado = 'cacando';
         if (z.janela.ocupadaPor === z.id) z.janela.ocupadaPor = null;

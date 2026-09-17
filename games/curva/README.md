@@ -184,6 +184,50 @@ cd games/curva && node provas.mjs
 ES modules nativos não carregam por `file://` — mesma situação dos outros jogos
 deste repositório. Precisa de WebGL2 (qualquer navegador de 2020 em diante).
 
+## O que o dono do repo achou jogando
+
+Quatro defeitos, todos reais, todos com prova nova no `provas.mjs`:
+
+**O volante estava invertido.** Seta para a direita virava para a esquerda. A
+causa nao foi um sinal trocado por descuido: o mapeamento de tecla para comando
+morava em `js/entrada.js`, e nenhuma das 31 provas importava esse arquivo. Agora
+existe uma prova que cobra o sinal - com `ang` em quatro valores diferentes,
+apertar direita tem de deslocar o kart para a direita da tela.
+
+**O kart parecia um barco.** O teto de giro estava certo (e o que o pneu
+aguenta), mas o chassi levava meio segundo para *chegar* nele. A primeira
+tentativa foi levantar o teto de 0,65 para 0,85: medido, derrapar passou a
+CUSTAR 1,43 s por volta na BAIXADA - o gatilho perdeu a razao de existir, e a
+mudanca foi revertida. O que resolveu foi separar as duas coisas: um **servo de
+guinada** puxa a velocidade de giro para a pedida sem levantar teto nenhum, mais
+um **tranco de entrada** no primeiro quadro do gatilho (1,35 rad/s para o lado
+do volante) e uma rampa de teclado mais rapida.
+
+**O kart rodopiava no lugar.** Achado dirigindo no navegador: saindo da largada
+a 13 km/h, gatilho e volante cheios davam 3,65 rad/s - 209 graus por segundo. O
+teto do pneu cresce como `1/v`, entao em baixa velocidade ele pede o impossivel;
+enquanto o chassi era lento isso nao aparecia, e o servo passou a entregar.
+Agora o giro tem teto geometrico: nunca passa de `velocidade / raio minimo`.
+
+**O pelotao se destruia sozinho.** Numa corrida de tres voltas com nove karts,
+278 contatos - 146 deles nos primeiros 20 s, com dez karts saindo da largada e
+convergindo na mesma curva 1. Dois consertos: cada piloto anda com um **estilo
+de linha** proprio (alguns centimetros de deslocamento permanente), e ninguem
+ataca a linha ideal com kart a menos de 6 m, igual a largada de verdade. E o
+contato virou **incidente** em vez de quadro: dois karts raspando por um segundo
+contavam 60 batidas e tocavam 60 sons.
+
+**A volta nao contava para quem foi recolocado.** Contagem e cronometragem
+estavam juntas: um kart recolocado uma vez por volta cruzava a linha duas vezes
+e terminava a corrida com zero voltas, sumindo da classificacao. Agora a volta
+conta sempre que os tres setores sairam na ordem; o TEMPO e que exige volta
+limpa, como em corrida de verdade.
+
+**E a escala de habilidade foi reafinada.** Com o chassi novo, o perfil ouro
+deixou de ser o mais rapido na SERRA. Afinador rodado de novo: com
+`0,97 0,90 0,83 0,75` a ordem ouro > prata > bronze > ferro sai certa nas seis
+pistas.
+
 ## Ficha
 
 - **Quem fez:** Lucca Pinto

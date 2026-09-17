@@ -32,7 +32,8 @@ import {
   criarJogo, passo, armaNaMao, alvoDeUso, textoDoAlvo, zumbisVivos,
   janelasAtivas, tabuasDeTodasAsJanelas, resumo,
 } from './js/jogo.js';
-import { criarZumbi, ferir } from './js/zumbis.js';
+import { criarZumbi, ferir, comoAlvo } from './js/zumbis.js';
+import { giroDoMouse, inclinacaoDoMouse, comandosDeTeclas } from './js/entrada.js';
 import { jogarAte } from './js/robo.js';
 
 let feitas = 0;
@@ -41,6 +42,17 @@ const falhas = [];
 function prova(nome, fn) {
   try {
     fn();
+    feitas++;
+    process.stdout.write('.');
+  } catch (erro) {
+    falhas.push({ nome, erro });
+    process.stdout.write('x');
+  }
+}
+
+async function provaAssincrona(nome, fn) {
+  try {
+    await fn();
     feitas++;
     process.stdout.write('.');
   } catch (erro) {
@@ -343,6 +355,133 @@ prova('municao de parede custa menos que a arma', () => {
     if (!arma.custo) continue;
     ok(custoDaMunicao(arma) < arma.custo, `${arma.nome}: municao nao e mais barata`);
   }
+});
+
+// ---------------------------------------------- 3b. entrada e mao do mundo
+
+prova('apertar direita anda para a direita da tela', () => {
+  // Esta prova existe porque o jogo saiu com as setas e o mouse invertidos, e
+  // nenhuma das 36 provas podia ver: o mapeamento de entrada morava em
+  // `main.js`, o unico arquivo que este harness nao importa. Agora mora em
+  // `entrada.js`, e o sinal e cobrado aqui.
+  //
+  // A convencao: frente e (cos ang, sin ang), e a direita e o produto vetorial
+  // da frente com o "para cima" do mundo, isto e (sin ang, -cos ang).
+  for (const ang of [0, 0.7, -1.9, Math.PI]) {
+    const jogo = criarJogo(0, { semente: 2, semPreparo: true });
+    jogo.jogador.ang = ang;
+    const x0 = jogo.jogador.x;
+    const y0 = jogo.jogador.y;
+    for (let i = 0; i < 20; i++) passo(jogo, { dir: true }, DT);
+    const dx = jogo.jogador.x - x0;
+    const dy = jogo.jogador.y - y0;
+    const direitaX = Math.sin(ang);
+    const direitaY = -Math.cos(ang);
+    const produto = dx * direitaX + dy * direitaY;
+    ok(produto > 0.05,
+      `com ang=${ang.toFixed(2)}, apertar direita andou (${dx.toFixed(2)}, ${dy.toFixed(2)}), `
+      + `que projeta ${produto.toFixed(2)} na direita da tela`);
+  }
+});
+
+prova('apertar frente anda para onde o olho aponta', () => {
+  for (const ang of [0.4, 2.3, -0.9]) {
+    const jogo = criarJogo(0, { semente: 2, semPreparo: true });
+    jogo.jogador.ang = ang;
+    const x0 = jogo.jogador.x;
+    const y0 = jogo.jogador.y;
+    for (let i = 0; i < 20; i++) passo(jogo, { frente: true }, DT);
+    const produto = (jogo.jogador.x - x0) * Math.cos(ang) + (jogo.jogador.y - y0) * Math.sin(ang);
+    ok(produto > 0.05, `com ang=${ang.toFixed(2)}, frente projetou ${produto.toFixed(2)}`);
+  }
+});
+
+prova('mouse para a direita vira a mira para a direita', () => {
+  // Mouse para a direita tem de DIMINUIR `ang`, porque `ang` cresce no sentido
+  // anti-horario e anti-horario aparece como esquerda na tela.
+  ok(giroDoMouse(100) < 0, 'mouse para a direita nao diminuiu o angulo');
+  ok(giroDoMouse(-100) > 0, 'mouse para a esquerda nao aumentou o angulo');
+  ok(inclinacaoDoMouse(-100) > 0, 'mouse para cima nao levantou a mira');
+  ok(inclinacaoDoMouse(100) < 0, 'mouse para baixo nao baixou a mira');
+
+  // E o giro tem de chegar no jogo com o mesmo sinal.
+  const jogo = criarJogo(0, { semente: 2, semPreparo: true });
+  jogo.jogador.ang = 0;
+  passo(jogo, { girar: giroDoMouse(200) }, DT);
+  ok(jogo.jogador.ang < 0, `o angulo foi para ${jogo.jogador.ang.toFixed(3)} com o mouse para a direita`);
+});
+
+prova('as teclas viram os comandos que o jogo espera', () => {
+  const comandos = comandosDeTeclas(new Set(['KeyW', 'KeyD', 'ShiftLeft']));
+  ok(comandos.frente && comandos.dir && comandos.correr, 'W D shift nao viraram frente/direita/correr');
+  ok(!comandos.tras && !comandos.esq, 'apareceu comando que ninguem pediu');
+  const setas = comandosDeTeclas(new Set(['ArrowLeft', 'ArrowDown']));
+  ok(setas.esq && setas.tras, 'as setas nao fazem o mesmo que WASD');
+});
+
+prova('quem arranca tabua pode ser alvejado', () => {
+  // Defeito visto jogando: o zumbi rasgava a barricada parado na celula de FORA
+  // da janela, que e rocha solida para bala. O jogador via o braco entre as
+  // tabuas, atirava e nao acontecia nada — a barricada deixava de ser "tempo
+  // para atirar" e virava "tempo para nao poder fazer nada". Tabua e vao: quem
+  // arranca fica no buraco, e o buraco e o unico lugar por onde o tiro passa.
+  const jogo = criarJogo(0, { semente: 3, semPreparo: true });
+  const janela = jogo.mapa.janelas[0];
+  const z = criarZumbi('comum', 1, janela);
+  jogo.vivos.push(z);
+  for (let i = 0; i < 20; i++) passo(jogo, {}, DT);
+  igual(z.estado, 'arrancando', 'o zumbi nao comecou a arrancar tabua');
+  ok(!solidoParaTiro(jogo.mapa, z.x, z.y),
+    `o zumbi arrancando esta numa celula solida para bala (${z.x.toFixed(1)}, ${z.y.toFixed(1)})`);
+
+  // E de dentro, com a janela na frente, a bala chega nele.
+  const origem = { x: janela.dentro.x + 0.5, y: janela.dentro.y + 0.5, z: CONFIG.alturaDoOlho };
+  const distancia = Math.hypot(z.x - origem.x, z.y - origem.y);
+  const direcao = { x: (z.x - origem.x) / distancia, y: (z.y - origem.y) / distancia, z: 0 };
+  const acertos = tracar(
+    (x, y) => solidoParaTiro(jogo.mapa, x, y),
+    origem, direcao, ARMAS.pistola, [comoAlvo(z)], () => 0.5,
+  );
+  ok(acertos.length === 1, 'a bala nao chegou no zumbi que estava na sua janela');
+});
+
+prova('a picareta golpeia em arco, e nao atira', () => {
+  // Defeito sentido jogando: a picareta usava a funcao de tiro, entao ela
+  // acertava um alvo so, ganhava bonus de cabeca pela altura da mira e disparava
+  // clarao de cano. Golpe varre um arco e pega todo mundo nele.
+  const jogo = criarJogo(0, { semente: 4, semPreparo: true });
+  jogo.jogador.naMao = 0;
+  jogo.jogador.ang = 0;
+  igual(armaNaMao(jogo).tipo, 'corpo', 'a picareta nao esta na mao');
+
+  const alvos = [];
+  for (const [dx, dy] of [[1.2, 0], [1.1, 0.7], [1.1, -0.7], [1.4, 2.4]]) {
+    const z = criarZumbi('comum', 1, jogo.mapa.janelas[0]);
+    z.estado = 'cacando';
+    z.vida = 10000;
+    z.x = jogo.jogador.x + dx;
+    z.y = jogo.jogador.y + dy;
+    jogo.vivos.push(z);
+    alvos.push(z);
+  }
+  let golpes = 0;
+  let tiros = 0;
+  let acertos = 0;
+  for (const e of passo(jogo, { atirar: true }, DT)) {
+    if (e.tipo === 'golpe') golpes++;
+    if (e.tipo === 'tiro') tiros++;
+    if (e.tipo === 'acerto') acertos++;
+  }
+  igual(golpes, 1, 'a picareta nao emitiu evento de golpe');
+  igual(tiros, 0, 'a picareta emitiu evento de tiro');
+  ok(acertos >= 3, `o golpe pegou ${acertos} zumbis no arco; esperava os tres de perto`);
+  ok(alvos[3].vida === 10000, 'o golpe alcancou um zumbi a 2,7 celulas de distancia');
+  const arma = armaNaMao(jogo);
+  ok(!Number.isFinite(arma.pente) || arma.noPente === arma.pente, 'o golpe gastou municao');
+  // Precisao e dos tiros. Picareta varre um arco de 100 graus: contar golpe como
+  // tiro fazia a precisao subir quando o jogador batia no escuro sem mirar.
+  igual(jogo.estatisticas.tiros, 0, 'golpe de picareta entrou na conta de tiros');
+  igual(jogo.estatisticas.golpes, 1, 'golpes contados');
 });
 
 // ------------------------------------------------------------- 4. o jogo
@@ -662,7 +801,23 @@ for (const p of partidas) {
     + `${(p.forcaLigada ? '  sim' : '  nao').padStart(7)}`);
 }
 
+// ------------------------------------------------------- a casca do jogo
+//
+// Esta prova existe porque uma edicao minha apagou `carregarRecordes` e
+// `salvarRecorde` de `js/main.js`: as 41 provas ficaram verdes, `node --check`
+// passou, e o jogo nao abria — o corpo do modulo jogava antes de registrar o
+// clique do menu. `main.js` era o unico arquivo do jogo que nenhuma prova
+// carregava. Agora ele roda aqui, com uma tela de mentira.
+await provaAssincrona('a casca carrega inteira, com todo identificador no lugar', async () => {
+  const { montarTelaDeMentira } = await import('./provas-dom.mjs');
+  montarTelaDeMentira();
+  const casca = await import('./js/main.js');
+  ok(casca, 'o modulo da casca nao carregou');
+});
+
 console.log(`\n${feitas} provas passaram, ${falhas.length} falharam.`);
 for (const f of falhas) console.log(`\n  FALHOU  ${f.nome}\n          ${f.erro.message}`);
 console.log('');
 if (falhas.length) process.exit(1);
+// Saida explicita: a casca deixa relogios e ouvintes vivos, como no navegador.
+process.exit(0);

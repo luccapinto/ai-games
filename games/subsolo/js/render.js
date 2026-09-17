@@ -490,6 +490,7 @@ export function criarRender(canvas) {
   let paleta = null;
   let tempo = 0;
   let claraoAte = 0;
+  let golpeAte = 0;
   let recuo = 0;
   let balanco = 0;
   const IDENTIDADE = new Float32Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]);
@@ -795,8 +796,13 @@ export function criarRender(canvas) {
     const balancoX = Math.sin(balanco) * 0.012;
     const balancoY = Math.cos(balanco * 2) * 0.008;
     const recarregando = arma.recarregando > 0;
-    const giro = recarregando ? -0.9 : 0;
-    const baixo = recarregando ? -0.18 : 0;
+    // A varredura da picareta: 0,28 s de arco, de cima para baixo e da direita
+    // para a esquerda. Um tiro recua; um golpe varre.
+    const golpeando = tempo < golpeAte;
+    const faseDoGolpe = golpeando ? 1 - (golpeAte - tempo) / 0.28 : 0;
+    const arco = golpeando ? Math.sin(faseDoGolpe * Math.PI) : 0;
+    const giro = recarregando ? -0.9 : arco * 1.5;
+    const baixo = recarregando ? -0.18 : -arco * 0.22;
     // A arma mede 1 m no modelo e o olho esta a 5 cm do plano proximo: sem a
     // escala de 0,32 ela ocupava meia tela como uma caixa preta. E ela e
     // desenhada em espaco de camera, entao +Z aponta para tras — a arma tem de
@@ -806,7 +812,7 @@ export function criarRender(canvas) {
       escala, 0, 0, 0,
       0, escala, 0, 0,
       0, 0, escala, 0,
-      0.2 + balancoX, -0.22 + baixo + balancoY, -0.55 + recuoAtual, 1,
+      0.2 + balancoX - arco * 0.3, -0.22 + baixo + balancoY, -0.55 + recuoAtual - arco * 0.1, 1,
     ]);
     const inclinada = multiplicar(modelo, matrizDeCorpo(0, 0, 0, 0, -Math.PI / 2 + giro, 1));
     gl.uniformMatrix4fv(u.vistaProjecao, false, projecao);
@@ -836,6 +842,10 @@ export function criarRender(canvas) {
     if (jogo.eventos) {
       for (const evento of jogo.eventos) {
         if (evento.tipo === 'tiro') clarao();
+        // Golpe nao acende nada: quem bate com picareta no escuro nao ve nada
+        // alem do que a lanterna mostra, e e isso que faz a picareta ser o
+        // ultimo recurso.
+        if (evento.tipo === 'golpe') golpeAte = tempo + 0.28;
         if (evento.tipo === 'acerto') {
           sangue(evento.zumbi.x * C, evento.zumbi.y * C,
             evento.zumbi.altura * (evento.naCabeca ? 0.85 : 0.55), evento.naCabeca ? 12 : 6);

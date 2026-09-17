@@ -36,6 +36,17 @@ function prova(nome, fn) {
   }
 }
 
+async function provaAssincrona(nome, fn) {
+  try {
+    await fn();
+    feitas++;
+    process.stdout.write('.');
+  } catch (erro) {
+    falhas.push({ nome, erro });
+    process.stdout.write('x');
+  }
+}
+
 const ok = (c, m) => { if (!c) throw new Error(m); };
 const igual = (a, b, m) => { if (a !== b) throw new Error(`${m}: esperava ${b}, veio ${a}`); };
 function entre(v, min, max, m) {
@@ -177,10 +188,31 @@ prova('de lado o kart segura mais curva do que de frente', () => {
   // lado o kart gira 2,9 vezes mais rapido do que a aderencia deixa — e e isso
   // que faz a curva fechada exigir o gatilho. A prova do ganho de tempo esta
   // mais abaixo, em "derrapar paga a volta".
-  ok(medidas.gDeLado > medidas.gMaximo * 1.06,
-    `de lado ${medidas.gDeLado.toFixed(2)} g contra ${medidas.gMaximo.toFixed(2)} de frente`);
+  // O drift compra GIRO, nao aderencia, e a medida diz isso: o teto de giro de
+  // lado e 3,7 vezes o de aderencia, e o g sustentado fica na mesma faixa (de
+  // lado escorrega, e escorregar gasta pneu). Quem confundir os dois vai medir
+  // errado — foi o que aconteceu aqui: com o servo de guinada, o g de lado
+  // ficou 8% ABAIXO do de frente e a prova antiga reprovou um jogo que estava
+  // melhor. O ganho de tempo esta provado em "derrapar paga a volta".
   ok(KART.fatorDeGiroNoDrift > KART.fatorDeGiroEmAderencia * 2,
     'o teto de giro do drift nao chega ao dobro do de aderencia');
+  entre(medidas.gDeLado / medidas.gMaximo, 0.85, 1.3,
+    'razao entre o g sustentado de lado e o de frente');
+  // Tranco de entrada, medido em um quadro: o gatilho tem de girar o kart PARA
+  // O LADO DO VOLANTE na hora. Sem isto, apertar o gatilho nao produzia nada de
+  // imediato e a traseira ia saindo aos poucos — o comando parecia nao existir.
+  for (const [nome, volante] of [['direita', -1], ['esquerda', 1]]) {
+    const carro = criarCarro(0, 0, 0);
+    carro.vx = 14;
+    for (let i = 0; i < 30; i++) {
+      passoCarro(carro, { ...comandosNulos(), volante, acelerador: 0.8 }, { dt: DT });
+    }
+    const antes = carro.omega;
+    passoCarro(carro, { ...comandosNulos(), volante, acelerador: 0.8, drift: true }, { dt: DT });
+    const tranco = carro.omega - antes;
+    ok(Math.sign(tranco) === Math.sign(volante) && Math.abs(tranco) > 0.8,
+      `gatilho com volante para a ${nome} deu tranco de ${tranco.toFixed(2)} rad/s`);
+  }
 });
 
 prova('a grama custa caro e a zebra custa pouco', () => {
@@ -242,6 +274,61 @@ prova('o turbo empurra de verdade, e o rodopio tira o comando', () => {
   }
   ok(Math.abs(rodando.omega) > 1.5, 'o rodopio nao girou o kart');
   ok(rodando.vx < 16, 'o rodopio nao custou velocidade');
+});
+
+prova('volante para a esquerda gira para a esquerda da tela', () => {
+  // Esta prova existe porque o jogo saiu com o volante invertido: a versao de
+  // cima desenhava y para baixo, onde giro anti-horario APARECE como direita, e
+  // quando o render virou 3D com z para cima a mao inverteu. O sinal do comando
+  // agora e cobrado aqui, e nao no olho de quem joga.
+  const comandoDaSeta = (tecla) => {
+    const teclas = new Set([tecla]);
+    const tem = (...c) => c.some(k => teclas.has(k));
+    let alvo = 0;
+    if (tem('ArrowLeft', 'KeyA')) alvo += 1;
+    if (tem('ArrowRight', 'KeyD')) alvo -= 1;
+    return alvo;
+  };
+  igual(comandoDaSeta('ArrowLeft'), 1, 'seta esquerda nao pede volante positivo');
+  igual(comandoDaSeta('ArrowRight'), -1, 'seta direita nao pede volante negativo');
+
+  // E o volante positivo tem de girar o kart no sentido anti-horario, que com a
+  // camera atras e a esquerda da tela.
+  const carro = criarCarro(0, 0, 0);
+  carro.vx = 12;
+  for (let i = 0; i < 60; i++) {
+    passoCarro(carro, { ...comandosNulos(), volante: 1, acelerador: 0.5 }, { atrito: 1, vacuo: 0 }, DT);
+  }
+  ok(carro.ang > 0.2, `volante +1 girou ${carro.ang.toFixed(2)} rad; esperava giro anti-horario`);
+  ok(carro.y > 0.5, `volante +1 levou o kart para y=${carro.y.toFixed(2)}; esperava y positivo (esquerda)`);
+});
+
+prova('o kart nao rodopia em baixa velocidade', () => {
+  // Defeito sentido dirigindo no navegador: saindo da largada a 13 km/h, com
+  // volante cheio e gatilho, o kart girava 3,65 rad/s no lugar — 209 graus por
+  // segundo. O teto de giro do pneu cresce como 1/v, entao em baixa ele pede o
+  // impossivel; enquanto o pneu nao entregava isso nao aparecia, e o servo de
+  // guinada passou a entregar.
+  // O teto e o menor entre o absoluto e o geometrico (velocidade / raio minimo),
+  // medido QUADRO A QUADRO: com o acelerador no fundo o kart ganha velocidade
+  // durante o teste, e comparar com a velocidade inicial reprova o certo.
+  for (const kmh of [8, 14, 25]) {
+    const carro = criarCarro(0, 0, 0);
+    carro.vx = kmh / 3.6;
+    let pior = 0;
+    let piorEm = 0;
+    for (let i = 0; i < 90; i++) {
+      passoCarro(carro, { ...comandosNulos(), volante: -1, acelerador: 1, drift: true }, { dt: DT });
+      const rapidez = Math.hypot(carro.vx, carro.vy);
+      const teto = Math.max(0.7, Math.min(KART.giroMaximoAbsoluto, rapidez / KART.raioMinimo));
+      const excesso = Math.abs(carro.omega) - teto;
+      if (excesso > pior) { pior = excesso; piorEm = rapidez; }
+    }
+    ok(pior <= 0.3,
+      `saindo de ${kmh} km/h, o kart passou ${pior.toFixed(2)} rad/s do teto de giro`
+      + ` a ${(piorEm * 3.6).toFixed(0)} km/h`);
+    ok(carro.vx > 0, `a ${kmh} km/h o kart terminou andando para tras (vx ${carro.vx.toFixed(1)})`);
+  }
 });
 
 prova('o kart nao ganha energia de graca', () => {
@@ -467,14 +554,65 @@ prova('volta so conta com os tres setores na ordem', () => {
   igual(carro.voltas, antes, 'contou volta sem passar pelos setores');
 });
 
+prova('kart recolocado ainda conta a volta, mas perde o tempo dela', () => {
+  // Defeito medido: contagem de volta e cronometragem estavam juntas, e um kart
+  // recolocado uma vez por volta nunca registrava volta — cruzou a linha duas
+  // vezes e terminou com `voltas=0`. A classificacao ordena por progresso, que
+  // vem de `voltas`: o kart sumia da tabela mesmo tendo corrido.
+  const corrida = criarCorrida(0, { voltas: 3, ia: 3, semente: 7 });
+  corrida.estado = 'correndo';
+  const carro = corrida.carros[0];
+  carro.voltaIniciada = true;
+  carro.setor = 3;
+  carro.tempoVolta = 44.5;
+  carro.voltaValida = false;
+  carro.ultimoIndice = corrida.pista.centro.length - 2;
+  carro.indice = 1;
+  carro.x = corrida.pista.centro[1].x;
+  carro.y = corrida.pista.centro[1].y;
+  const antes = carro.voltas;
+  const eventos = passoCorrida(corrida, comandosNulos(), DT);
+  igual(carro.voltas, antes + 1, 'voltas depois de cruzar a linha com volta suja');
+  ok(!carro.melhorVolta, `volta suja entrou como melhor volta (${carro.melhorVolta})`);
+  ok(eventos.some(e => e.tipo === 'volta-invalida' && e.carro === carro.nome),
+    'ninguem foi avisado de que a volta nao valeu tempo');
+});
+
+prova('ninguem fica sem completar volta numa corrida cheia', () => {
+  // A prova que pegou o defeito acima: com dez karts, o pelotao se destruia na
+  // largada (146 dos 278 toques nos primeiros 20 s) e karts recolocados
+  // perdiam a volta inteira. Duas correcoes: cada piloto anda com um estilo de
+  // linha proprio, e ninguem ataca a linha ideal com kart a menos de 6 m.
+  for (const semente of [11, 3, 42]) {
+    const r = corridaCompleta(0, { voltas: 3, ia: 9, semente });
+    const voltas = r.classificacao.map(l => l.voltas);
+    ok(Math.min(...voltas) >= 2,
+      `com semente ${semente}, o ultimo colocado fez ${Math.min(...voltas)} voltas de 3`);
+    // Incidente, e nao quadro de contato: antes da carencia por par, um encostao
+    // de um segundo entrava como 60 batidas e este numero nao queria dizer nada.
+    ok(r.toques < 60, `com semente ${semente}, o pelotao teve ${r.toques} incidentes`);
+    const comTempo = r.classificacao.filter(l => l.melhorVolta > 0).length;
+    ok(comTempo >= 7, `com semente ${semente}, so ${comTempo} de 9 registraram tempo`);
+  }
+});
+
 prova('uma corrida inteira termina e classifica todo mundo', () => {
   const r = corridaCompleta(0, { voltas: 3, ia: 9, semente: 11 });
   ok(r.terminou, `a corrida nao terminou em ${r.segundos.toFixed(0)} s simulados`);
   igual(r.classificacao.length, 9, 'karts classificados');
+  // Melhor volta e cobrada de quem correu limpo. Quem foi recolocado pode
+  // terminar a corrida sem tempo de volta — isso e a regra, nao um defeito — mas
+  // volta completada todo mundo tem de ter.
   for (const linha of r.classificacao) {
     ok(linha.voltas >= 1, `${linha.nome} nao completou uma volta`);
-    ok(linha.melhorVolta > 0, `${linha.nome} sem melhor volta`);
+    // Limpo e sem recolocacao E sem toque: um kart girado por contato tambem
+    // perde o tempo da volta, e isso e a regra.
+    if (!linha.recolocacoes && !linha.toques) {
+      ok(linha.melhorVolta > 0, `${linha.nome} correu limpo e ficou sem melhor volta`);
+    }
   }
+  const comTempo = r.classificacao.filter(l => l.melhorVolta > 0).length;
+  ok(comTempo >= 5, `so ${comTempo} dos 9 karts registraram tempo de volta`);
   for (let i = 1; i < r.classificacao.length; i++) {
     const a = r.classificacao[i - 1];
     const b = r.classificacao[i];
@@ -610,7 +748,23 @@ for (const t of tecnica) {
     + `${`${t.grampo.ganho >= 0 ? '+' : ''}${t.grampo.ganho.toFixed(2)} s`.padStart(9)}`);
 }
 
+// ------------------------------------------------------ 9. a casca do jogo
+//
+// A ultima prova carrega `js/main.js` com uma tela de mentira. Ela nao olha
+// pixel: ela executa o corpo do modulo, que era o unico pedaco do jogo que
+// nenhuma prova tocava — e onde uma edicao minha apagou duas funcoes do jogo
+// vizinho sem que nada ficasse vermelho.
+await provaAssincrona('a casca carrega inteira, com todo identificador no lugar', async () => {
+  const { montarTelaDeMentira } = await import('./provas-dom.mjs');
+  montarTelaDeMentira();
+  const casca = await import('./js/main.js');
+  ok(casca, 'o modulo da casca nao carregou');
+});
+
 console.log(`\n${feitas} provas passaram, ${falhas.length} falharam.`);
 for (const f of falhas) console.log(`\n  FALHOU  ${f.nome}\n          ${f.erro.message}`);
 console.log('');
 if (falhas.length) process.exit(1);
+// Saida explicita: a casca deixa relogios e ouvintes vivos, como faria no
+// navegador, e sem isto o processo fica pendurado depois da ultima prova.
+process.exit(0);

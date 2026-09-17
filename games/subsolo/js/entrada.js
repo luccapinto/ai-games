@@ -1,163 +1,143 @@
-// Teclado, mouse e toque convergindo para o mesmo objeto `entrada` que
-// `jogo.passo` recebe. O jogo nao sabe se quem o dirige e uma pessoa, um dedo
-// ou o robo de provas.mjs — e e isso que deixa o robo valer como prova.
+// Teclado, mouse e toque virando os comandos que o jogo entende.
+//
+// Este arquivo existe por um defeito: o mapeamento de entrada morava em
+// `main.js`, que e o unico arquivo que `provas.mjs` nao importa. Resultado: o
+// mouse e as setas ficaram **invertidos** e nenhuma das 36 provas podia ver,
+// porque o sinal do eixo estava fora da fronteira de teste. Agora a conversao e
+// um modulo sem DOM, e ha prova em cima dela.
+//
+// A convencao, escrita aqui porque e ela que se inverteu:
+//
+//   `ang` cresce no sentido anti-horario, e frente e (cos ang, sin ang).
+//   A DIREITA da tela e, portanto, (sin ang, -cos ang) — produto vetorial de
+//   frente com o "para cima" do mundo (0,0,1).
+//
+//   Logo: mouse para a direita tem de DIMINUIR `ang`, e a tecla de andar para a
+//   direita tem de empurrar o corpo no sentido (sin, -cos).
 
-import { entradaNula } from './jogo.js';
-import { CONFIG } from './regras.js';
+export const SENSIBILIDADE = 0.0022;
 
-const TECLA_ARMA = { Digit1: 1, Digit2: 2, Digit3: 3, Digit4: 4 };
+// Quanto o olhar gira quando o mouse anda `movimentoX` pixels. O sinal negativo
+// e o conserto: com `+`, arrastar o mouse para a direita virava a camera para a
+// esquerda.
+export function giroDoMouse(movimentoX, sensibilidade = SENSIBILIDADE) {
+  return -movimentoX * sensibilidade;
+}
 
-export function criarEntrada(canvas, palco) {
+// Mouse para cima (movimentoY negativo) levanta a mira. Sem inversao: quem quer
+// invertido inverte no sistema, e a maioria nao quer.
+export function inclinacaoDoMouse(movimentoY, sensibilidade = SENSIBILIDADE) {
+  return -movimentoY * sensibilidade * 0.8;
+}
+
+// Conversao pura de teclas para comandos: e isto que a prova exercita.
+export function comandosDeTeclas(teclas, toque = {}) {
+  const tem = (...codigos) => codigos.some(c => teclas.has(c));
+  return {
+    frente: tem('KeyW', 'ArrowUp') || !!toque.frente,
+    tras: tem('KeyS', 'ArrowDown') || !!toque.tras,
+    esq: tem('KeyA', 'ArrowLeft') || !!toque.esq,
+    dir: tem('KeyD', 'ArrowRight') || !!toque.dir,
+    correr: tem('ShiftLeft', 'ShiftRight') || !!toque.correr,
+    atirar: tem('Space') || !!toque.atirar,
+  };
+}
+
+export function criarEntrada(palco, tela) {
   const teclas = new Set();
-  let giroMouse = 0;
-  let travado = false;
-  const pulsos = { lanterna: false, usar: false, trocar: null, pausa: false, reiniciar: false };
-  const toque = { frente: 0, lado: 0, giro: 0, atirar: false, correndo: false, agachado: false };
+  const toque = {};
+  const pulsos = {
+    usar: false, recarregar: false, trocar: false, lanterna: false, pausa: false,
+  };
+  let mouseApertado = false;
+  let giro = 0;
+  let inclinacao = 0;
+  let dedoDeOlhar = null;
 
-  const sensibilidade = 0.0022;
-
-  function baixo(ev) {
+  window.addEventListener('keydown', (ev) => {
     if (ev.repeat) return;
     teclas.add(ev.code);
+    if (ev.code === 'KeyE') pulsos.usar = true;
+    if (ev.code === 'KeyR') pulsos.recarregar = true;
+    if (ev.code === 'KeyQ' || ev.code === 'Digit1' || ev.code === 'Digit2') pulsos.trocar = true;
     if (ev.code === 'KeyF') pulsos.lanterna = true;
-    if (ev.code === 'KeyE' || ev.code === 'Space') pulsos.usar = true;
-    if (ev.code === 'KeyP' || ev.code === 'Escape') pulsos.pausa = true;
-    if (ev.code === 'KeyR') pulsos.reiniciar = true;
-    if (TECLA_ARMA[ev.code]) pulsos.trocar = TECLA_ARMA[ev.code];
-    if (ev.code === 'KeyQ') pulsos.trocar = 'anterior';
-    if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(ev.code)) {
+    if (ev.code === 'Escape') pulsos.pausa = true;
+    if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(ev.code)) {
       ev.preventDefault();
     }
-  }
-
-  function alto(ev) {
-    teclas.delete(ev.code);
-  }
-
-  window.addEventListener('keydown', baixo);
-  window.addEventListener('keyup', alto);
-  window.addEventListener('blur', () => teclas.clear());
-
-  document.addEventListener('pointerlockchange', () => {
-    travado = document.pointerLockElement === canvas;
   });
-  canvas.addEventListener('mousemove', (ev) => {
-    if (travado) giroMouse += ev.movementX * sensibilidade;
-  });
-  canvas.addEventListener('mousedown', (ev) => {
-    if (ev.button === 0) teclas.add('Mouse0');
-    if (ev.button === 2) pulsos.usar = true;
-  });
-  window.addEventListener('mouseup', (ev) => {
-    if (ev.button === 0) teclas.delete('Mouse0');
-  });
-  canvas.addEventListener('contextmenu', (ev) => ev.preventDefault());
-  canvas.addEventListener('wheel', (ev) => {
-    pulsos.trocar = ev.deltaY > 0 ? 'proxima' : 'anterior';
-    ev.preventDefault();
-  }, { passive: false });
+  window.addEventListener('keyup', ev => teclas.delete(ev.code));
+  window.addEventListener('blur', () => { teclas.clear(); mouseApertado = false; });
 
-  // ------------------------------------------------------------------ toque
-  // Dois polegares: o da esquerda anda, o da direita olha e atira. Arrastar
-  // na metade direita gira; tocar sem arrastar atira.
-  const dedos = new Map();
-  function posicaoRelativa(ev) {
-    const r = canvas.getBoundingClientRect();
-    return { x: (ev.clientX - r.left) / r.width, y: (ev.clientY - r.top) / r.height };
-  }
-  canvas.addEventListener('touchstart', (ev) => {
-    for (const t of ev.changedTouches) {
-      const p = posicaoRelativa(t);
-      dedos.set(t.identifier, { inicio: p, atual: p, direita: p.x > 0.5, andou: 0 });
+  tela.addEventListener('mousedown', (ev) => {
+    if (document.pointerLockElement !== tela) {
+      tela.requestPointerLock?.();
+      return;
     }
-    ev.preventDefault();
-  }, { passive: false });
-  canvas.addEventListener('touchmove', (ev) => {
-    for (const t of ev.changedTouches) {
-      const d = dedos.get(t.identifier);
-      if (!d) continue;
-      const p = posicaoRelativa(t);
-      if (d.direita) giroMouse += (p.x - d.atual.x) * 3.2;
-      d.andou += Math.hypot(p.x - d.atual.x, p.y - d.atual.y);
-      d.atual = p;
-      if (!d.direita) {
-        toque.lado = Math.max(-1, Math.min(1, (p.x - d.inicio.x) * 8));
-        toque.frente = Math.max(-1, Math.min(1, (d.inicio.y - p.y) * 8));
-        toque.correndo = toque.frente > 0.75;
-      }
-    }
-    ev.preventDefault();
-  }, { passive: false });
-  function soltar(ev) {
-    for (const t of ev.changedTouches) {
-      const d = dedos.get(t.identifier);
-      if (d && d.direita && d.andou < 0.04) toque.atirar = true;
-      if (d && !d.direita) { toque.frente = 0; toque.lado = 0; toque.correndo = false; }
-      dedos.delete(t.identifier);
-    }
-    ev.preventDefault();
-  }
-  canvas.addEventListener('touchend', soltar, { passive: false });
-  canvas.addEventListener('touchcancel', soltar, { passive: false });
+    if (ev.button === 0) mouseApertado = true;
+  });
+  window.addEventListener('mouseup', () => { mouseApertado = false; });
+  window.addEventListener('mousemove', (ev) => {
+    if (document.pointerLockElement !== tela) return;
+    giro += giroDoMouse(ev.movementX || 0);
+    inclinacao += inclinacaoDoMouse(ev.movementY || 0);
+  });
 
-  for (const botao of palco.querySelectorAll('[data-acao]')) {
-    const acao = botao.dataset.acao;
-    const apertar = (ev) => {
+  for (const botao of palco.querySelectorAll('[data-controle]')) {
+    const qual = botao.dataset.controle;
+    const liga = (ev) => {
       ev.preventDefault();
-      if (acao === 'lanterna') pulsos.lanterna = true;
-      else if (acao === 'usar') pulsos.usar = true;
-      else if (acao === 'trocar') pulsos.trocar = 'proxima';
-      else if (acao === 'agachar') toque.agachado = !toque.agachado;
-      else if (acao === 'atirar') toque.atirar = true;
+      toque[qual] = true;
+      if (qual === 'usar') pulsos.usar = true;
+      if (qual === 'recarregar') pulsos.recarregar = true;
     };
-    botao.addEventListener('touchstart', apertar, { passive: false });
-    botao.addEventListener('mousedown', apertar);
+    const desliga = (ev) => { ev.preventDefault(); toque[qual] = false; };
+    botao.addEventListener('touchstart', liga, { passive: false });
+    botao.addEventListener('touchend', desliga, { passive: false });
+    botao.addEventListener('touchcancel', desliga, { passive: false });
+    botao.addEventListener('mousedown', liga);
+    botao.addEventListener('mouseup', desliga);
+    botao.addEventListener('mouseleave', desliga);
   }
 
-  function ler(dt) {
-    const e = entradaNula();
-    const tem = (...codigos) => codigos.some(c => teclas.has(c));
-
-    if (tem('KeyW', 'ArrowUp')) e.frente += 1;
-    if (tem('KeyS', 'ArrowDown')) e.frente -= 1;
-    if (tem('KeyA')) e.lado -= 1;
-    if (tem('KeyD')) e.lado += 1;
-    if (tem('ArrowLeft')) e.girar -= CONFIG.velGiro * dt;
-    if (tem('ArrowRight')) e.girar += CONFIG.velGiro * dt;
-    e.frente += toque.frente;
-    e.lado += toque.lado;
-    e.frente = Math.max(-1, Math.min(1, e.frente));
-    e.lado = Math.max(-1, Math.min(1, e.lado));
-
-    e.girar += giroMouse;
-    giroMouse = 0;
-
-    e.correndo = tem('ShiftLeft', 'ShiftRight') || toque.correndo;
-    e.agachado = tem('ControlLeft', 'ControlRight', 'KeyC') || toque.agachado;
-    e.atirar = tem('Mouse0') || toque.atirar;
-    e.lanterna = pulsos.lanterna;
-    e.usar = pulsos.usar;
-    e.trocar = pulsos.trocar;
-
-    toque.atirar = false;
-    pulsos.lanterna = false;
-    pulsos.usar = false;
-    pulsos.trocar = null;
-    return e;
-  }
-
-  function consumir(nome) {
-    const valor = pulsos[nome];
-    pulsos[nome] = false;
-    return valor;
-  }
+  // No celular, arrastar na tela olha em volta: unico jeito de mirar sem mouse.
+  tela.addEventListener('touchstart', (ev) => {
+    const dedo = ev.changedTouches[0];
+    dedoDeOlhar = { id: dedo.identifier, x: dedo.clientX, y: dedo.clientY };
+  }, { passive: true });
+  tela.addEventListener('touchmove', (ev) => {
+    if (!dedoDeOlhar) return;
+    for (const dedo of ev.changedTouches) {
+      if (dedo.identifier !== dedoDeOlhar.id) continue;
+      giro += giroDoMouse(dedo.clientX - dedoDeOlhar.x, SENSIBILIDADE * 2.2);
+      inclinacao += inclinacaoDoMouse(dedo.clientY - dedoDeOlhar.y, SENSIBILIDADE * 2);
+      dedoDeOlhar.x = dedo.clientX;
+      dedoDeOlhar.y = dedo.clientY;
+    }
+  }, { passive: true });
+  tela.addEventListener('touchend', () => { dedoDeOlhar = null; }, { passive: true });
 
   return {
-    ler,
-    consumir,
-    travar: () => canvas.requestPointerLock && canvas.requestPointerLock(),
-    destravar: () => document.exitPointerLock && document.exitPointerLock(),
-    get travado() { return travado; },
-    limpar: () => { teclas.clear(); giroMouse = 0; },
+    ler() {
+      const comandos = comandosDeTeclas(teclas, toque);
+      comandos.atirar = comandos.atirar || mouseApertado;
+      comandos.recarregar = pulsos.recarregar;
+      comandos.usar = pulsos.usar;
+      comandos.trocar = pulsos.trocar;
+      comandos.girar = giro;
+      comandos.inclinar = inclinacao;
+      pulsos.recarregar = false;
+      pulsos.usar = false;
+      pulsos.trocar = false;
+      giro = 0;
+      inclinacao = 0;
+      return comandos;
+    },
+    consumir(nome) {
+      const valor = pulsos[nome];
+      pulsos[nome] = false;
+      return valor;
+    },
+    limpar() { teclas.clear(); mouseApertado = false; giro = 0; inclinacao = 0; },
   };
 }

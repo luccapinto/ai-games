@@ -80,6 +80,8 @@ export function criarCorrida(indicePista, opcoes = {}) {
     classificacao: [],
     toques: 0,
     menorDistancia: Infinity,
+  // Carencia por par de karts, para um encostao longo nao virar 60 batidas.
+  carenciaDeToque: new Map(),
     bananas: [],
     cascos: [],
     semente: opcoes.semente || 1,
@@ -148,6 +150,16 @@ export function passoCorrida(corrida, comandosJogador, dt = DT) {
     carro.lateral = sup.lateral;
     carro.superficie = sup.tipo;
 
+    // Aperto: distancia do kart mais proximo, em qualquer direcao. A IA usa isso
+    // para NAO atacar a linha ideal enquanto o pelotao esta colado. Medido: dos
+    // 278 toques de uma corrida de tres voltas, 146 estavam nos primeiros 20 s —
+    // dez karts saindo da largada e convergindo na mesma curva 1.
+    let aperto = Infinity;
+    for (const outro of corrida.carros) {
+      if (outro === carro) continue;
+      aperto = Math.min(aperto, Math.hypot(outro.x - carro.x, outro.y - carro.y));
+    }
+
     const vizinho = carroNaFrente(corrida, carro);
     const vacuo = vizinho && vizinho.distancia < 22 && Math.abs(vizinho.lateral) < 2.6
       ? 1 - vizinho.distancia / 22
@@ -161,6 +173,7 @@ export function passoCorrida(corrida, comandosJogador, dt = DT) {
     } else {
       comandos = pilotar(carro, carro.piloto, pista, corrida.linha, {
         frente: vizinho, superficie: sup.tipo, atrito: sup.atrito, temItem: !!carro.item,
+        aperto, lateral: sup.lateral,
       }, dt);
     }
 
@@ -248,6 +261,14 @@ function resolverToques(corrida, eventos) {
         b.vx += troca * 0.5;
         a.omega += ny * 0.2 * Math.sign(a.vx || 1);
         b.omega -= ny * 0.2 * Math.sign(b.vx || 1);
+        // Um toque e um INCIDENTE, nao um quadro. Dois karts raspando lado a
+        // lado ficam sobrepostos por um segundo inteiro, e a versao anterior
+        // emitia um evento por quadro: 60 batidas na estatistica e 60 sons de
+        // batida por segundo na casca. Com a carencia por par, o segundo
+        // encostao do mesmo par so conta depois de 0,3 s.
+        const par = i * carros.length + j;
+        if (corrida.tempo - (corrida.carenciaDeToque.get(par) ?? -9) < 0.3) continue;
+        corrida.carenciaDeToque.set(par, corrida.tempo);
         a.toques++;
         b.toques++;
         corrida.toques++;
@@ -486,8 +507,16 @@ function contarVolta(corrida, carro, eventos) {
     if (!passou) continue;
     if (k === 0) {
       if (carro.voltaIniciada && carro.setor === 3) {
+        // Contar a volta e cronometrar a volta sao coisas diferentes, e juntar as
+        // duas era um defeito de verdade: quem fosse recolocado uma vez por
+        // volta NUNCA registrava volta. Medido: um kart cruzou a linha duas
+        // vezes numa corrida de tres voltas e terminou com `voltas=0`, entao a
+        // classificacao mentia e a prova da corrida inteira reprovava.
+        //
+        // Agora a volta conta sempre que os tres setores sairam na ordem; o
+        // TEMPO e que exige volta limpa, como em corrida de verdade.
+        carro.voltas++;
         if (carro.voltaValida) {
-          carro.voltas++;
           if (!carro.melhorVolta || carro.tempoVolta < carro.melhorVolta) {
             carro.melhorVolta = carro.tempoVolta;
           }
@@ -498,15 +527,17 @@ function contarVolta(corrida, carro, eventos) {
             tipo: 'volta', carro: carro.nome,
             tempo: carro.tempoVolta, voltas: carro.voltas,
           });
-          if (carro.voltas >= corrida.voltas && !carro.terminou) {
-            carro.terminou = true;
-            eventos.push({ tipo: 'bandeirada', carro: carro.nome });
-            if (!corrida.carros.some(c => c.terminou && c !== carro)) {
-              terminar(corrida, eventos);
-            }
-          }
         } else {
-          eventos.push({ tipo: 'volta-invalida', carro: carro.nome });
+          eventos.push({
+            tipo: 'volta-invalida', carro: carro.nome, voltas: carro.voltas,
+          });
+        }
+        if (carro.voltas >= corrida.voltas && !carro.terminou) {
+          carro.terminou = true;
+          eventos.push({ tipo: 'bandeirada', carro: carro.nome });
+          if (!corrida.carros.some(c => c.terminou && c !== carro)) {
+            terminar(corrida, eventos);
+          }
         }
       }
       carro.voltaIniciada = true;
@@ -544,6 +575,7 @@ function terminar(corrida, eventos) {
     melhorVolta: carro.melhorVolta || 0,
     turbos: carro.turbosUsados,
     toques: carro.toques,
+    recolocacoes: carro.recolocacoes,
   }));
   eventos.push({ tipo: 'fim', classificacao: corrida.classificacao });
 }

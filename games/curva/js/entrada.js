@@ -7,8 +7,11 @@
 // viraria um pedido de giro impossivel em um quadro, e o teto de deriva
 // responderia com um puxao.
 
-const RAMPA = 5.2;
-const CENTRAGEM = 7.5;
+// 7,5 e nao 5,2: a rampa e o tempo que a tecla leva para virar volante cheio, e
+// 0,19 s de espera somados ao tempo de resposta do chassi era o que fazia o kart
+// parecer pesado no teclado.
+const RAMPA = 7.5;
+const CENTRAGEM = 9;
 
 export function criarEntrada(palco) {
   const teclas = new Set();
@@ -47,9 +50,14 @@ export function criarEntrada(palco) {
 
   function ler(dt) {
     const tem = (...codigos) => codigos.some(c => teclas.has(c));
+    // `volante` positivo pede giro anti-horario, que com a camera atras do kart
+    // e a ESQUERDA da tela. A versao 2D deste jogo desenhava o mundo com y para
+    // baixo, onde anti-horario aparecia como direita; quando o jogo virou 3D com
+    // z para cima, a mao virou e o volante ficou invertido. E o defeito que o
+    // dono do repo sentiu na primeira curva.
     let alvo = 0;
-    if (tem('ArrowLeft', 'KeyA') || toque.esquerda) alvo -= 1;
-    if (tem('ArrowRight', 'KeyD') || toque.direita) alvo += 1;
+    if (tem('ArrowLeft', 'KeyA') || toque.esquerda) alvo += 1;
+    if (tem('ArrowRight', 'KeyD') || toque.direita) alvo -= 1;
 
     if (alvo === 0) {
       const passo = CENTRAGEM * dt;
