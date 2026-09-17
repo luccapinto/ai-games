@@ -1,14 +1,14 @@
 {
   "esquema": 1,
   "resumo": {
-    "jogos": 7,
+    "jogos": 8,
     "autores": 1,
     "modelos": 2,
-    "linhas": 20958,
-    "usd": 8.57,
-    "tokens_novos": 2394978,
+    "linhas": 24129,
+    "usd": 10.88,
+    "tokens_novos": 2548978,
     "tokens_cache": 159076224,
-    "chamadas": 888
+    "chamadas": 1006
   },
   "jogos": [
     {
@@ -59,6 +59,55 @@
         "tem_custo": true
       },
       "url": "games/subsolo/"
+    },
+    {
+      "slug": "curva",
+      "titulo": "CURVA",
+      "genero": "Corrida",
+      "criado": "2026-09-17",
+      "estado": "jogavel",
+      "licenca": "MIT",
+      "autores": [
+        {
+          "nome": "Lucca Pinto",
+          "github": "luccapinto",
+          "site": "https://luccabuilds.com"
+        }
+      ],
+      "ia": [
+        {
+          "modelo": "claude-opus-5",
+          "provider": "Anthropic",
+          "agente": "Oh My Pi",
+          "papel": "o jogo inteiro: física, pistas, otimizador da linha, IA de pilotagem, render e o banco de medidas",
+          "chamadas_api": 118,
+          "tokens": {
+            "entrada": 112000,
+            "saida": 42000,
+            "cache_leitura": 0,
+            "cache_escrita": 0
+          },
+          "usd_estimado": 2.31
+        }
+      ],
+      "medicao": {
+        "metodo": "diferença do contador de tokens da sessão do agente entre o início e o fim deste jogo; custo pela mesma taxa cega de US$ 15 por milhão de tokens novos usada nos outros jogos claude-opus-5 deste repositório",
+        "confianca": "estimado",
+        "medido_em": "2026-09-17",
+        "nota": "O total (154 mil tokens novos) é a diferença do contador da sessão e é a parte confiável; a divisão entre entrada e saída é estimativa minha. Boa parte desse custo foi afinação medida: física, otimizador da linha e IA passaram por várias rodadas de medir, consertar e medir de novo, cada uma com uma corrida completa simulada. O cache está zerado porque não foi medido, não porque não houve."
+      },
+      "totais": {
+        "tokens_entrada": 112000,
+        "tokens_saida": 42000,
+        "tokens_novos": 154000,
+        "tokens_cache": 0,
+        "tokens_totais": 154000,
+        "usd": 2.31,
+        "chamadas_api": 118,
+        "linhas": 3171,
+        "tem_custo": true
+      },
+      "url": "games/curva/"
     },
     {
       "slug": "seiva",
@@ -362,18 +411,19 @@
         "antena",
         "ceia",
         "cripta",
+        "curva",
         "processo",
         "seiva",
         "subsolo"
       ],
-      "n_jogos": 6,
-      "tokens_novos": 501000,
+      "n_jogos": 7,
+      "tokens_novos": 655000,
       "tokens_cache": 0,
-      "chamadas_api": 232,
-      "usd": 7.54,
-      "linhas": 10249,
-      "tokens_por_linha": 48.88,
-      "linhas_por_dolar": 1359.28
+      "chamadas_api": 350,
+      "usd": 9.85,
+      "linhas": 13420,
+      "tokens_por_linha": 48.81,
+      "linhas_por_dolar": 1362.44
     },
     {
       "nome": "deepseek-flash",
@@ -410,6 +460,21 @@
       "linhas_por_dolar": 911.91
     },
     {
+      "nome": "Oh My Pi",
+      "jogos": [
+        "curva",
+        "subsolo"
+      ],
+      "n_jogos": 2,
+      "tokens_novos": 259000,
+      "tokens_cache": 0,
+      "chamadas_api": 214,
+      "usd": 3.89,
+      "linhas": 7985,
+      "tokens_por_linha": 32.44,
+      "linhas_por_dolar": 2052.7
+    },
+    {
       "nome": "Hermes Agent (Talos)",
       "jogos": [
         "attention-is-all-you-kill"
@@ -422,20 +487,6 @@
       "linhas": 10709,
       "tokens_por_linha": 176.86,
       "linhas_por_dolar": 10397.09
-    },
-    {
-      "nome": "Oh My Pi",
-      "jogos": [
-        "subsolo"
-      ],
-      "n_jogos": 1,
-      "tokens_novos": 105000,
-      "tokens_cache": 0,
-      "chamadas_api": 96,
-      "usd": 1.58,
-      "linhas": 4814,
-      "tokens_por_linha": 21.81,
-      "linhas_por_dolar": 3046.84
     }
   ],
   "por_provider": [
@@ -445,18 +496,19 @@
         "antena",
         "ceia",
         "cripta",
+        "curva",
         "processo",
         "seiva",
         "subsolo"
       ],
-      "n_jogos": 6,
-      "tokens_novos": 501000,
+      "n_jogos": 7,
+      "tokens_novos": 655000,
       "tokens_cache": 0,
-      "chamadas_api": 232,
-      "usd": 7.54,
-      "linhas": 10249,
-      "tokens_por_linha": 48.88,
-      "linhas_por_dolar": 1359.28
+      "chamadas_api": 350,
+      "usd": 9.85,
+      "linhas": 13420,
+      "tokens_por_linha": 48.81,
+      "linhas_por_dolar": 1362.44
     },
     {
       "nome": "DeepSeek",
