@@ -10,7 +10,7 @@ costs. Each game is a self-contained, playable folder that records the model tha
 wrote it, the agent that drove it, and the tokens it burned.*
 
 **9 jogos** de **1 pessoa**, 30.921 linhas de código,
-3,4 M tokens novos e US$ 22,14 de API no total.
+3,5 M tokens novos e US$ 22,14 de API no total.
 
 👉 **[Jogar tudo](https://luccapinto.github.io/ai-games/)** · **[Ver o benchmark](https://luccapinto.github.io/ai-games/benchmark.html)** · **[Mandar o seu jogo](CONTRIBUTING.md)**
 
@@ -20,7 +20,7 @@ wrote it, the agent that drove it, and the tokens it burned.*
 | --- | --- | --- | --- | --- | --- | --- |
 | **TRAVESSIA** [`travessia`](games/travessia/README.md) | Mundo aberto | Lucca Pinto | claude-opus-5 | 103,0 k | US$ 1,54 | [jogar](https://luccapinto.github.io/ai-games/games/travessia/) |
 | **SUBSOLO** [`subsolo`](games/subsolo/README.md) | FPS de rodadas | Lucca Pinto | claude-opus-5 | 623,0 k | US$ 8,30 | [jogar](https://luccapinto.github.io/ai-games/games/subsolo/) |
-| **CURVA** [`curva`](games/curva/README.md) | Kart 3D | Lucca Pinto | claude-opus-5 | 414,0 k | US$ 5,31 | [jogar](https://luccapinto.github.io/ai-games/games/curva/) |
+| **CURVA** [`curva`](games/curva/README.md) | Kart 3D | Lucca Pinto | claude-opus-5 | 441,0 k | US$ 5,31 | [jogar](https://luccapinto.github.io/ai-games/games/curva/) |
 | **SEIVA** [`seiva`](games/seiva/README.md) | Defesa de torre | Lucca Pinto | claude-opus-5 | 70,0 k | US$ 1,05 | [jogar](https://luccapinto.github.io/ai-games/games/seiva/) |
 | **PROCESSO** [`processo`](games/processo/README.md) | Cartas com construção de baralho | Lucca Pinto | claude-opus-5 | 44,0 k | US$ 0,66 | [jogar](https://luccapinto.github.io/ai-games/games/processo/) |
 | **CRIPTA** [`cripta`](games/cripta/README.md) | Puzzle | Lucca Pinto | claude-opus-5 | 86,0 k | US$ 1,30 | [jogar](https://luccapinto.github.io/ai-games/games/cripta/) |
@@ -32,7 +32,7 @@ wrote it, the agent that drove it, and the tokens it burned.*
 
 | Modelo | Jogos | Tokens novos | Cache | Custo | Linhas |
 | --- | --- | --- | --- | --- | --- |
-| claude-opus-5 | 8 | 1,5 M | 0 | US$ 21,11 | 20.212 |
+| claude-opus-5 | 8 | 1,6 M | 0 | US$ 21,11 | 20.212 |
 | deepseek-flash | 1 | 1,9 M | 159,1 M | US$ 1,03 | 10.709 |
 
 Tokens novos são entrada + saída. Cache aparece em coluna separada de propósito:
@@ -150,12 +150,13 @@ O que tem dentro:
 - Servo de guinada: o chassi persegue a velocidade de giro pedida em vez de chegar nela meio segundo depois - foi o que tirou a sensacao de barco sem levantar o teto de aderencia (subir o teto foi medido e revertido: derrapar passava a CUSTAR 1,43 s por volta)
 - Teto geometrico de giro: nenhum kart gira mais rapido que velocidade / raio minimo, porque o teto do pneu cresce como 1/v e a 13 km/h ele pedia 6,6 rad/s - o kart rodopiava no lugar ao apertar o gatilho na largada
 - Nove adversarios com estilo de linha proprio: dez karts na mesma linha ideal viravam uma fila de batidas (146 dos 278 contatos nos primeiros 20 s), e ninguem ataca a linha com kart a menos de 6 m
+- Fora da pista a IA volta dirigindo, e nao por teleporte: olhada curta (quase perpendicular quando esta longe) e teto de velocidade que cai com a distancia da borda, porque a grama da 0,64 g e a 43 km/h o raio minimo e 23 m
 - Volta conta mesmo suja: contagem e cronometragem separadas, porque kart recolocado uma vez por volta nunca registrava volta - cruzava a linha duas vezes e terminava com zero
 - Render 3D em WebGL2 escrito a mao - sem biblioteca, sem modelo, sem textura em disco: a fita da pista sai da mesma lista de numeros que a fisica usa
 - 36 provas sem navegador, incluindo uma que carrega a casca inteira com uma tela de mentira - o arquivo que fala com a tela era o unico que nenhuma prova tocava
 
 - **Quem fez:** Lucca Pinto
-- **Modelo:** claude-opus-5 via Anthropic, dirigido por Oh My Pi — 414,0 k tokens novos, 0 de cache, 292 chamadas, US$ 5,31
+- **Modelo:** claude-opus-5 via Anthropic, dirigido por Oh My Pi — 441,0 k tokens novos, 0 de cache, 316 chamadas, US$ 5,31
 - **Custo total:** US$ 5,31 (estimado)
 - **Tamanho:** 4.910 linhas de código próprio, 0,3 MB
 - **Pasta:** [`games/curva/`](games/curva/README.md)

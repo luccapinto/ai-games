@@ -110,8 +110,20 @@ export function pilotar(carro, piloto, pista, linha, ctx = {}, dt = 1 / 60) {
 
   // --- para onde olhar ---------------------------------------------------
   const naGrama = ctx.superficie === 'grama' || ctx.superficie === 'muro';
+  // Fora da pista a IA precisa VOLTAR, e nao andar em paralelo na grama. A
+  // olhada fixa de 6 a 12 m apontava para o centro la na frente: com o kart oito
+  // metros fora, isso e um angulo raso, e ele fazia meia volta de circuito no
+  // capim antes de reencontrar o asfalto. Medido numa corrida de tres voltas com
+  // nove karts: 13 das 18 recolocacoes eram exatamente este caso.
+  //
+  // Agora a olhada encurta conforme o quanto ele esta fora: perto da borda ele
+  // volta suave e mantem velocidade; longe, ele aponta quase perpendicular. Nao
+  // e mais agressivo — e mais curto, o que e o contrario de agressivo em curva.
+  const foraDaBorda = naGrama
+    ? Math.max(0, Math.abs(ctx.lateral ?? 0) - perto.largura / 2)
+    : 0;
   const distanciaOlhada = naGrama
-    ? 6 + velocidade * 0.2
+    ? Math.max(2.5, 9 - foraDaBorda * 1.4) + velocidade * 0.1
     : AJUSTES.olhadaBase + velocidade * AJUSTES.olhadaPorVelocidade
       * piloto.perfil.antecipacao;
   const olhada = Math.max(2, Math.round(distanciaOlhada / pista.passo));
@@ -190,7 +202,14 @@ export function pilotar(carro, piloto, pista, linha, ctx = {}, dt = 1 / 60) {
     if (linha.velocidades[i] < alvoVelocidade) alvoVelocidade = linha.velocidades[i];
   }
   alvoVelocidade *= piloto.perfil.habilidade * (1 - piloto.cautela) * (1 + piloto.ruido * 0.04);
-  if (naGrama) alvoVelocidade = Math.min(alvoVelocidade, 12);
+  // Fora da pista, velocidade e o inimigo. A grama da 0,64 g: a 43 km/h o raio
+  // minimo e 23 m, e um kart quatro metros fora nao consegue apontar de volta
+  // nessa curvatura — medido, ele AUMENTAVA a distancia da borda e terminava
+  // teleportado. Quanto mais longe, mais devagar, que e o que um piloto faz ao
+  // sair da pista: levanta o pe, aponta, volta.
+  if (naGrama) {
+    alvoVelocidade = Math.min(alvoVelocidade, Math.max(6, 12 - foraDaBorda * 1.5));
+  }
   if (carro.turbo > 0) alvoVelocidade += 6;
 
   // --- kart na frente ----------------------------------------------------

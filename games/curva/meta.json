@@ -23,10 +23,10 @@
       "provider": "Anthropic",
       "agente": "Oh My Pi",
       "papel": "o jogo inteiro: geometria dos kartódromos, física do kart, otimizador da linha, IA de pilotagem, render 3D em WebGL2 e o banco de medidas",
-      "chamadas_api": 292,
+      "chamadas_api": 316,
       "tokens": {
-        "entrada": 302000,
-        "saida": 112000,
+        "entrada": 322000,
+        "saida": 119000,
         "cache_leitura": 0,
         "cache_escrita": 0
       },
@@ -37,7 +37,7 @@
     "confianca": "estimado",
     "metodo": "diferença do contador de tokens da sessão do agente entre o início e o fim deste jogo; custo pela mesma taxa cega de US$ 15 por milhão de tokens novos usada nos outros jogos claude-opus-5 deste repositório",
     "medido_em": "2026-09-17",
-    "nota": "O total (414 mil tokens novos) inclui a versao de cima anterior, a reconstrucao em 3D e a rodada de consertos que veio depois de o dono do repo jogar: volante invertido, resposta do chassi, pelotao que se destruia na largada e volta que nao contava para quem foi recolocado. E a diferenca do contador da sessao: essa e a parte confiavel. A divisao entre entrada e saida e estimativa minha. A maior parte foi afinacao medida, nao digitacao: fisica, geometria de pista, otimizador da linha e IA passaram por rodadas de medir, consertar e medir de novo.",
+    "nota": "O total (441 mil tokens novos) inclui a versao de cima anterior, a reconstrucao em 3D e a rodada de consertos que veio depois de o dono do repo jogar: volante invertido, resposta do chassi, pelotao que se destruia na largada e volta que nao contava para quem foi recolocado. E a diferenca do contador da sessao: essa e a parte confiavel. A divisao entre entrada e saida e estimativa minha. A maior parte foi afinacao medida, nao digitacao: fisica, geometria de pista, otimizador da linha e IA passaram por rodadas de medir, consertar e medir de novo.",
     "reconstruido_de": "versão anterior do mesmo jogo, de cima e em Canvas 2D, que somava 154 mil tokens"
   },
   "stack": [
@@ -56,6 +56,7 @@
     "Servo de guinada: o chassi persegue a velocidade de giro pedida em vez de chegar nela meio segundo depois - foi o que tirou a sensacao de barco sem levantar o teto de aderencia (subir o teto foi medido e revertido: derrapar passava a CUSTAR 1,43 s por volta)",
     "Teto geometrico de giro: nenhum kart gira mais rapido que velocidade / raio minimo, porque o teto do pneu cresce como 1/v e a 13 km/h ele pedia 6,6 rad/s - o kart rodopiava no lugar ao apertar o gatilho na largada",
     "Nove adversarios com estilo de linha proprio: dez karts na mesma linha ideal viravam uma fila de batidas (146 dos 278 contatos nos primeiros 20 s), e ninguem ataca a linha com kart a menos de 6 m",
+    "Fora da pista a IA volta dirigindo, e nao por teleporte: olhada curta (quase perpendicular quando esta longe) e teto de velocidade que cai com a distancia da borda, porque a grama da 0,64 g e a 43 km/h o raio minimo e 23 m",
     "Volta conta mesmo suja: contagem e cronometragem separadas, porque kart recolocado uma vez por volta nunca registrava volta - cruzava a linha duas vezes e terminava com zero",
     "Render 3D em WebGL2 escrito a mao - sem biblioteca, sem modelo, sem textura em disco: a fita da pista sai da mesma lista de numeros que a fisica usa",
     "36 provas sem navegador, incluindo uma que carrega a casca inteira com uma tela de mentira - o arquivo que fala com a tela era o unico que nenhuma prova tocava"

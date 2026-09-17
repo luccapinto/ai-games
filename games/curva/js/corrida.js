@@ -342,7 +342,16 @@ function recolocar(corrida, carro, sup, eventos, dt) {
     * Math.cos(c0.ang)
     + (carro.vx * Math.sin(carro.ang) + carro.vy * Math.cos(carro.ang)) * Math.sin(c0.ang);
   const naContramao = aoLongo < -1.5;
-  if (devagar || foraDoAsfalto || naContramao) carro.atolado += dt;
+  // Fora do asfalto, a paciencia so corre para quem NAO esta voltando. Kart que
+  // diminui a distancia lateral ate a pista esta se resolvendo sozinho, e
+  // teleportar quem esta voltando troca corrida por telefone — era a maior parte
+  // das recolocacoes de uma corrida de pelotao. Parado e contramao continuam
+  // contando sempre: esses dois nao se resolvem com tempo.
+  const distanciaDaBorda = Math.abs(sup.lateral) - c0.largura / 2;
+  const voltando = carro.foraAntes !== undefined
+    && distanciaDaBorda < carro.foraAntes - 0.02;
+  carro.foraAntes = distanciaDaBorda;
+  if (devagar || naContramao || (foraDoAsfalto && !voltando)) carro.atolado += dt;
   else carro.atolado = 0;
   if (carro.atolado < PACIENCIA) return;
 
