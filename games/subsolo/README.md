@@ -103,6 +103,28 @@ A forja multiplica dano por 2,6 e pente por 1,6. A prova cobra que a rodada 25
 forjada — sem isso o jogo teria um teto invisível, e o jogador perderia sem
 entender por quê.
 
+### O que cada compra abre, medido
+
+Tudo acima da rodada 10 era alegação de projeto: o robô morre entre a 7 e a 10
+aprendendo o mapa, então rodada 15 e 20 nunca tinham sido jogadas por ninguém.
+Três provas novas montam o jogador que **chegou lá** — zonas abertas, força
+ligada, carabina na mão — e medem o que cada compra vale:
+
+| rodada | kit | até onde vai | tempo |
+| --- | --- | --- | --- |
+| 10 | nada | morre na 10 | 65 s |
+| 10 | três perks | **rodada 20** | 446 s |
+| 15 | três perks | morre na 15 | 54 s |
+| 15 | forja + três perks | **rodada 21** | 251 s |
+| 20 | forja + três perks | morre na 20 | 55 s |
+
+Duas conclusões honestas. A primeira confirma o projeto: **a forja é o que abre
+a rodada 15** - sem ela, três perks não compram um minuto. A segunda corrige o
+texto antigo: o teto conhecido é a **rodada 20**, e não a 25. Na 20 são 34
+zumbis de 2.994 de vida, 101 mil no total, contra 106 mil que a reserva inteira
+da carabina forjada entrega se nenhum tiro errar. É fino de propósito - e a
+rodada 25 é território de quem joga melhor do que este robô.
+
 ## O que dá o tom
 
 **A luz é a decisão de render mais importante.** Três fontes, calculadas por
@@ -139,10 +161,30 @@ horda subindo o gradiente de distância da horda, mira na cabeça com erro
 proporcional à distância, e compra numa ordem: força, munição, arma, CALDO,
 TALISMA, vão, forja, resto.
 
-Em seis partidas (dois mapas, três sementes) ele atravessa **cinco rodadas em
-todas** e chega à **oitava na melhor**, abrindo pelo menos duas portas, com 62%
-a 77% das mortes na cabeça. Gente chega mais longe — ele mede se o jogo é
-jogável, não se ele é bom.
+Em seis partidas (dois mapas, três sementes) ele atravessa **sete rodadas em
+todas** e chega à **décima em três**, abrindo até quatro portas e comprando um
+perk por partida em média. Quatro consertos saíram de medir como ele morre:
+
+- **fuga com horizonte.** Ele escolhia a célula vizinha mais longe da horda -
+  subir o morro de olhos fechados. Num corredor sem saída a melhor vizinha é
+  justamente a que entra no fundo dele, e foi assim que ele morreu cercado com
+  10 a 14 zumbis vivos em quatro partidas medidas. Agora a escolha é uma busca
+  em largura de 16 células, com a distância da horda como nota e o caminho
+  andado como preço: o anel do mapa passa a ser usado como anel.
+- **recarregar andando.** Ele foi derrubado *recarregando* com quatro zumbis
+  colados. Enquanto a arma está fora de combate, o limite de aperto dobra.
+- **distância de trabalho medida.** Varredura de seis partidas por valor:
+  2,2 m dá rodada média 8,3; **3,2 m dá 9,0**; 4,2 dá 8,7; 5,2 dá 8,3. Perto
+  demais leva mordida, longe demais não mata e a rodada não fecha.
+- **comprar no meio da rodada.** Da rodada 7 em diante nunca mais existe um
+  momento calmo: ele queria o TALISMÃ por 4.420 quadros seguidos e nunca
+  chegava nele, porque compra só acontecia fora de combate. Agora ele arrasta a
+  horda **na direção da máquina** e aperta quando ela está ao alcance - o que é
+  exatamente o que um jogador faz.
+
+Virar o corpo e correr de verdade foi medido e é **pior** (rodada média 6,7
+contra 8,8): quem para de matar nunca fecha a rodada, e a horda só cresce. Fuga
+neste jogo é reposicionamento com o dedo no gatilho.
 
 Defeitos reais que as provas acharam, e que estariam no jogo sem elas:
 

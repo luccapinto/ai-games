@@ -77,7 +77,11 @@ export function criarRobo(opcoes = {}) {
     // 7 graus de erro, o que erra cabeca de vez em quando.
     erroDeMira: opcoes.erroDeMira ?? 0.012,
     // Distancia em que ele decide arrastar em vez de ficar parado atirando.
-    apertoEm: opcoes.apertoEm ?? 4.5,
+    // 3,2 saiu de varredura com seis partidas por valor, com a retirada durante
+    // a recarga ja ligada: 2,2 -> rodada media 8,3; 3,2 -> 9,0; 4,2 -> 8,7;
+    // 5,2 -> 8,3. Perto demais ele leva mordida, longe demais ele nao mata e a
+    // rodada nunca fecha.
+    apertoEm: opcoes.apertoEm ?? 3.2,
     compras: [],
     alvoDeCompra: null,
     relogioDeCompra: 0,
@@ -165,6 +169,79 @@ function proximaCompra(jogo, robo) {
 // Exposta so para diagnostico: as provas nao dependem dela.
 export function __proximaCompra(jogo, robo) { return proximaCompra(jogo, robo); }
 
+// Destino de fuga, com horizonte. A versao anterior escolhia a CELULA VIZINHA
+// mais longe da horda — subir o morro de olhos fechados. Num corredor sem saida
+// a melhor vizinha e justamente a que entra no fundo dele, e foi assim que o
+// robo morreu cercado com 10 a 14 zumbis vivos nas rodadas 6 a 9 em quatro
+// partidas medidas.
+//
+// O mapa e um anel de proposito, e fugir e correr NO anel: para isso a escolha
+// precisa ver alguns metros adiante. Busca em largura a partir do jogador ate
+// `PASSOS_DE_FUGA` celulas; a nota de cada celula e a distancia dela ate a horda
+// menos o preco de andar ate la. Celula colada em zumbi nao entra.
+const PASSOS_DE_FUGA = 16;
+const PRECO_DO_PASSO = 0.45;
+// Peso da compra na escolha de para onde arrastar. Baixo de proposito: seguranca
+// primeiro, e a compra so decide entre celulas parecidas.
+const PESO_DA_ATRACAO = 0.22;
+
+function andavel(m, cx, cy) {
+  if (cx < 0 || cy < 0 || cx >= m.largura || cy >= m.altura) return false;
+  const t = tile(m, cx, cy);
+  if (t === T.PORTA) {
+    const porta = m.portas.get(chave(cx, cy));
+    return !!porta && porta.aberta;
+  }
+  return t < T.ROCHA;
+}
+
+function destinoDeFuga(jogo, campo, atracao) {
+  const m = jogo.mapa;
+  const largura = m.largura;
+  const inicio = Math.floor(jogo.jogador.y) * largura + Math.floor(jogo.jogador.x);
+  const passos = new Int32Array(largura * m.altura).fill(-1);
+  passos[inicio] = 0;
+  const fila = [inicio];
+  let melhorCelula = -1;
+  let melhorNota = -Infinity;
+  let cabeca = 0;
+  while (cabeca < fila.length) {
+    const i = fila[cabeca++];
+    const x = i % largura;
+    const y = (i - x) / largura;
+    const daHorda = campo[i];
+    if (daHorda >= 0) {
+      // Atracao: quando existe algo para comprar, arrastar PARA O LADO da
+      // maquina vale nota. E o que um jogador faz — ele nao para de fugir para
+      // ir comprar, ele foge na direcao da compra. Sem isto o robo passava a
+      // partida inteira querendo o talisma (4.420 quadros medidos) e nunca
+      // chegava nele, porque da rodada 7 em diante nunca mais existe um momento
+      // calmo para atravessar o mapa.
+      let nota = daHorda - passos[i] * PRECO_DO_PASSO;
+      if (atracao) {
+        nota -= Math.hypot(x + 0.5 - atracao.x, y + 0.5 - atracao.y) * PESO_DA_ATRACAO;
+      }
+      if (nota > melhorNota) { melhorNota = nota; melhorCelula = i; }
+    }
+    if (passos[i] >= PASSOS_DE_FUGA) continue;
+    for (const [dx, dy] of VIZINHOS) {
+      const nx = x + dx;
+      const ny = y + dy;
+      if (!andavel(m, nx, ny)) continue;
+      const k = ny * largura + nx;
+      if (passos[k] !== -1) continue;
+      // Nao atravessa a horda para fugir dela: celula a menos de duas de um
+      // zumbi esta dentro do alcance de mordida do proximo segundo.
+      if (campo[k] >= 0 && campo[k] < 2) continue;
+      passos[k] = passos[i] + 1;
+      fila.push(k);
+    }
+  }
+  if (melhorCelula < 0) return null;
+  const x = melhorCelula % largura;
+  return { x: x + 0.5, y: (melhorCelula - x) / largura + 0.5 };
+}
+
 // Um passo do robo: devolve os comandos que ele mandaria.
 export function passoDoRobo(jogo, robo, dt) {
   const j = jogo.jogador;
@@ -232,22 +309,46 @@ export function passoDoRobo(jogo, robo, dt) {
     const rumo = Math.atan2(z.y - j.y, z.x - j.x);
     cercado += Math.abs(Math.atan2(Math.sin(rumo - j.ang), Math.cos(rumo - j.ang))) > 1.2 ? 2 : 1;
   }
-  const apertado = menor < robo.apertoEm || cercado >= 5;
+  // Recarregando com a horda perto, nao existe motivo para ficar: o robo foi
+  // derrubado RECARREGANDO com quatro zumbis colados na rodada 9, e recarregar
+  // andando e o que qualquer jogador faz. Enquanto a arma esta fora de combate,
+  // o limite de aperto dobra.
+  const recarregandoAgora = arma.recarregando > 0;
+  const limiteDeAperto = recarregandoAgora ? robo.apertoEm * 2 : robo.apertoEm;
+  const apertado = menor < limiteDeAperto || cercado >= 5;
   if (apertado && vivos.length) {
     const campo = campoDaHorda(jogo);
-    let melhor = null;
-    let melhorValor = distanciaNaCelula(jogo.mapa, campo, j.x, j.y);
-    for (const [dx, dy] of VIZINHOS) {
-      const nx = j.x + dx * 1.05;
-      const ny = j.y + dy * 1.05;
-      if (solidoParaTiro(jogo.mapa, nx, ny)) continue;
-      const valor = distanciaNaCelula(jogo.mapa, campo, nx, ny);
-      if (valor > melhorValor) { melhorValor = valor; melhor = { x: nx, y: ny }; }
+    const compra = proximaCompra(jogo, robo);
+    // Comprar no meio da rodada, se a maquina esta ao alcance e a horda nao esta
+    // colada. Antes a compra acontecia so no ramo calmo, e a partir da rodada 7
+    // o ramo calmo nunca mais roda: o robo morria com pontos no bolso e sem
+    // perk, o que era exatamente o defeito que ele existe para achar.
+    if (compra && menor > 2.5) {
+      const daMaquina = Math.hypot(compra.maquina.x - j.x, compra.maquina.y - j.y);
+      if (daMaquina < CONFIG.alcanceDeUso * 0.8) {
+        robo.relogioDeCompra -= dt;
+        if (robo.relogioDeCompra <= 0) {
+          comandos.usar = true;
+          robo.relogioDeCompra = 0.5;
+        }
+      }
     }
+    const melhor = destinoDeFuga(jogo, campo, compra ? compra.maquina : null);
     if (melhor) {
+      // Duas fugas diferentes, e a diferenca e a que um jogador faz sem pensar:
+      //
+      // - com zumbi colado (menos de `COLADO` metros) nao da para andar de
+      //   costas atirando: de re o jogador faz 3,4 m/s e o zumbi da rodada 15
+      //   faz 3,6. Ele VIRA o corpo e corre, abre a distancia, e so depois
+      //   volta a atirar. Sem isto o robo morria de costas com dez zumbis
+      //   vivos, e as rodadas acima da 10 nunca foram medidas por ninguem.
+      // - com a horda a alguns metros, anda de lado atirando, que e o que
+      //   mantem a rodada fechando.
+      // Anda de lado atirando, e nao de costas em silencio: virar o corpo para
+      // correr foi medido e e PIOR (media de rodada 6,7 contra 8,2 em seis
+      // partidas), porque quem para de matar nunca fecha a rodada e a horda so
+      // cresce. Fuga aqui e reposicionamento com o dedo no gatilho.
       andarPara(jogo, comandos, melhor, true);
-      // Atira andando, como um jogador faz. Cortar o tiro durante a fuga fazia
-      // o robo passar a rodada inteira correndo sem matar ninguem.
       if (alvo && menor < arma.alcance * 0.85 && arma.recarregando <= 0) {
         comandos.atirar = true;
       }

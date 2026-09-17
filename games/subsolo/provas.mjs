@@ -25,8 +25,8 @@ import {
   composicaoDaRodada, RODADA_DO_CHEFE, RODADA_DOS_RASTEJANTES, TIPOS,
 } from './js/rodadas.js';
 import {
-  ARMAS, equipar, forjar, danoPorSegundo, danoPorSegundoNaCabeca, danoNaDistancia,
-  paredeNaLinha, tracar, custoDaMunicao,
+  ARMAS, equipar, equiparForjada, forjar, danoPorSegundo, danoPorSegundoNaCabeca,
+  danoNaDistancia, paredeNaLinha, tracar, custoDaMunicao,
 } from './js/armas.js';
 import {
   criarJogo, passo, armaNaMao, alvoDeUso, textoDoAlvo, zumbisVivos,
@@ -34,7 +34,7 @@ import {
 } from './js/jogo.js';
 import { criarZumbi, ferir, comoAlvo } from './js/zumbis.js';
 import { giroDoMouse, inclinacaoDoMouse, comandosDeTeclas } from './js/entrada.js';
-import { jogarAte } from './js/robo.js';
+import { jogarAte, criarRobo, passoDoRobo } from './js/robo.js';
 
 let feitas = 0;
 const falhas = [];
@@ -800,6 +800,88 @@ for (const p of partidas) {
     + `${String(p.estatisticas.portasAbertas).padStart(8)}`
     + `${(p.forcaLigada ? '  sim' : '  nao').padStart(7)}`);
 }
+
+// ------------------------------------------- a escada do jogo tardio
+//
+// Tudo acima da rodada 10 era alegacao de projeto e nada mais: o robo morre
+// entre a 7 e a 10 aprendendo o mapa, entao rodada 15, 20 e 25 nunca tinham sido
+// jogadas por ninguem. Estas provas montam o jogador que CHEGOU lá — zonas
+// abertas, forca ligada, carabina na mao — e medem o que cada compra abre. Nao e
+// mock: e o mesmo jogo, o mesmo robo e os mesmos comandos, com o estado que uma
+// partida longa produz.
+
+function jogadorEquipado(rodada, { forjada = false, perks = [] } = {}) {
+  const jogo = criarJogo(1, { semente: 11, semPreparo: true, rodada });
+  for (const zona of jogo.mapa.zonas) zona.aberta = true;
+  for (const porta of jogo.mapa.portas.values()) porta.aberta = true;
+  jogo.forcaLigada = true;
+  const j = jogo.jogador;
+  j.armas[1] = forjada ? equiparForjada('carabina') : equipar('carabina');
+  j.naMao = 1;
+  for (const perk of perks) j.perks.add(perk);
+  if (perks.includes('caldo')) {
+    j.vidaMaxima = CONFIG.vidaMaxima * 2;
+    j.vida = j.vidaMaxima;
+  }
+  j.pontos = 20000;
+  return jogo;
+}
+
+function aguentar(jogo, segundosLimite = 60 * 20) {
+  const robo = criarRobo();
+  const inicio = jogo.rodada;
+  while (jogo.estado !== 'morto' && jogo.tempo < segundosLimite) {
+    passo(jogo, passoDoRobo(jogo, robo, DT), DT);
+  }
+  return {
+    de: inicio,
+    ate: jogo.rodada,
+    segundos: jogo.tempo,
+    abates: jogo.estatisticas.mortes,
+  };
+}
+
+prova('perk e o que abre a rodada 10', () => {
+  // Rodada 10 e o primeiro degrau: 34 zumbis de 1.055 de vida a 3 m/s. Com cem
+  // de vida e nenhum perk o robo nao passa dela; com tres perks ele atravessa
+  // dez rodadas. Nao e conforto: e o que faz a rodada existir.
+  const cru = aguentar(jogadorEquipado(10));
+  const comPerks = aguentar(jogadorEquipado(10, { perks: ['caldo', 'gatilho', 'graxa'] }));
+  igual(cru.ate, 10, `sem perk o robo passou da rodada 10 (chegou na ${cru.ate})`);
+  ok(comPerks.ate >= 14,
+    `com tres perks o robo so chegou na rodada ${comPerks.ate} (queria 14 ou mais)`);
+  ok(comPerks.segundos > cru.segundos * 3,
+    `tres perks renderam ${comPerks.segundos.toFixed(0)} s contra ${cru.segundos.toFixed(0)} s crus`);
+});
+
+prova('a forja e o que abre a rodada 15', () => {
+  // A alegacao de projeto era esta, e ela nunca tinha sido medida: "o
+  // multiplicador da forja e alto de proposito, e ele que decide se a rodada 25
+  // e possivel". Medido: na rodada 15 (34 zumbis de 1.777), tres perks sem forja
+  // duram menos de um minuto; com forja, o robo atravessa seis rodadas.
+  const semForja = aguentar(jogadorEquipado(15, { perks: ['caldo', 'gatilho', 'graxa'] }));
+  const comForja = aguentar(jogadorEquipado(15, { forjada: true, perks: ['caldo', 'gatilho', 'graxa'] }));
+  igual(semForja.ate, 15, `sem forja o robo passou da rodada 15 (chegou na ${semForja.ate})`);
+  ok(comForja.ate >= 18,
+    `com forja o robo so chegou na rodada ${comForja.ate} (queria 18 ou mais)`);
+  ok(comForja.abates > semForja.abates * 5,
+    `forja rendeu ${comForja.abates} abates contra ${semForja.abates}`);
+});
+
+prova('a rodada 20 e o teto conhecido, e esta escrito', () => {
+  // Honestidade sobre o topo: com kit cheio — forja e tres perks — o robo morre
+  // NA rodada 20, em menos de dois minutos, depois de abater umas duas dezenas.
+  // A rodada 20 tem 34 zumbis de 2.994 de vida a 4,1 m/s: 101 mil de vida contra
+  // 106 mil que a carabina forjada entrega com a reserva inteira, sem errar um
+  // tiro. E fino de proposito, e este e o numero real — nao a rodada 25 do
+  // texto antigo. Rodada 25 e territorio de quem joga melhor que este robo.
+  const kitCheio = aguentar(jogadorEquipado(20, { forjada: true, perks: ['caldo', 'gatilho', 'graxa'] }));
+  igual(kitCheio.de, 20, 'o cenario nao comecou na rodada 20');
+  ok(kitCheio.abates >= 15,
+    `na rodada 20 com kit cheio o robo abateu so ${kitCheio.abates}`);
+  ok(kitCheio.ate <= 21,
+    `o robo passou da rodada 21 com kit cheio (chegou na ${kitCheio.ate}): o teto mudou, o texto tem de mudar`);
+});
 
 // ------------------------------------------------------- a casca do jogo
 //

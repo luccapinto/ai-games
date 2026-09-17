@@ -19,7 +19,7 @@ wrote it, the agent that drove it, and the tokens it burned.*
 | Jogo | Gênero | Quem fez | Modelo | Tokens novos | Custo | Jogar |
 | --- | --- | --- | --- | --- | --- | --- |
 | **TRAVESSIA** [`travessia`](games/travessia/README.md) | Mundo aberto | Lucca Pinto | claude-opus-5 | 103,0 k | US$ 1,54 | [jogar](https://luccapinto.github.io/ai-games/games/travessia/) |
-| **SUBSOLO** [`subsolo`](games/subsolo/README.md) | FPS de rodadas | Lucca Pinto | claude-opus-5 | 623,0 k | US$ 8,30 | [jogar](https://luccapinto.github.io/ai-games/games/subsolo/) |
+| **SUBSOLO** [`subsolo`](games/subsolo/README.md) | FPS de rodadas | Lucca Pinto | claude-opus-5 | 673,0 k | US$ 8,30 | [jogar](https://luccapinto.github.io/ai-games/games/subsolo/) |
 | **CURVA** [`curva`](games/curva/README.md) | Kart 3D | Lucca Pinto | claude-opus-5 | 441,0 k | US$ 5,31 | [jogar](https://luccapinto.github.io/ai-games/games/curva/) |
 | **SEIVA** [`seiva`](games/seiva/README.md) | Defesa de torre | Lucca Pinto | claude-opus-5 | 70,0 k | US$ 1,05 | [jogar](https://luccapinto.github.io/ai-games/games/seiva/) |
 | **PROCESSO** [`processo`](games/processo/README.md) | Cartas com construção de baralho | Lucca Pinto | claude-opus-5 | 44,0 k | US$ 0,66 | [jogar](https://luccapinto.github.io/ai-games/games/processo/) |
@@ -127,6 +127,7 @@ O que tem dentro:
 - A luz e a decisao de render, nao a geometria: lanterna conica presa na camera, as oito lampadas mais proximas da planta (as mesmas que o mapa usa para decidir o que esta iluminado) e o clarao do cano como luz de verdade por 60 ms — e o clarao que mostra o corredor no escuro
 - Rocha sem textura de arquivo: o fragmento sombreia por ruido de posicao de mundo em duas escalas, e as quinas tem oclusao por vertice, porque numa mina sem sol quina escura e a unica pista de forma quando a lanterna aponta para outro lado
 - O anel do mapa e requisito de projeto e prova numerica: a maior volta da BOCA DA MINA tem 216 celulas e cruza as quatro zonas. Mapa de horda sem volta e mapa onde a rodada 12 mata todo mundo no mesmo canto, sempre
+- Escada do jogo tardio medida, e nao afirmada: tres perks levam a rodada 10 ate a 20; a forja leva a rodada 15 ate a 21; e com kit cheio a rodada 20 e o teto conhecido - a rodada 25 do texto antigo nao se sustentou na medida
 - Porta e VAO de tres celulas, cobrado uma vez, e isso foi um defeito achado por prova: com vao de uma celula, o zumbi de 0,45 de raio tinha 0,1 de largura livre para o centro e ficava vibrando na quina — a rodada nunca fechava
 - Uso tem travamento de 0,6 s, e isso foi o defeito mais caro: sem ele, segurar a tecla comprava municao sessenta vezes por segundo, e o robo morreu na rodada 7 com 11.240 pontos e o mapa fechado
 - Nenhuma arma domina todos os eixos, e a prova cobra isso comparando dano de perto, dano de cabeca a 18 m, pente e preco: enquanto a tabela comparava so dano de corpo, a pineira dominava a carabina e a escolha de arma nao existia
@@ -134,7 +135,7 @@ O que tem dentro:
 - O capataz nao e um zumbi com mais vida: blindagem que corta 45% do dano de corpo e nada do dano de cabeca, entao rajada no peito nao resolve e mira resolve
 
 - **Quem fez:** Lucca Pinto
-- **Modelo:** claude-opus-5 via Anthropic, dirigido por Oh My Pi — 623,0 k tokens novos, 0 de cache, 455 chamadas, US$ 8,30
+- **Modelo:** claude-opus-5 via Anthropic, dirigido por Oh My Pi — 673,0 k tokens novos, 0 de cache, 496 chamadas, US$ 8,30
 - **Custo total:** US$ 8,30 (estimado)
 - **Tamanho:** 6.568 linhas de código próprio, 0,4 MB
 - **Pasta:** [`games/subsolo/`](games/subsolo/README.md)
