@@ -138,6 +138,13 @@ function laco(agora) {
     if (entrada.consumir('pausa')) mostrar('pausa');
     if (entrada.consumir('reiniciar')) comecar(corrida.indicePista, { voltas: corrida.voltas });
     if (entrada.consumir('camera')) cockpit = !cockpit;
+    // Rede de seguranca: se a corrida terminou e a tela nao trocou, troca. O
+    // evento de fim ja faz isso; este ramo existe porque a versao anterior
+    // ouvia um nome de evento que nao existe ('terminada' em vez de 'fim') e o
+    // jogo congelava na ultima volta, com o mundo parado e nenhuma tela.
+    if (corrida.estado === 'terminada' && estado === 'corrida') {
+      terminar(corrida.classificacao);
+    }
     if (estado === 'corrida') {
       atualizarMotor(corrida.carros[0], corrida.carros[0].superficie);
       render.desenhar(corrida, dt, { cockpit });
@@ -183,7 +190,7 @@ function tratar(evento) {
     case 'recolocado':
       if (evento.carro === eu.nome) aviso('DE VOLTA NA PISTA');
       break;
-    case 'terminada':
+    case 'fim':
       terminar(evento.classificacao);
       break;
     default:
