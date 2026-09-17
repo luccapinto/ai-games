@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CURVA</title>
+<meta name="description" content="Corrida de cima com fisica de verdade: angulo de deriva, transferencia de peso, pneu que gasta e uma IA que le a mesma linha de corrida que o jogo calcula.">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="palco">
+  <canvas id="tela" width="960" height="600" aria-label="CURVA, jogo de corrida visto de cima"></canvas>
+
+  <div id="hud" aria-hidden="true">
+    <div class="bloco canto-esquerdo">
+      <div class="linha-hud"><span>POS</span><b id="hud-pos">1/10</b></div>
+      <div class="linha-hud"><span>VOLTA</span><b id="hud-volta">1/5</b></div>
+      <div class="linha-hud"><span>TEMPO</span><b id="hud-tempo">0:00.00</b></div>
+      <div class="linha-hud"><span>ÚLTIMA</span><b id="hud-ultima">--:--</b></div>
+      <div class="linha-hud"><span>MELHOR</span><b id="hud-melhor">--:--</b></div>
+    </div>
+
+    <ol id="hud-ordem" class="ordem"></ol>
+
+    <div class="bloco canto-direito">
+      <div class="velocimetro">
+        <b id="hud-vel">0</b><span>km/h</span>
+        <i id="hud-marcha">1</i>
+      </div>
+      <div class="barra giro"><i id="hud-giro"></i></div>
+      <div class="medida"><span>PNEU</span><div class="barra"><i id="hud-pneu"></i></div></div>
+      <div class="medida"><span>GÁS</span><div class="barra"><i id="hud-gas"></i></div></div>
+    </div>
+
+    <canvas id="mapa" width="200" height="200"></canvas>
+    <div id="hud-superficie" class="alerta"></div>
+    <div id="hud-luz" class="luz oculto">3</div>
+    <div id="aviso" class="oculto"></div>
+  </div>
+
+  <section id="menu" class="cortina">
+    <h1>CURVA</h1>
+    <p class="linha">Seis pistas, nove adversários e um carro de tração traseira que
+      gasta pneu. A linha de corrida não foi desenhada à mão: ela é calculada
+      minimizando o tempo de volta, e a IA lê a mesma linha.</p>
+
+    <div class="colunas">
+      <table class="controles">
+        <tr><th>acelerar</th><td><kbd>W</kbd> ou <kbd>&uarr;</kbd></td></tr>
+        <tr><th>frear</th><td><kbd>S</kbd> ou <kbd>&darr;</kbd></td></tr>
+        <tr><th>virar</th><td><kbd>A</kbd> <kbd>D</kbd> ou <kbd>&larr;</kbd> <kbd>&rarr;</kbd></td></tr>
+        <tr><th>freio de mão</th><td><kbd>espaço</kbd></td></tr>
+        <tr><th>ver a linha ideal</th><td><kbd>L</kbd></td></tr>
+        <tr><th>câmera fixa</th><td><kbd>N</kbd></td></tr>
+        <tr><th>recomeçar</th><td><kbd>R</kbd></td></tr>
+        <tr><th>pausar</th><td><kbd>P</kbd> ou <kbd>esc</kbd></td></tr>
+      </table>
+      <table class="controles" id="ficha"></table>
+    </div>
+
+    <p class="linha regra">O pneu gasta mais quando escorrega, e pneu gasto perde
+      18% de aderência. Passar devagar pelo retângulo amarelo da reta principal
+      é entrar no box: troca de pneu e tanque cheio por três segundos e meio.</p>
+
+    <div id="pistas" class="pistas"></div>
+    <button id="menu-campeonato" class="botao">CAMPEONATO — SEIS ETAPAS</button>
+    <button id="som" class="botao secundario">SOM: LIGADO</button>
+    <p class="rodape">No celular os controles aparecem na tela.</p>
+  </section>
+
+  <section id="pausa" class="cortina oculto">
+    <h2>PAUSA</h2>
+    <button id="pausa-voltar" class="botao">CONTINUAR</button>
+    <button id="pausa-reiniciar" class="botao secundario">RECOMEÇAR A CORRIDA</button>
+    <button id="pausa-menu" class="botao secundario">SAIR PARA O MENU</button>
+  </section>
+
+  <section id="resultado" class="cortina oculto">
+    <h2 id="resultado-titulo">RESULTADO</h2>
+    <table class="classificacao">
+      <thead><tr><th>#</th><th>piloto</th><th>voltas</th><th>melhor</th><th>box</th><th>pts</th></tr></thead>
+      <tbody id="resultado-lista"></tbody>
+    </table>
+    <button id="resultado-seguir" class="botao oculto">PRÓXIMA ETAPA</button>
+    <button id="resultado-menu" class="botao secundario">MENU</button>
+  </section>
+
+  <section id="tabela" class="cortina oculto">
+    <h2 id="tabela-titulo">CAMPEONATO</h2>
+    <table class="classificacao">
+      <thead><tr><th>#</th><th>piloto</th><th>pontos</th><th>vitórias</th></tr></thead>
+      <tbody id="tabela-lista"></tbody>
+    </table>
+    <button id="tabela-menu" class="botao">MENU</button>
+  </section>
+
+  <div id="toque" aria-hidden="true">
+    <button class="pedal" data-controle="esquerda">&larr;</button>
+    <button class="pedal" data-controle="direita">&rarr;</button>
+    <button class="pedal freio" data-controle="frear">FREIO</button>
+    <button class="pedal gas" data-controle="acelerar">GÁS</button>
+  </div>
+</div>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
