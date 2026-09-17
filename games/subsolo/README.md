@@ -107,23 +107,31 @@ entender por quê.
 
 Tudo acima da rodada 10 era alegação de projeto: o robô morre entre a 7 e a 10
 aprendendo o mapa, então rodada 15 e 20 nunca tinham sido jogadas por ninguém.
-Três provas novas montam o jogador que **chegou lá** — zonas abertas, força
-ligada, carabina na mão — e medem o que cada compra vale:
+Três provas montam o jogador que **chegou lá** - zonas abertas, força ligada,
+carabina na mão - e medem o que cada compra vale. A comparação começa na rodada
+10 de propósito: comparar kits exige a mesma situação inicial.
 
-| rodada | kit | até onde vai | tempo |
-| --- | --- | --- | --- |
-| 10 | nada | morre na 10 | 65 s |
-| 10 | três perks | **rodada 20** | 446 s |
-| 15 | três perks | morre na 15 | 54 s |
-| 15 | forja + três perks | **rodada 21** | 251 s |
-| 20 | forja + três perks | morre na 20 | 55 s |
+| kit na rodada 10 | até onde vai | tempo |
+| --- | --- | --- |
+| nada | morre na 10 | 58 s |
+| três perks | morre na 10 | 53 s |
+| **forja + três perks** | **rodada 15 a 23** (três sementes de mira) | 233 a 491 s |
 
-Duas conclusões honestas. A primeira confirma o projeto: **a forja é o que abre
-a rodada 15** - sem ela, três perks não compram um minuto. A segunda corrige o
-texto antigo: o teto conhecido é a **rodada 20**, e não a 25. Na 20 são 34
-zumbis de 2.994 de vida, 101 mil no total, contra 106 mil que a reserva inteira
-da carabina forjada entrega se nenhum tiro errar. É fino de propósito - e a
-rodada 25 é território de quem joga melhor do que este robô.
+**A forja é o que abre o jogo tardio, e perk nenhum substitui ela.** Perk compra
+vida e cadência; o que falta na rodada 10 é *dano por tiro* contra 34 zumbis de
+1.055 de vida. É exatamente o que o projeto afirmava sobre o multiplicador de
+2,6 - e agora está medido em vez de afirmado.
+
+Nascer **dentro** da rodada 15 ou 20, com a horda inteira em cima e sem posição
+no anel, dá cerca de um minuto com qualquer kit: a diferença aparece em quantos
+caem antes, e só. Isso é limite do cenário, não teto do jogo, e tem prova
+própria para ninguém confundir as duas coisas.
+
+> Correção honesta: a primeira versão desta tabela dizia que três perks levavam
+> a rodada 10 até a 20, e que o teto era a rodada 20. Os dois números saíram de
+> um robô cuja mira usava `Math.random`: a mesma prova dava resultado diferente
+> a cada execução, e uma delas reprovou em `main`. Com o sorteio do robô semeado,
+> três execuções dão exatamente o mesmo resultado - e o resultado é este.
 
 ## O que dá o tom
 

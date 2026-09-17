@@ -30,7 +30,7 @@ export const ALTURA_DO_CHEFE = 2.25;
 
 let proximoId = 1;
 
-export function criarZumbi(tipo, rodada, janela) {
+export function criarZumbi(tipo, rodada, janela, sorteio = Math.random) {
   const base = TIPOS[tipo];
   const vida = vidaDoTipo(tipo, rodada);
   return {
@@ -53,7 +53,11 @@ export function criarZumbi(tipo, rodada, janela) {
     relogioMordida: 0,
     // Fase de caminhada, para o render animar os membros sem precisar de
     // esqueleto: e a mesma fase que o som de passo usaria.
-    passo: Math.random() * Math.PI * 2,
+    // Fase do passo e tempo de rosnado saem do sorteio DO JOGO quando ele e
+    // passado: a mesma semente tem de dar a mesma partida, senao a prova do robo
+    // nao vale nada — e nao valia, uma prova do jogo tardio reprovava uma vez a
+    // cada tres execucoes.
+    passo: sorteio() * Math.PI * 2,
     // Dano por regiao, para o render mostrar o estrago e para a transicao para
     // rastejante ter causa: levar muito dano nas pernas derruba.
     danoNasPernas: 0,
@@ -161,7 +165,7 @@ export function passoDoZumbi(z, ctx, dt) {
       mover(ctx.mapa, z, (ax / d) * v, (ay / d) * v, z.raio);
       z.passo += v * 3.4;
       if (z.rosnadoEm <= 0 && distancia < 12) {
-        z.rosnadoEm = 2.5 + Math.random() * 3;
+        z.rosnadoEm = 2.5 + (ctx.sorteio ? ctx.sorteio() : Math.random()) * 3;
         eventos.push({ tipo: 'rosnado', zumbi: z, distancia });
       }
       break;

@@ -827,8 +827,8 @@ function jogadorEquipado(rodada, { forjada = false, perks = [] } = {}) {
   return jogo;
 }
 
-function aguentar(jogo, segundosLimite = 60 * 20) {
-  const robo = criarRobo();
+function aguentar(jogo, segundosLimite = 60 * 20, semente = 20260917) {
+  const robo = criarRobo({ semente });
   const inicio = jogo.rodada;
   while (jogo.estado !== 'morto' && jogo.tempo < segundosLimite) {
     passo(jogo, passoDoRobo(jogo, robo, DT), DT);
@@ -841,46 +841,57 @@ function aguentar(jogo, segundosLimite = 60 * 20) {
   };
 }
 
-prova('perk e o que abre a rodada 10', () => {
-  // Rodada 10 e o primeiro degrau: 34 zumbis de 1.055 de vida a 3 m/s. Com cem
-  // de vida e nenhum perk o robo nao passa dela; com tres perks ele atravessa
-  // dez rodadas. Nao e conforto: e o que faz a rodada existir.
+prova('sem forja, a rodada 10 e o teto — e perk nenhum muda isso', () => {
+  // Medida honesta, e ela corrige o que eu mesmo escrevi antes de semear o
+  // sorteio do robo: com a mira usando `Math.random`, a mesma prova dava
+  // resultados diferentes e eu tinha anotado que "tres perks levam a rodada 10
+  // ate a 20". Com o robo deterministico, nao levam: cru e com tres perks o
+  // robo morre NA rodada 10 em pouco menos de um minuto, nos dois casos.
+  //
+  // Perk compra vida e cadencia; o que falta na rodada 10 e DANO POR TIRO
+  // contra 34 zumbis de 1.055 de vida.
   const cru = aguentar(jogadorEquipado(10));
   const comPerks = aguentar(jogadorEquipado(10, { perks: ['caldo', 'gatilho', 'graxa'] }));
-  igual(cru.ate, 10, `sem perk o robo passou da rodada 10 (chegou na ${cru.ate})`);
-  ok(comPerks.ate >= 14,
-    `com tres perks o robo so chegou na rodada ${comPerks.ate} (queria 14 ou mais)`);
-  ok(comPerks.segundos > cru.segundos * 3,
-    `tres perks renderam ${comPerks.segundos.toFixed(0)} s contra ${cru.segundos.toFixed(0)} s crus`);
+  igual(cru.ate, 10, `sem nada o robo passou da rodada 10 (chegou na ${cru.ate})`);
+  igual(comPerks.ate, 10, `tres perks passaram da rodada 10 (chegou na ${comPerks.ate})`);
+  entre(comPerks.segundos, 30, 120, 'tempo de vida na rodada 10 com tres perks');
 });
 
-prova('a forja e o que abre a rodada 15', () => {
+prova('a forja e o que abre a rodada 10 para frente', () => {
   // A alegacao de projeto era esta, e ela nunca tinha sido medida: "o
   // multiplicador da forja e alto de proposito, e ele que decide se a rodada 25
-  // e possivel". Medido: na rodada 15 (34 zumbis de 1.777), tres perks sem forja
-  // duram menos de um minuto; com forja, o robo atravessa seis rodadas.
-  const semForja = aguentar(jogadorEquipado(15, { perks: ['caldo', 'gatilho', 'graxa'] }));
-  const comForja = aguentar(jogadorEquipado(15, { forjada: true, perks: ['caldo', 'gatilho', 'graxa'] }));
-  igual(semForja.ate, 15, `sem forja o robo passou da rodada 15 (chegou na ${semForja.ate})`);
-  ok(comForja.ate >= 18,
-    `com forja o robo so chegou na rodada ${comForja.ate} (queria 18 ou mais)`);
-  ok(comForja.abates > semForja.abates * 5,
-    `forja rendeu ${comForja.abates} abates contra ${semForja.abates}`);
+  // e possivel". Com o robo deterministico, em tres sementes de mira: a mesma
+  // partida que morre na rodada 10 sem forja atravessa ate a 22 com ela.
+  const semForja = aguentar(jogadorEquipado(10, { perks: ['caldo', 'gatilho', 'graxa'] }));
+  const alcancadas = [1, 7, 99].map((semente) => {
+    const jogo = jogadorEquipado(10, { forjada: true, perks: ['caldo', 'gatilho', 'graxa'] });
+    return aguentar(jogo, 60 * 20, semente);
+  });
+  const pior = Math.min(...alcancadas.map(r => r.ate));
+  const melhor = Math.max(...alcancadas.map(r => r.ate));
+  ok(pior >= 15,
+    `com forja, a pior das tres sementes parou na rodada ${pior} (queria 15 ou mais)`);
+  ok(melhor >= 20,
+    `com forja, a melhor das tres sementes parou na rodada ${melhor} (queria 20 ou mais)`);
+  const tempoComForja = Math.max(...alcancadas.map(r => r.segundos));
+  ok(tempoComForja > semForja.segundos * 4,
+    `forja rendeu ${tempoComForja.toFixed(0)} s contra ${semForja.segundos.toFixed(0)} s de tres perks sem ela`);
 });
 
-prova('a rodada 20 e o teto conhecido, e esta escrito', () => {
-  // Honestidade sobre o topo: com kit cheio — forja e tres perks — o robo morre
-  // NA rodada 20, em menos de dois minutos, depois de abater umas duas dezenas.
-  // A rodada 20 tem 34 zumbis de 2.994 de vida a 4,1 m/s: 101 mil de vida contra
-  // 106 mil que a carabina forjada entrega com a reserva inteira, sem errar um
-  // tiro. E fino de proposito, e este e o numero real — nao a rodada 25 do
-  // texto antigo. Rodada 25 e territorio de quem joga melhor que este robo.
-  const kitCheio = aguentar(jogadorEquipado(20, { forjada: true, perks: ['caldo', 'gatilho', 'graxa'] }));
-  igual(kitCheio.de, 20, 'o cenario nao comecou na rodada 20');
-  ok(kitCheio.abates >= 15,
-    `na rodada 20 com kit cheio o robo abateu so ${kitCheio.abates}`);
-  ok(kitCheio.ate <= 21,
-    `o robo passou da rodada 21 com kit cheio (chegou na ${kitCheio.ate}): o teto mudou, o texto tem de mudar`);
+prova('comecar frio numa rodada alta e sentenca, com kit ou sem', () => {
+  // O limite do cenario, escrito para ninguem ler a prova acima como "a rodada
+  // 15 e jogavel de qualquer jeito". Nascer DENTRO da rodada 15 ou 20, com a
+  // horda inteira em cima e sem posicao no anel, da cerca de um minuto com
+  // qualquer kit — a diferenca aparece em quantos caem antes, e so.
+  //
+  // Por isso a escada e medida a partir da rodada 10, que e onde uma partida de
+  // verdade chega: comparar kits exige a MESMA situacao inicial.
+  const cru = aguentar(jogadorEquipado(15));
+  const kitCheio = aguentar(jogadorEquipado(15, { forjada: true, perks: ['caldo', 'gatilho', 'graxa'] }));
+  entre(cru.segundos, 20, 120, 'tempo de vida nascendo cru na rodada 15');
+  entre(kitCheio.segundos, 20, 120, 'tempo de vida nascendo com kit cheio na rodada 15');
+  ok(kitCheio.abates > cru.abates,
+    `kit cheio abateu ${kitCheio.abates} contra ${cru.abates} do cru: o kit nao mudou nada`);
 });
 
 // ------------------------------------------------------- a casca do jogo

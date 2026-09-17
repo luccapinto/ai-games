@@ -23,10 +23,10 @@
       "provider": "Anthropic",
       "agente": "Oh My Pi",
       "papel": "o jogo inteiro: geometria dos mapas, rodadas, armas e balistica, IA dos zumbis, economia, render 3D em WebGL2 e o robo que joga; audio e casca/HUD feitos por subagentes do mesmo modelo",
-      "chamadas_api": 496,
+      "chamadas_api": 524,
       "tokens": {
-        "entrada": 492000,
-        "saida": 181000,
+        "entrada": 515000,
+        "saida": 190000,
         "cache_leitura": 0,
         "cache_escrita": 0
       },
@@ -37,7 +37,7 @@
     "confianca": "estimado",
     "metodo": "diferença do contador de tokens da sessão do agente entre o início e o fim deste jogo; custo pela mesma taxa cega de US$ 15 por milhão de tokens novos usada nos outros jogos claude-opus-5 deste repositório",
     "medido_em": "2026-09-17",
-    "nota": "O total (673 mil tokens novos) inclui a versao de raycasting anterior, a reconstrucao em 3D com sobrevivencia por rodadas e a rodada de consertos depois de o dono do repo jogar: mouse e setas invertidos, picareta que atirava como pistola e zumbi de janela inalvejavel. E a diferenca do contador da sessao: essa e a parte confiavel. A divisao entre entrada e saida e estimativa minha. Dois subagentes do mesmo modelo escreveram o audio e a casca/HUD, e o custo deles esta nesse total.",
+    "nota": "O total (705 mil tokens novos) inclui a versao de raycasting anterior, a reconstrucao em 3D com sobrevivencia por rodadas e a rodada de consertos depois de o dono do repo jogar: mouse e setas invertidos, picareta que atirava como pistola e zumbi de janela inalvejavel. E a diferenca do contador da sessao: essa e a parte confiavel. A divisao entre entrada e saida e estimativa minha. Dois subagentes do mesmo modelo escreveram o audio e a casca/HUD, e o custo deles esta nesse total.",
     "reconstruido_de": "versao anterior do mesmo jogo, FPS de raycasting com nove fases, que somava 105 mil tokens"
   },
   "stack": [
@@ -54,7 +54,8 @@
     "A luz e a decisao de render, nao a geometria: lanterna conica presa na camera, as oito lampadas mais proximas da planta (as mesmas que o mapa usa para decidir o que esta iluminado) e o clarao do cano como luz de verdade por 60 ms — e o clarao que mostra o corredor no escuro",
     "Rocha sem textura de arquivo: o fragmento sombreia por ruido de posicao de mundo em duas escalas, e as quinas tem oclusao por vertice, porque numa mina sem sol quina escura e a unica pista de forma quando a lanterna aponta para outro lado",
     "O anel do mapa e requisito de projeto e prova numerica: a maior volta da BOCA DA MINA tem 216 celulas e cruza as quatro zonas. Mapa de horda sem volta e mapa onde a rodada 12 mata todo mundo no mesmo canto, sempre",
-    "Escada do jogo tardio medida, e nao afirmada: tres perks levam a rodada 10 ate a 20; a forja leva a rodada 15 ate a 21; e com kit cheio a rodada 20 e o teto conhecido - a rodada 25 do texto antigo nao se sustentou na medida",
+    "Escada do jogo tardio medida com robo deterministico: tres perks NAO passam da rodada 10 (53 s), e a mesma partida com forja atravessa ate a rodada 23 - o multiplicador de dano e o que abre o jogo tardio, e perk nenhum substitui ele",
+    "Nada da simulacao usa Math.random: a mira do robo e o rosnado do zumbi saem do sorteio semeado do jogo, porque uma prova que muda de resultado a cada execucao ensina a ignorar vermelho",
     "Porta e VAO de tres celulas, cobrado uma vez, e isso foi um defeito achado por prova: com vao de uma celula, o zumbi de 0,45 de raio tinha 0,1 de largura livre para o centro e ficava vibrando na quina — a rodada nunca fechava",
     "Uso tem travamento de 0,6 s, e isso foi o defeito mais caro: sem ele, segurar a tecla comprava municao sessenta vezes por segundo, e o robo morreu na rodada 7 com 11.240 pontos e o mapa fechado",
     "Nenhuma arma domina todos os eixos, e a prova cobra isso comparando dano de perto, dano de cabeca a 18 m, pente e preco: enquanto a tabela comparava so dano de corpo, a pineira dominava a carabina e a escolha de arma nao existia",

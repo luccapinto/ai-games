@@ -139,7 +139,7 @@ function nascer(jogo) {
     const desempate = fila + jogo.sorteio() * 0.9;
     if (desempate < menos) { menos = desempate; escolhida = janela; }
   }
-  jogo.vivos.push(criarZumbi(tipo, jogo.rodada, escolhida));
+  jogo.vivos.push(criarZumbi(tipo, jogo.rodada, escolhida, jogo.sorteio));
 }
 
 export function passo(jogo, comandos, dt) {
@@ -201,7 +201,7 @@ export function passo(jogo, comandos, dt) {
     refazerFluxo(jogo.mapa, jogo.fluxo, j);
   }
 
-  const ctx = { mapa: jogo.mapa, fluxo: jogo.fluxo, jogador: j };
+  const ctx = { mapa: jogo.mapa, fluxo: jogo.fluxo, jogador: j, sorteio: jogo.sorteio };
   for (const z of jogo.vivos) {
     if (z.estado === 'morto') continue;
     for (const evento of passoDoZumbi(z, ctx, dt)) {
