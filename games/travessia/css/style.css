@@ -80,6 +80,7 @@ html, body {
 .bolsa li { display: flex; justify-content: space-between; color: var(--apagado); }
 .bolsa li b { color: var(--tinta); }
 .bolsa li.vazio { color: #6a5f4e; }
+.dica-loja { margin-top: 6px; color: var(--realce); font-size: 0.82em; }
 
 #mapa {
   position: absolute;
@@ -204,6 +205,37 @@ kbd {
 .diario li.feita b { color: var(--verde); }
 .diario li.fechada { opacity: 0.45; }
 
+.loja {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  width: min(92vw, 560px);
+  text-align: left;
+}
+
+.loja li { margin-bottom: 6px; }
+
+.compra {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0 12px;
+  width: 100%;
+  padding: 8px 12px;
+  background: #1a130c;
+  border: var(--borda);
+  color: var(--tinta);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.compra b { color: var(--realce); letter-spacing: 0.1em; }
+.compra span { grid-column: 1; color: var(--apagado); font-size: 0.82em; }
+.compra i { grid-row: 1 / span 2; align-self: center; font-style: normal; color: var(--tinta); }
+.compra i::after { content: ' mil réis'; color: var(--apagado); font-size: 0.8em; }
+.compra:hover:enabled { background: #241a10; border-color: var(--realce); }
+.compra:disabled { opacity: 0.4; cursor: default; }
+
 .botao {
   padding: 11px 28px;
   background: var(--realce);
@@ -254,10 +286,11 @@ kbd {
     user-select: none;
   }
 
-  [data-acao="atacar"] { bottom: 26vh; }
-  [data-acao="interagir"] { bottom: 18vh; }
-  [data-acao="beber"] { bottom: 10vh; }
-  [data-acao="diario"] { bottom: 2vh; }
+  [data-acao="atacar"] { bottom: 34vh; }
+  [data-acao="interagir"] { bottom: 26vh; }
+  [data-acao="beber"] { bottom: 18vh; }
+  [data-acao="diario"] { bottom: 10vh; }
+  [data-acao="loja"] { bottom: 2vh; }
 
   .bolsa { display: none; }
   #mapa { width: 104px; }

@@ -5,7 +5,7 @@ import { entradaNula } from './jogo.js';
 
 export function criarEntrada(palco) {
   const teclas = new Set();
-  const pulsos = { pausa: false, mapa: false, diario: false };
+  const pulsos = { pausa: false, mapa: false, diario: false, loja: false };
   const toque = { x: 0, y: 0, atacar: false, interagir: false, beber: false, correr: false };
 
   window.addEventListener('keydown', (ev) => {
@@ -14,6 +14,7 @@ export function criarEntrada(palco) {
     if (ev.code === 'KeyP' || ev.code === 'Escape') pulsos.pausa = true;
     if (ev.code === 'KeyM') pulsos.mapa = true;
     if (ev.code === 'KeyJ') pulsos.diario = true;
+    if (ev.code === 'KeyL') pulsos.loja = true;
     if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(ev.code)) {
       ev.preventDefault();
     }

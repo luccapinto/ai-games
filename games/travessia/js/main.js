@@ -5,7 +5,10 @@
 
 import { MISSOES } from './missoes.js';
 import { CONFIG } from './regras.js';
-import { criarJogo, passo, DT, ARMAS, claridade, calorDaHora, aguaMaisProxima } from './jogo.js';
+import {
+  criarJogo, passo, DT, ARMAS, claridade, calorDaHora, aguaMaisProxima,
+  LOJA, vendedorPerto,
+} from './jogo.js';
 import { criarRender } from './render.js';
 import { criarEntrada } from './entrada.js';
 import { ligarAmbiente, atualizarAmbiente, tocar, alternarSom, somLigado } from './som.js';
@@ -50,7 +53,7 @@ window.addEventListener('resize', ajustar);
 
 function mostrar(nome) {
   estado = nome;
-  for (const id of ['menu', 'pausa', 'fim', 'diario']) {
+  for (const id of ['menu', 'pausa', 'fim', 'diario', 'loja']) {
     el(id).classList.toggle('oculto', id !== nome);
   }
   palco.classList.toggle('andando', nome === 'jogo');
@@ -98,6 +101,7 @@ function laco(agora) {
     }
     if (entrada.consumir('pausa')) mostrar('pausa');
     if (entrada.consumir('diario')) { montarDiario(); mostrar('diario'); }
+    if (entrada.consumir('loja')) abrirLoja();
     if (entrada.consumir('mapa')) el('mapa').classList.toggle('grande');
     if (estado === 'jogo') {
       render.desenhar(jogo, dt);
@@ -105,7 +109,7 @@ function laco(agora) {
       atualizarHud();
       atualizarAmbiente(calorDaHora(jogo.hora), claridade(jogo.hora));
     }
-  } else if (jogo && (estado === 'pausa' || estado === 'diario')) {
+  } else if (jogo && (estado === 'pausa' || estado === 'diario' || estado === 'loja')) {
     render.desenhar(jogo, 0);
   }
 
@@ -180,6 +184,7 @@ function atualizarHud() {
   el('hud-hora').classList.toggle('noite', claridade(jogo.hora) < 0.5);
   el('hud-moedas').textContent = j.moedas;
   el('hud-arma').textContent = (ARMAS[j.arma] || ARMAS.maos).nome;
+  el('hud-loja').classList.toggle('oculto', !vendedorPerto(jogo));
 
   const itens = Object.entries(j.inventario).filter(([, n]) => n > 0);
   el('hud-bolsa').innerHTML = itens.length
@@ -226,6 +231,61 @@ function montarDiario() {
   el('diario-lista').innerHTML = linhas;
 }
 
+// ------------------------------------------------------------------- loja
+//
+// A bodega existe porque o HUD anunciava MIL RÉIS em destaque e nao havia o
+// que comprar. Agora a moeda de missao vira facao, rifle, cantil e rapadura.
+
+function abrirLoja() {
+  if (!jogo || estado !== 'jogo') return;
+  if (!vendedorPerto(jogo)) {
+    avisar('NÃO HÁ QUEM VENDA POR PERTO');
+    return;
+  }
+  montarLoja();
+  mostrar('loja');
+}
+
+function montarLoja(recado = '') {
+  const vendedor = vendedorPerto(jogo);
+  el('loja-vendedor').textContent = vendedor
+    ? `${vendedor.nome} abre a mala. Você tem ${jogo.jogador.moedas} mil réis.`
+    : `Você tem ${jogo.jogador.moedas} mil réis.`;
+  el('loja-recado').textContent = recado;
+  el('loja-lista').innerHTML = LOJA.map(item => `<li>`
+    + `<button class="compra" data-item="${item.id}" ${cabeNaBolsa(item) ? '' : 'disabled'}>`
+    + `<b>${item.nome}</b><span>${item.texto}</span><i>${item.preco}</i></button></li>`).join('');
+  for (const botao of el('loja-lista').querySelectorAll('[data-item]')) {
+    botao.addEventListener('click', () => comprarItem(botao.dataset.item));
+  }
+}
+
+function cabeNaBolsa(item) {
+  const j = jogo.jogador;
+  if (ARMAS[item.id]) return !j.armas[item.id] && j.moedas >= item.preco;
+  if (item.id === 'cantil') return j.sedeMaxima < 200 && j.moedas >= item.preco;
+  return j.vida < CONFIG.vidaMaxima && j.moedas >= item.preco;
+}
+
+const RECADO_DE_COMPRA = {
+  'sem-dinheiro': 'não dá: falta mil réis',
+  'ja-tem': 'isso você já tem',
+  'sem-vendedor': 'o vendedor saiu de perto',
+  'nao-vende': 'ninguém vende isso',
+};
+
+function comprarItem(id) {
+  const r = jogo.comprar(id);
+  if (r.ok) {
+    tocar('missao-concluida');
+    montarLoja(`levou ${r.item.nome.toLowerCase()} por ${r.item.preco} mil réis`);
+    avisar(`COMPROU ${r.item.nome}`);
+  } else {
+    tocar('sem-agua');
+    montarLoja(RECADO_DE_COMPRA[r.motivo] || 'não deu');
+  }
+}
+
 // ------------------------------------------------------------------- botoes
 
 function montarMenu() {
@@ -250,6 +310,7 @@ el('menu-sorteio').addEventListener('click', () => comecar(Math.floor(Math.rando
 el('pausa-voltar').addEventListener('click', () => mostrar('jogo'));
 el('pausa-menu').addEventListener('click', () => { montarMenu(); mostrar('menu'); });
 el('diario-voltar').addEventListener('click', () => mostrar('jogo'));
+el('loja-voltar').addEventListener('click', () => mostrar('jogo'));
 el('fim-menu').addEventListener('click', () => { montarMenu(); mostrar('menu'); });
 el('fim-denovo').addEventListener('click', () => comecar(semente));
 el('som').addEventListener('click', (ev) => {
