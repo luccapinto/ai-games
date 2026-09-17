@@ -1,0 +1,90 @@
+{
+  "esquema": 1,
+  "slug": "subsolo",
+  "titulo": "SUBSOLO",
+  "subtitulo": "FPS de raycasting numa mina onde o que caça você caça por som",
+  "genero": "FPS",
+  "plataforma": "Navegador, desktop e celular",
+  "estado": "jogavel",
+  "criado": "2026-09-17",
+  "licenca": "MIT",
+  "capa": "capa.jpg",
+  "resumo": "Uma mina de manganês reaberta como depósito, nove níveis para baixo, e as bombas do fundo pararam. A lanterna vê longe, gasta pilha e entrega você: o que mora lá embaixo caça por som, e um deles é cego. Quatro armas, cinco bichos e um capataz que só abre a guarda quando arma o golpe.",
+  "autores": [
+    {
+      "nome": "Lucca Pinto",
+      "github": "luccapinto",
+      "site": "https://luccabuilds.com"
+    }
+  ],
+  "ia": [
+    {
+      "modelo": "claude-opus-5",
+      "provider": "Anthropic",
+      "agente": "Oh My Pi",
+      "papel": "o jogo inteiro: plantas, física, IA, raycaster, som e o arranjo de provas",
+      "chamadas_api": 96,
+      "tokens": {
+        "entrada": 77000,
+        "saida": 28000,
+        "cache_leitura": 0,
+        "cache_escrita": 0
+      },
+      "usd_estimado": 1.58
+    }
+  ],
+  "medicao": {
+    "confianca": "estimado",
+    "metodo": "diferença do contador de tokens da sessão do agente entre o início e o fim deste jogo; custo pela mesma taxa cega de US$ 15 por milhão de tokens novos usada nos outros jogos claude-opus-5 deste repositório",
+    "medido_em": "2026-09-17",
+    "nota": "O total (105 mil tokens novos) é a diferença do contador da sessão e é a parte confiável. A divisão entre entrada e saída é estimativa minha, e é a parte fraca. O cache está zerado porque não foi medido, não porque não houve: a ferramenta certamente usou cache numa sessão longa, então o custo real de fatura é menor que o estimado aqui."
+  },
+  "stack": [
+    "JavaScript (ES modules nativos)",
+    "Canvas 2D (ImageData, pixel por pixel)",
+    "Web Áudio API"
+  ],
+  "tamanho": {
+    "linhas_proprias": 4814,
+    "mb": 0.27,
+    "modulos_js": 12
+  },
+  "destaques": [
+    "Nove fases provadas jogando: um robô joga as nove com a mesma física, as mesmas armas e a mesma IA do navegador, e a prova exige que ele saia vivo — hoje ele termina com 96 de 130 de vida",
+    "Ruído é mecânica e se propaga pela mesma topologia do corpo: Dijkstra na grade, com pedágio de 4 células em porta fechada, e a audição de cada bicho é um raio em células de caminhada, não de linha reta",
+    "O robô achou o defeito que nenhuma partida minha achou: a espingarda estava atrás de uma parede falsa, e quem não achasse o segredo carregava cartucho o jogo inteiro sem ter arma — ele empatou 400 segundos com o chefe por isso",
+    "O capataz feria a cada quadro durante a investida: 0,55 s de encosto valiam 33 golpes e 726 de dano. Só apareceu porque o relatório do robô separa o dano por tipo de inimigo",
+    "Raycaster escrito pixel por pixel em ImageData, e a conta de luz é uma só: o inimigo consulta o mesmo mapa de luz que tinge o pixel, então ele nunca vê você num escuro que a tela mostra iluminado",
+    "Zero arquivo de imagem e de áudio: textura, bicho, arma, item e som saem de canvas fora de tela e de WebAudio"
+  ],
+  "arquivos_chave": [
+    {
+      "caminho": "js/jogo.js",
+      "papel": "O jogo inteiro sem uma linha de DOM: é o que permite provar jogando"
+    },
+    {
+      "caminho": "js/mapa.js",
+      "papel": "Grade, colisão, A*, propagação de ruído e as provas de fechamento de cada fase"
+    },
+    {
+      "caminho": "js/inimigos.js",
+      "papel": "Os cinco bichos: visão, audição em células de ruído e a guarda do capataz"
+    },
+    {
+      "caminho": "js/robo.js",
+      "papel": "O robô que joga as nove fases — a prova principal do jogo"
+    },
+    {
+      "caminho": "js/render.js",
+      "papel": "O raycaster: parede, piso, sprite e partícula na mesma conta de luz"
+    },
+    {
+      "caminho": "js/fases.js",
+      "papel": "As nove plantas ASCII, com paleta e dica de cada nível"
+    },
+    {
+      "caminho": "provas.mjs",
+      "papel": "As 25 provas e as duas tabelas de balanceamento"
+    }
+  ]
+}
