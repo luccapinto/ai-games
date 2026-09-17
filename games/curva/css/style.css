@@ -1,0 +1,306 @@
+/* O canvas ocupa a tela inteira e e redimensionado em pixel real: pista vista
+   de cima com escala fracionaria embaralharia a zebra e a marca de pneu. */
+
+:root {
+  --tinta: #e6e4dc;
+  --apagado: #8f8c84;
+  --realce: #e8c24a;
+  --alerta: #e0584a;
+  --verde: #6ad08a;
+  --borda: 1px solid #2e2e36;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  background: #08080c;
+  color: var(--tinta);
+  font: 500 14px/1.45 ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
+  overflow: hidden;
+  -webkit-text-size-adjust: 100%;
+}
+
+#palco {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+#tela {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: #0d1014;
+}
+
+/* ------------------------------------------------------------------- HUD */
+
+#hud {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  display: none;
+  padding: clamp(8px, 1.4vw, 18px);
+  text-shadow: 0 1px 3px #000;
+}
+
+#palco.correndo #hud { display: block; }
+
+.bloco {
+  position: absolute;
+  background: rgba(10, 10, 14, 0.62);
+  border: var(--borda);
+  padding: 8px 12px;
+}
+
+.canto-esquerdo { left: clamp(8px, 1.4vw, 18px); top: clamp(8px, 1.4vw, 18px); }
+.canto-direito {
+  right: clamp(8px, 1.4vw, 18px);
+  bottom: clamp(8px, 1.4vw, 18px);
+  text-align: right;
+  min-width: 170px;
+}
+
+.linha-hud { display: flex; justify-content: space-between; gap: 14px; }
+.linha-hud span { color: var(--apagado); }
+.linha-hud b { font-variant-numeric: tabular-nums; }
+
+.velocimetro { display: flex; align-items: baseline; justify-content: flex-end; gap: 6px; }
+.velocimetro b { font-size: clamp(30px, 4.4vw, 54px); line-height: 1; font-variant-numeric: tabular-nums; }
+.velocimetro span { color: var(--apagado); }
+.velocimetro i {
+  display: inline-grid;
+  place-items: center;
+  width: 1.7em;
+  height: 1.7em;
+  margin-left: 6px;
+  border: var(--borda);
+  background: #14141a;
+  color: var(--realce);
+  font-style: normal;
+  font-weight: 700;
+}
+
+.barra {
+  height: 8px;
+  background: #16161c;
+  border: var(--borda);
+  overflow: hidden;
+  margin: 3px 0 6px;
+}
+
+.barra i { display: block; height: 100%; background: var(--verde); }
+.barra.giro { height: 5px; }
+.barra.giro i { background: linear-gradient(90deg, #4a8ad0, #e8c24a); }
+.barra.giro i.corte { background: var(--alerta); }
+#hud-pneu.critico { background: var(--alerta); }
+#hud-gas { background: #4aa8e0; }
+
+.medida { display: flex; align-items: center; gap: 8px; justify-content: flex-end; }
+.medida span { color: var(--apagado); font-size: 0.82em; width: 3.4em; text-align: left; }
+.medida .barra { flex: 1; margin: 0; }
+
+.ordem {
+  position: absolute;
+  left: clamp(8px, 1.4vw, 18px);
+  bottom: clamp(8px, 1.4vw, 18px);
+  margin: 0;
+  padding: 8px 12px;
+  list-style: none;
+  background: rgba(10, 10, 14, 0.62);
+  border: var(--borda);
+  font-size: 0.9em;
+  min-width: 190px;
+}
+
+.ordem li { color: var(--apagado); }
+.ordem li b { color: var(--tinta); display: inline-block; width: 1.6em; }
+.ordem li.eu { color: var(--realce); }
+.ordem li.eu b { color: var(--realce); }
+.ordem li i { color: var(--alerta); font-style: normal; }
+
+#mapa {
+  position: absolute;
+  right: clamp(8px, 1.4vw, 18px);
+  top: clamp(8px, 1.4vw, 18px);
+  width: clamp(110px, 13vw, 190px);
+  height: auto;
+  background: rgba(10, 10, 14, 0.55);
+  border: var(--borda);
+}
+
+.alerta {
+  position: absolute;
+  left: 50%;
+  top: 14%;
+  transform: translateX(-50%);
+  color: var(--alerta);
+  letter-spacing: 0.22em;
+  font-weight: 700;
+}
+
+.luz {
+  position: absolute;
+  left: 50%;
+  top: 34%;
+  transform: translate(-50%, -50%);
+  font-size: clamp(60px, 12vw, 150px);
+  font-weight: 700;
+  color: var(--realce);
+  text-shadow: 0 0 40px rgba(232, 194, 74, 0.5);
+}
+
+#aviso {
+  position: absolute;
+  left: 50%;
+  top: 24%;
+  transform: translateX(-50%);
+  padding: 6px 16px;
+  background: rgba(10, 10, 14, 0.82);
+  border: var(--borda);
+  color: var(--realce);
+  letter-spacing: 0.16em;
+}
+
+.oculto { display: none !important; }
+
+/* -------------------------------------------------------------- cortinas */
+
+.cortina {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: clamp(14px, 3vw, 40px);
+  background: linear-gradient(180deg, rgba(6, 6, 10, 0.95), rgba(10, 8, 6, 0.97));
+  overflow-y: auto;
+  text-align: center;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(38px, 9vw, 92px);
+  letter-spacing: 0.3em;
+  color: var(--realce);
+  text-shadow: 0 0 30px rgba(232, 194, 74, 0.25);
+}
+
+h2 { margin: 0; font-size: clamp(20px, 3.4vw, 34px); letter-spacing: 0.16em; color: var(--realce); }
+.linha { margin: 0; max-width: 64ch; color: var(--apagado); }
+.linha b { color: var(--tinta); }
+.regra { max-width: 72ch; font-size: 0.92em; }
+.rodape { margin: 0; color: #5f5c56; font-size: 0.85em; }
+
+.colunas { display: flex; flex-wrap: wrap; gap: clamp(14px, 4vw, 54px); justify-content: center; }
+table { border-collapse: collapse; }
+.controles th, .controles td { padding: 2px 10px; text-align: left; font-weight: 500; }
+.controles th { color: var(--apagado); }
+
+kbd {
+  display: inline-block;
+  min-width: 1.7em;
+  padding: 1px 5px;
+  margin-right: 3px;
+  border: var(--borda);
+  border-bottom-width: 2px;
+  border-radius: 3px;
+  background: #15151c;
+  font: inherit;
+  font-size: 0.88em;
+}
+
+.pistas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 8px;
+  width: min(94vw, 900px);
+  margin: 6px 0;
+}
+
+.pista {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 9px 12px;
+  text-align: left;
+  background: #10101a;
+  border: var(--borda);
+  color: var(--tinta);
+  font: inherit;
+  cursor: pointer;
+}
+
+.pista b { color: var(--realce); letter-spacing: 0.12em; }
+.pista i { color: var(--apagado); font-style: normal; font-size: 0.84em; }
+.pista span { color: #6f6c66; font-size: 0.8em; }
+.pista:hover { background: #191924; border-color: var(--realce); }
+
+.classificacao { font-size: clamp(11px, 1.2vw, 14px); }
+.classificacao th, .classificacao td { padding: 3px 10px; text-align: left; }
+.classificacao th { color: var(--apagado); font-weight: 500; }
+.classificacao tr.eu td { color: var(--realce); }
+
+.botao {
+  padding: 11px 30px;
+  background: var(--realce);
+  border: none;
+  color: #12100a;
+  font: inherit;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  cursor: pointer;
+}
+
+.botao:hover { background: #ffd968; }
+.botao.secundario { background: transparent; border: var(--borda); color: var(--apagado); }
+.botao.secundario:hover { color: var(--tinta); border-color: var(--realce); }
+
+/* ----------------------------------------------------------------- toque */
+
+#toque { display: none; }
+
+@media (pointer: coarse) {
+  #palco.correndo #toque {
+    display: block;
+    position: absolute;
+    inset: auto 0 0 0;
+    height: 34vh;
+    pointer-events: none;
+  }
+
+  .pedal {
+    position: absolute;
+    bottom: 3vh;
+    width: 21vw;
+    height: 21vw;
+    max-width: 130px;
+    max-height: 130px;
+    border-radius: 50%;
+    background: rgba(18, 18, 26, 0.68);
+    border: var(--borda);
+    color: var(--tinta);
+    font: inherit;
+    font-size: 15px;
+    pointer-events: auto;
+    touch-action: none;
+    user-select: none;
+  }
+
+  [data-controle="esquerda"] { left: 3vw; }
+  [data-controle="direita"] { left: 27vw; }
+  .freio { right: 27vw; color: var(--alerta); }
+  .gas { right: 3vw; color: var(--verde); }
+
+  #mapa { width: 92px; }
+  .ordem { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .barra i { transition: none; }
+}

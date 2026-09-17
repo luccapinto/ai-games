@@ -1,0 +1,86 @@
+{
+  "esquema": 1,
+  "slug": "curva",
+  "titulo": "CURVA",
+  "subtitulo": "Corrida de cima com linha de corrida calculada, não desenhada",
+  "genero": "Corrida",
+  "plataforma": "Navegador, desktop e celular",
+  "estado": "jogavel",
+  "criado": "2026-09-17",
+  "licenca": "MIT",
+  "capa": "capa.jpg",
+  "resumo": "Seis pistas, nove adversários e um carro de tração traseira com ângulo de deriva por eixo, transferência de peso, pneu que gasta e combustível que pesa. A linha de corrida não foi desenhada à mão: ela é calculada minimizando o tempo de volta, e a IA lê a mesma linha que você pode ligar na tela.",
+  "autores": [
+    {
+      "nome": "Lucca Pinto",
+      "github": "luccapinto",
+      "site": "https://luccabuilds.com"
+    }
+  ],
+  "ia": [
+    {
+      "modelo": "claude-opus-5",
+      "provider": "Anthropic",
+      "agente": "Oh My Pi",
+      "papel": "o jogo inteiro: física, pistas, otimizador da linha, IA de pilotagem, render e o banco de medidas",
+      "chamadas_api": 118,
+      "tokens": {
+        "entrada": 112000,
+        "saida": 42000,
+        "cache_leitura": 0,
+        "cache_escrita": 0
+      },
+      "usd_estimado": 2.31
+    }
+  ],
+  "medicao": {
+    "confianca": "estimado",
+    "metodo": "diferença do contador de tokens da sessão do agente entre o início e o fim deste jogo; custo pela mesma taxa cega de US$ 15 por milhão de tokens novos usada nos outros jogos claude-opus-5 deste repositório",
+    "medido_em": "2026-09-17",
+    "nota": "O total (154 mil tokens novos) é a diferença do contador da sessão e é a parte confiável; a divisão entre entrada e saída é estimativa minha. Boa parte desse custo foi afinação medida: física, otimizador da linha e IA passaram por várias rodadas de medir, consertar e medir de novo, cada uma com uma corrida completa simulada. O cache está zerado porque não foi medido, não porque não houve."
+  },
+  "stack": [
+    "JavaScript (ES modules nativos)",
+    "Canvas 2D",
+    "Web Áudio API"
+  ],
+  "tamanho": {
+    "linhas_proprias": 3171,
+    "mb": 0.2,
+    "modulos_js": 10
+  },
+  "destaques": [
+    "A linha de corrida é calculada, não desenhada: descida coordenada com empurrão em forma de morro, minimizando o tempo de volta do mesmo perfil de velocidade que a IA consulta — e a primeira versão, que empurrava um ponto por vez, terminou com deslocamento máximo de 0,000 m porque mover um ponto sozinho sempre piora a curvatura local",
+    "Todo número do carro no README sai do banco de medidas simulando o modelo que o jogador dirige: 283 km/h de máxima, 3,02 s até 100, 120 m para parar de 200 e 1,29 g de lateral sustentado",
+    "A IA corre a 1,03–1,07 da volta teórica nas seis pistas e passa 100% do tempo no asfalto, e chegou lá por três consertos medidos: pré-alimentação pela curvatura, elipse de atrito no pé direito e alinhar a aderência de projeto com a medida",
+    "As provas acharam que o freio empurrava o carro para trás — força de freio sem sinal, e na largada a IA saía de ré a 134 km/h",
+    "Pista descrita em coordenadas polares, que é um formato onde circuito não se cruza consigo mesmo por construção; a prova de fita ainda confere, mas o atalho invisível deixa de ser possível",
+    "Volta só conta com os três setores na ordem, e andar para trás invalida a volta: sem isso, cortar curva vira estratégia"
+  ],
+  "arquivos_chave": [
+    {
+      "caminho": "js/fisica.js",
+      "papel": "O carro: ângulo de deriva por eixo, transferência de peso, elipse de atrito, pneu e combustível"
+    },
+    {
+      "caminho": "js/linha.js",
+      "papel": "O otimizador da linha de corrida e o perfil de velocidade da volta"
+    },
+    {
+      "caminho": "js/piloto.js",
+      "papel": "A IA de pilotagem, que dirige com os mesmos três comandos do teclado"
+    },
+    {
+      "caminho": "js/pista.js",
+      "papel": "As seis pistas em coordenadas polares, reamostradas por comprimento de arco"
+    },
+    {
+      "caminho": "js/banco.js",
+      "papel": "O banco de medidas: máxima, frenagem, g lateral e volta de referência"
+    },
+    {
+      "caminho": "provas.mjs",
+      "papel": "As 23 provas e as tabelas de pista e de carro"
+    }
+  ]
+}

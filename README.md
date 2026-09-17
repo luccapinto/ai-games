@@ -9,8 +9,8 @@ registrados ao lado.
 costs. Each game is a self-contained, playable folder that records the model that
 wrote it, the agent that drove it, and the tokens it burned.*
 
-**7 jogos** de **1 pessoa**, 20.958 linhas de código,
-2,4 M tokens novos e US$ 8,57 de API no total.
+**8 jogos** de **1 pessoa**, 24.129 linhas de código,
+2,5 M tokens novos e US$ 10,88 de API no total.
 
 👉 **[Jogar tudo](https://luccapinto.github.io/ai-games/)** · **[Ver o benchmark](https://luccapinto.github.io/ai-games/benchmark.html)** · **[Mandar o seu jogo](CONTRIBUTING.md)**
 
@@ -19,6 +19,7 @@ wrote it, the agent that drove it, and the tokens it burned.*
 | Jogo | Gênero | Quem fez | Modelo | Tokens novos | Custo | Jogar |
 | --- | --- | --- | --- | --- | --- | --- |
 | **SUBSOLO** [`subsolo`](games/subsolo/README.md) | FPS | Lucca Pinto | claude-opus-5 | 105,0 k | US$ 1,58 | [jogar](https://luccapinto.github.io/ai-games/games/subsolo/) |
+| **CURVA** [`curva`](games/curva/README.md) | Corrida | Lucca Pinto | claude-opus-5 | 154,0 k | US$ 2,31 | [jogar](https://luccapinto.github.io/ai-games/games/curva/) |
 | **SEIVA** [`seiva`](games/seiva/README.md) | Defesa de torre | Lucca Pinto | claude-opus-5 | 70,0 k | US$ 1,05 | [jogar](https://luccapinto.github.io/ai-games/games/seiva/) |
 | **PROCESSO** [`processo`](games/processo/README.md) | Cartas com construção de baralho | Lucca Pinto | claude-opus-5 | 44,0 k | US$ 0,66 | [jogar](https://luccapinto.github.io/ai-games/games/processo/) |
 | **CRIPTA** [`cripta`](games/cripta/README.md) | Puzzle | Lucca Pinto | claude-opus-5 | 86,0 k | US$ 1,30 | [jogar](https://luccapinto.github.io/ai-games/games/cripta/) |
@@ -30,7 +31,7 @@ wrote it, the agent that drove it, and the tokens it burned.*
 
 | Modelo | Jogos | Tokens novos | Cache | Custo | Linhas |
 | --- | --- | --- | --- | --- | --- |
-| claude-opus-5 | 6 | 501,0 k | 0 | US$ 7,54 | 10.249 |
+| claude-opus-5 | 7 | 655,0 k | 0 | US$ 9,85 | 13.420 |
 | deepseek-flash | 1 | 1,9 M | 159,1 M | US$ 1,03 | 10.709 |
 
 Tokens novos são entrada + saída. Cache aparece em coluna separada de propósito:
@@ -115,6 +116,25 @@ O que tem dentro:
 - **Custo total:** US$ 1,58 (estimado)
 - **Tamanho:** 4.814 linhas de código próprio, 0,3 MB
 - **Pasta:** [`games/subsolo/`](games/subsolo/README.md)
+
+### CURVA
+
+Seis pistas, nove adversários e um carro de tração traseira com ângulo de deriva por eixo, transferência de peso, pneu que gasta e combustível que pesa. A linha de corrida não foi desenhada à mão: ela é calculada minimizando o tempo de volta, e a IA lê a mesma linha que você pode ligar na tela.
+
+O que tem dentro:
+
+- A linha de corrida é calculada, não desenhada: descida coordenada com empurrão em forma de morro, minimizando o tempo de volta do mesmo perfil de velocidade que a IA consulta — e a primeira versão, que empurrava um ponto por vez, terminou com deslocamento máximo de 0,000 m porque mover um ponto sozinho sempre piora a curvatura local
+- Todo número do carro no README sai do banco de medidas simulando o modelo que o jogador dirige: 283 km/h de máxima, 3,02 s até 100, 120 m para parar de 200 e 1,29 g de lateral sustentado
+- A IA corre a 1,03–1,07 da volta teórica nas seis pistas e passa 100% do tempo no asfalto, e chegou lá por três consertos medidos: pré-alimentação pela curvatura, elipse de atrito no pé direito e alinhar a aderência de projeto com a medida
+- As provas acharam que o freio empurrava o carro para trás — força de freio sem sinal, e na largada a IA saía de ré a 134 km/h
+- Pista descrita em coordenadas polares, que é um formato onde circuito não se cruza consigo mesmo por construção; a prova de fita ainda confere, mas o atalho invisível deixa de ser possível
+- Volta só conta com os três setores na ordem, e andar para trás invalida a volta: sem isso, cortar curva vira estratégia
+
+- **Quem fez:** Lucca Pinto
+- **Modelo:** claude-opus-5 via Anthropic, dirigido por Oh My Pi — 154,0 k tokens novos, 0 de cache, 118 chamadas, US$ 2,31
+- **Custo total:** US$ 2,31 (estimado)
+- **Tamanho:** 3.171 linhas de código próprio, 0,2 MB
+- **Pasta:** [`games/curva/`](games/curva/README.md)
 
 ### SEIVA
 
