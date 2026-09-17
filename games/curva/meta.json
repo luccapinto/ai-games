@@ -2,14 +2,14 @@
   "esquema": 1,
   "slug": "curva",
   "titulo": "CURVA",
-  "subtitulo": "Corrida de cima com linha de corrida calculada, não desenhada",
-  "genero": "Corrida",
+  "subtitulo": "Kart 3D em WebGL2: o grampo só sai de lado, e o mini-turbo paga a conta",
+  "genero": "Kart 3D",
   "plataforma": "Navegador, desktop e celular",
   "estado": "jogavel",
   "criado": "2026-09-17",
   "licenca": "MIT",
   "capa": "capa.jpg",
-  "resumo": "Seis pistas, nove adversários e um carro de tração traseira com ângulo de deriva por eixo, transferência de peso, pneu que gasta e combustível que pesa. A linha de corrida não foi desenhada à mão: ela é calculada minimizando o tempo de volta, e a IA lê a mesma linha que você pode ligar na tela.",
+  "resumo": "Seis kartódromos com relevo, nove adversários e um kart com duas personalidades: no modo de aderência ele gira 65% do que o pneu daria e não faz grampo de 10 m; com o gatilho segurado ele gira 2,4 vezes mais e carrega mini-turbo em três faixas. Derrapar vale de 1 a 6 segundos por volta, e isso não é opinião: está medido pista por pista nas provas, cada modo seguindo a linha de corrida dele.",
   "autores": [
     {
       "nome": "Lucca Pinto",
@@ -22,65 +22,71 @@
       "modelo": "claude-opus-5",
       "provider": "Anthropic",
       "agente": "Oh My Pi",
-      "papel": "o jogo inteiro: física, pistas, otimizador da linha, IA de pilotagem, render e o banco de medidas",
-      "chamadas_api": 118,
+      "papel": "o jogo inteiro: geometria dos kartódromos, física do kart, otimizador da linha, IA de pilotagem, render 3D em WebGL2 e o banco de medidas",
+      "chamadas_api": 246,
       "tokens": {
-        "entrada": 112000,
-        "saida": 42000,
+        "entrada": 258000,
+        "saida": 96000,
         "cache_leitura": 0,
         "cache_escrita": 0
       },
-      "usd_estimado": 2.31
+      "usd_estimado": 5.31
     }
   ],
   "medicao": {
     "confianca": "estimado",
     "metodo": "diferença do contador de tokens da sessão do agente entre o início e o fim deste jogo; custo pela mesma taxa cega de US$ 15 por milhão de tokens novos usada nos outros jogos claude-opus-5 deste repositório",
     "medido_em": "2026-09-17",
-    "nota": "O total (154 mil tokens novos) é a diferença do contador da sessão e é a parte confiável; a divisão entre entrada e saída é estimativa minha. Boa parte desse custo foi afinação medida: física, otimizador da linha e IA passaram por várias rodadas de medir, consertar e medir de novo, cada uma com uma corrida completa simulada. O cache está zerado porque não foi medido, não porque não houve."
+    "nota": "O total (354 mil tokens novos) inclui a versão de cima anterior e a reconstrução em 3D, e é a diferença do contador da sessão: essa é a parte confiável. A divisão entre entrada e saída é estimativa minha. A maior parte foi afinação medida, não digitação: física, geometria de pista, otimizador da linha e IA passaram por rodadas de medir, consertar e medir de novo, cada uma rodando seis corridas simuladas. O cache está zerado porque não foi medido, não porque não houve.",
+    "reconstruido_de": "versão anterior do mesmo jogo, de cima e em Canvas 2D, que somava 154 mil tokens"
   },
   "stack": [
     "JavaScript (ES modules nativos)",
-    "Canvas 2D",
+    "WebGL2 com GLSL escrito à mão",
     "Web Áudio API"
   ],
   "tamanho": {
-    "linhas_proprias": 3171,
-    "mb": 0.2,
+    "linhas_proprias": 4910,
+    "mb": 0.3,
     "modulos_js": 10
   },
   "destaques": [
-    "A linha de corrida é calculada, não desenhada: descida coordenada com empurrão em forma de morro, minimizando o tempo de volta do mesmo perfil de velocidade que a IA consulta — e a primeira versão, que empurrava um ponto por vez, terminou com deslocamento máximo de 0,000 m porque mover um ponto sozinho sempre piora a curvatura local",
-    "Todo número do carro no README sai do banco de medidas simulando o modelo que o jogador dirige: 283 km/h de máxima, 3,02 s até 100, 120 m para parar de 200 e 1,29 g de lateral sustentado",
-    "A IA corre a 1,03–1,07 da volta teórica nas seis pistas e passa 100% do tempo no asfalto, e chegou lá por três consertos medidos: pré-alimentação pela curvatura, elipse de atrito no pé direito e alinhar a aderência de projeto com a medida",
-    "As provas acharam que o freio empurrava o carro para trás — força de freio sem sinal, e na largada a IA saía de ré a 134 km/h",
-    "Pista descrita em coordenadas polares, que é um formato onde circuito não se cruza consigo mesmo por construção; a prova de fita ainda confere, mas o atalho invisível deixa de ser possível",
-    "Volta só conta com os três setores na ordem, e andar para trás invalida a volta: sem isso, cortar curva vira estratégia"
+    "O jogo inteiro gira em torno de um número: o teto de velocidade de giro. Em aderência o kart gira 65% do que o pneu daria e não faz grampo de 10 m; de lado ele gira 240% e carrega mini-turbo. Com esse teto em 100%, medido, derrapar era só custo — o kart fazia o grampo de frente e o gatilho não servia para nada",
+    "Derrapar rende de 1,00 s (CERRADO, curvas de 30 a 45 m) a 6,28 s (PORTO, noventas de 12 m) por volta, medido com cada modo seguindo a linha de corrida dele: com as duas corridas na mesma linha a medida dizia que derrapar atrasa, porque o kart sem drift ganhava tempo cortando zebra numa linha que não era a dele",
+    "As pistas são escritas como um projetista escreve — reta de tantos metros, curva de tantos graus com tanto raio — e fecham por duas regras verificáveis: a soma dos ângulos é 360 exatos (fecha o rumo) e o erro de posição é linear nos comprimentos de reta, resolvido exatamente num passo com correção de norma mínima. O formato polar anterior não expressava grampo: a 32 m do centro, 12 graus de arco tem de girar 140, o que dá raio de 2,6 m",
+    "O volante pede velocidade de giro, não ângulo de roda. Com 0,62 rad de esterço ligados direto no comando, meia volta a 80 km/h pedia 1,9 g de um asfalto que dá 1,4: o kart rodopiava em meio segundo e terminava andando para trás, medido em três versões seguidas",
+    "A IA aprende o próprio limite: quem escapa entra mais devagar na curva seguinte. Sem isso o perfil `ouro` perdia do `prata` em uma das seis pistas — o piloto mais forte ficando mais lento, o que quebra a promessa do campeonato",
+    "As provas acharam que a IA tinha 20% de freio exatamente dentro da curva, porque a elipse de atrito limitava a força duas vezes: uma na física e outra na decisão. Ela chegava 14 km/h acima do alvo no grampo, batia no muro e ficava atolada a 3 km/h — e era esse acidente, não a pilotagem, que decidia todo tempo de volta do jogo",
+    "Render 3D sem biblioteca, sem arquivo de modelo e sem textura: a fita da pista sai da mesma lista de números que a física usa, e a saia de grama desce até um piso de vale porque, sem ela, o circuito terminava no ar a 7 m da zebra"
   ],
   "arquivos_chave": [
     {
       "caminho": "js/fisica.js",
-      "papel": "O carro: ângulo de deriva por eixo, transferência de peso, elipse de atrito, pneu e combustível"
-    },
-    {
-      "caminho": "js/linha.js",
-      "papel": "O otimizador da linha de corrida e o perfil de velocidade da volta"
-    },
-    {
-      "caminho": "js/piloto.js",
-      "papel": "A IA de pilotagem, que dirige com os mesmos três comandos do teclado"
+      "papel": "O kart: volante que pede giro, teto de deriva, elipse de atrito, rampa e mini-turbo"
     },
     {
       "caminho": "js/pista.js",
-      "papel": "As seis pistas em coordenadas polares, reamostradas por comprimento de arco"
+      "papel": "Os seis kartódromos em retas e curvas, com o fechamento resolvido e a largada posta na reta"
+    },
+    {
+      "caminho": "js/linha.js",
+      "papel": "O otimizador da linha e o perfil de velocidade de dois tetos, que diz onde derrapar"
+    },
+    {
+      "caminho": "js/piloto.js",
+      "papel": "A IA: pede giro por segundo, segue o perfil da linha e aprende o próprio limite"
+    },
+    {
+      "caminho": "js/render.js",
+      "papel": "O render 3D em WebGL2: fita, cenário por tema, karts, fagulha e neblina"
     },
     {
       "caminho": "js/banco.js",
-      "papel": "O banco de medidas: máxima, frenagem, g lateral e volta de referência"
+      "papel": "O banco de medidas: skidpad, frenagem, volta de referência e a troca do grampo"
     },
     {
       "caminho": "provas.mjs",
-      "papel": "As 23 provas e as tabelas de pista e de carro"
+      "papel": "As 31 provas e as tabelas de pista, de kart e de técnica"
     }
   ]
 }

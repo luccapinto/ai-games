@@ -1,11 +1,16 @@
-// Motor, pneu e impacto sintetizados em WebAudio. Nenhum arquivo de audio.
+// Motor de kart, pneu e impacto sintetizados em WebAudio. Nenhum arquivo de
+// audio.
 //
-// O motor e o unico som continuo do jogo: tres osciladores desafinados cuja
-// frequencia acompanha o giro, com um filtro que abre com o acelerador. E o
-// mesmo dado que o HUD mostra — se o som e o conta-giros discordam, um dos dois
-// esta mentindo.
+// Motor de kart nao soa como motor de carro, e a diferenca e simples de
+// descrever: dois tempos de 14 mil giros, sem torque embaixo, com uma nota alta
+// e nervosa. Por isso a base de frequencia aqui e mais alta e o desafino entre
+// os osciladores e maior do que num carro — o batimento entre eles e o que da a
+// impressao de motor pequeno trabalhando duro.
+//
+// A frequencia acompanha o mesmo `rpm` que a fisica calcula: se o som e o kart
+// discordam, um dos dois esta mentindo.
 
-import { CARRO } from './fisica.js';
+import { KART } from './fisica.js';
 
 let ctx = null;
 let mestre = null;
@@ -45,7 +50,7 @@ export function ligarMotor() {
   filtro.frequency.value = 900;
   filtro.Q.value = 1.2;
   const osc = [];
-  for (const [tipo, desafino] of [['sawtooth', 1], ['square', 0.5], ['sawtooth', 2.01]]) {
+  for (const [tipo, desafino] of [['sawtooth', 1], ['square', 0.51], ['sawtooth', 2.03]]) {
     const o = c.createOscillator();
     o.type = tipo;
     o.frequency.value = 60 * desafino;
@@ -80,8 +85,8 @@ export function ligarMotor() {
 
 export function atualizarMotor(carro, superficie) {
   if (!motor || !ctx || !ligado) return;
-  const giro = carro.rpm / CARRO.rpmMax;
-  const base = 42 + giro * 190;
+  const giro = carro.rpm / KART.rpmMax;
+  const base = 96 + giro * 330;
   for (const { o, desafino } of motor.osc) {
     o.frequency.setTargetAtTime(base * desafino, ctx.currentTime, 0.04);
   }
@@ -140,6 +145,18 @@ function tom({ de, para, duracao = 0.2, volume = 0.25, onda = 'square' }) {
 }
 
 const EFEITOS = {
+  // Carga do mini-turbo e o empurrao: dois sons, porque sao duas informacoes
+  // diferentes — "esta carregando" e "saiu".
+  turbo: () => {
+    tom({ de: 520, para: 1500, duracao: 0.26, volume: 0.26, onda: 'square' });
+    estouro({ duracao: 0.42, volume: 0.3, corte: 2600, tipo: 'bandpass', q: 1.4 });
+  },
+  item: () => {
+    tom({ de: 880, para: 1320, duracao: 0.1, volume: 0.2, onda: 'triangle' });
+    setTimeout(() => tom({ de: 1320, para: 1760, duracao: 0.12, volume: 0.18, onda: 'triangle' }), 90);
+  },
+  batida: () => { estouro({ duracao: 0.3, volume: 0.55, corte: 780 }); tom({ de: 150, para: 52, duracao: 0.26, volume: 0.22, onda: 'sawtooth' }); },
+  fim: () => { tom({ de: 520, para: 780, duracao: 0.3, volume: 0.24, onda: 'triangle' }); setTimeout(() => tom({ de: 780, para: 1180, duracao: 0.4, volume: 0.24, onda: 'triangle' }), 220); },
   toque: () => { estouro({ duracao: 0.14, volume: 0.42, corte: 900 }); tom({ de: 220, para: 90, duracao: 0.12, volume: 0.2, onda: 'triangle' }); },
   muro: () => { estouro({ duracao: 0.36, volume: 0.6, corte: 700 }); tom({ de: 140, para: 50, duracao: 0.3, volume: 0.24, onda: 'sawtooth' }); },
   volta: () => { tom({ de: 700, para: 1050, duracao: 0.14, volume: 0.2, onda: 'triangle' }); },

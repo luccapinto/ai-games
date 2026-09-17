@@ -1,18 +1,23 @@
-// Teclado e toque virando os mesmos tres comandos que a IA usa: volante,
-// acelerador, freio. O jogo nao sabe quem esta dirigindo.
+// Teclado e toque virando os mesmos cinco comandos que a IA usa: volante,
+// acelerador, freio, drift e item. O jogo nao sabe quem esta dirigindo.
 //
 // O volante do teclado tem rampa: tecla e liga-desliga, e volante de verdade
-// nao pula de zero a tudo. Sem a rampa, dirigir no teclado e uma sucessao de
-// rodopios — o carro deste jogo tem eixo traseiro de verdade.
+// nao pula de zero a tudo. Aqui a rampa importa mais do que num carro comum,
+// porque o volante deste kart pede VELOCIDADE DE GIRO: pulo de zero a tudo
+// viraria um pedido de giro impossivel em um quadro, e o teto de deriva
+// responderia com um puxao.
 
-const RAMPA = 4.2;
-const CENTRAGEM = 6.5;
+const RAMPA = 5.2;
+const CENTRAGEM = 7.5;
 
 export function criarEntrada(palco) {
   const teclas = new Set();
   let volante = 0;
   const pulsos = { pausa: false, reiniciar: false, linha: false, camera: false };
-  const toque = { esquerda: false, direita: false, acelerar: false, frear: false };
+  const toque = {
+    esquerda: false, direita: false, acelerar: false, frear: false,
+    drift: false, item: false,
+  };
 
   window.addEventListener('keydown', (ev) => {
     if (ev.repeat) return;
@@ -20,7 +25,7 @@ export function criarEntrada(palco) {
     if (ev.code === 'KeyP' || ev.code === 'Escape') pulsos.pausa = true;
     if (ev.code === 'KeyR') pulsos.reiniciar = true;
     if (ev.code === 'KeyL') pulsos.linha = true;
-    if (ev.code === 'KeyN') pulsos.camera = true;
+    if (ev.code === 'KeyC' || ev.code === 'KeyN') pulsos.camera = true;
     if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(ev.code)) {
       ev.preventDefault();
     }
@@ -55,8 +60,11 @@ export function criarEntrada(palco) {
 
     const acelerador = (tem('ArrowUp', 'KeyW') || toque.acelerar) ? 1 : 0;
     const freio = (tem('ArrowDown', 'KeyS') || toque.frear) ? 1 : 0;
-    const freioMao = tem('Space');
-    return { volante, acelerador, freio, freioMao };
+    // Drift em qualquer shift: quem dirige com a mao esquerda no A/D usa o
+    // shift esquerdo, quem usa as setas alcanca o direito.
+    const drift = tem('ShiftLeft', 'ShiftRight') || toque.drift;
+    const item = tem('Space', 'KeyE') || toque.item;
+    return { volante, acelerador, freio, drift, item };
   }
 
   function consumir(nome) {

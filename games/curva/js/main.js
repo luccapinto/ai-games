@@ -1,15 +1,18 @@
 // A casca da corrida: laco de passo fixo, telas, HUD, campeonato.
 //
 // Unico arquivo que conhece DOM. Tudo que decide algo — fisica, IA, contagem de
-// volta, box, pontos — mora nos modulos que provas.mjs importa.
+// volta, item, pontos — mora nos modulos que `provas.mjs` importa e roda sem
+// navegador. Quando esta casca desenha "MINI-TURBO FAIXA 3", o numero vem da
+// mesma variavel que a prova do banco de medidas mede.
 
 import { PISTAS } from './pista.js';
-import { CARRO, comandosNulos, DT, velocidadeKmh } from './fisica.js';
+import { KART, comandosNulos, DT, velocidadeKmh, faixaDaCarga } from './fisica.js';
 import { criarCorrida, passoCorrida, classificacao, PONTOS } from './corrida.js';
-import { linhaIdeal } from './linha.js';
 import { criarRender } from './render.js';
 import { criarEntrada } from './entrada.js';
-import { ligarMotor, atualizarMotor, pararMotor, tocar, alternarSom, somLigado } from './som.js';
+import {
+  ligarMotor, atualizarMotor, pararMotor, tocar, alternarSom, somLigado,
+} from './som.js';
 
 const el = (id) => document.getElementById(id);
 const palco = el('palco');
@@ -19,24 +22,27 @@ const mapaTela = el('mapa');
 const render = criarRender(tela);
 const entrada = criarEntrada(palco);
 
-const CHAVE = 'curva.progresso.v1';
+const CHAVE = 'curva.progresso.v2';
 const progresso = carregar();
+
+const NOMES_DE_ITEM = { cogumelo: 'cogumelo', casco: 'casco', banana: 'banana' };
 
 let corrida = null;
 let estado = 'menu';
 let ultimo = performance.now();
 let acumulado = 0;
-let mostrarLinha = false;
-let camera = false;
+let cockpit = false;
 let campeonato = null;
 let ultimaVolta = null;
+let turboAte = 0;
 
 function carregar() {
   try {
-    const bruto = JSON.parse(localStorage.getItem(CHAVE));
-    if (bruto && bruto.recordes) return bruto;
-  } catch { /* sem progresso: comeca limpo */ }
-  return { recordes: {} };
+    const bruto = JSON.parse(localStorage.getItem(CHAVE) || '{}');
+    return { recordes: bruto.recordes || {} };
+  } catch {
+    return { recordes: {} };
+  }
 }
 
 function salvar() {
@@ -45,9 +51,11 @@ function salvar() {
 
 function ajustarTela() {
   const r = palco.getBoundingClientRect();
-  const escala = window.devicePixelRatio > 1.5 ? 1 : 1;
-  tela.width = Math.round(r.width * escala);
-  tela.height = Math.round(r.height * escala);
+  // Em tela densa o custo de pixel e real num raycaster... aqui e um render 3D
+  // de verdade, entao o teto de 1,5 devicePixelRatio e o que mantem 60 Hz em
+  // GPU integrada sem deixar a imagem borrada em tela retina.
+  const escala = Math.min(window.devicePixelRatio || 1, 1.5);
+  render.redimensionar(Math.round(r.width * escala), Math.round(r.height * escala));
 }
 window.addEventListener('resize', ajustarTela);
 
@@ -59,6 +67,7 @@ function mostrar(nome) {
     el(id).classList.toggle('oculto', id !== nome);
   }
   palco.classList.toggle('correndo', nome === 'corrida');
+  el('toque').classList.toggle('ativo', nome === 'corrida');
   if (nome !== 'corrida') pararMotor();
 }
 
@@ -114,8 +123,8 @@ function laco(agora) {
 
   if (estado === 'corrida') {
     acumulado += dt;
-    let voltas = 0;
-    while (acumulado >= DT && voltas++ < 5) {
+    let passos = 0;
+    while (acumulado >= DT && passos++ < 5) {
       acumulado -= DT;
       const comandos = entrada.ler(DT);
       corrida.carros[0].ultimoVolante = comandos.volante;
@@ -128,94 +137,108 @@ function laco(agora) {
     }
     if (entrada.consumir('pausa')) mostrar('pausa');
     if (entrada.consumir('reiniciar')) comecar(corrida.indicePista, { voltas: corrida.voltas });
-    if (entrada.consumir('linha')) mostrarLinha = !mostrarLinha;
-    if (entrada.consumir('camera')) camera = !camera;
+    if (entrada.consumir('camera')) cockpit = !cockpit;
+    // Rede de seguranca: se a corrida terminou e a tela nao trocou, troca. O
+    // evento de fim ja faz isso; este ramo existe porque a versao anterior
+    // ouvia um nome de evento que nao existe ('terminada' em vez de 'fim') e o
+    // jogo congelava na ultima volta, com o mundo parado e nenhuma tela.
+    if (corrida.estado === 'terminada' && estado === 'corrida') {
+      terminar(corrida.classificacao);
+    }
     if (estado === 'corrida') {
       atualizarMotor(corrida.carros[0], corrida.carros[0].superficie);
-      render.desenhar(corrida, dt, { mostrarLinha, norte: camera });
+      render.desenhar(corrida, dt, { cockpit });
       render.desenharMapa(mapaTela, corrida, corrida.carros[0]);
       atualizarHud();
     }
   } else if (corrida && estado === 'pausa') {
-    render.desenhar(corrida, 0, { mostrarLinha, norte: camera });
+    render.desenhar(corrida, 0, { cockpit });
   }
   requestAnimationFrame(laco);
 }
 
 function tratar(evento) {
+  const eu = corrida.carros[0];
   switch (evento.tipo) {
-    case 'largada': tocar('largada'); break;
-    case 'toque': tocar('toque'); break;
-    case 'muro': tocar('muro'); break;
-    case 'box-inicio': tocar('box'); break;
     case 'volta':
-      if (evento.carro === 'VOCE') {
+      if (evento.carro === eu.nome) {
         ultimaVolta = evento.tempo;
-        const nome = corrida.pista.nome;
-        const recorde = progresso.recordes[nome];
+        const recorde = progresso.recordes[corrida.pista.nome];
         if (!recorde || evento.tempo < recorde) {
-          progresso.recordes[nome] = evento.tempo;
+          progresso.recordes[corrida.pista.nome] = evento.tempo;
           salvar();
-          tocar('melhorVolta');
-          aviso('RECORDE DA PISTA');
-        } else {
-          tocar('volta');
+          aviso(`RECORDE ${formatar(evento.tempo)}`);
         }
+        tocar('volta');
       }
       break;
-    case 'bandeirada':
-      if (evento.carro === 'VOCE') tocar('bandeirada');
+    case 'turbo':
+      if (evento.carro === eu.nome) {
+        turboAte = performance.now() + 700;
+        tocar('turbo');
+      }
       break;
-    case 'fim': terminar(evento.classificacao); break;
-    default: break;
+    case 'item-pego':
+      if (evento.carro === eu.nome) tocar('item');
+      break;
+    case 'acertou':
+      if (evento.em === eu.nome) { aviso(`${evento.item.toUpperCase()}!`); tocar('batida'); }
+      break;
+    case 'muro':
+      if (evento.carro === eu.nome) tocar('batida');
+      break;
+    case 'recolocado':
+      if (evento.carro === eu.nome) aviso('DE VOLTA NA PISTA');
+      break;
+    case 'fim':
+      terminar(evento.classificacao);
+      break;
+    default:
+      break;
   }
 }
 
 let avisoAte = 0;
 function aviso(texto) {
   el('aviso').textContent = texto;
-  el('aviso').classList.remove('oculto');
-  avisoAte = performance.now() + 2200;
+  el('aviso').classList.add('mostrando');
+  avisoAte = performance.now() + 1600;
 }
 setInterval(() => {
   if (avisoAte && performance.now() > avisoAte) {
-    el('aviso').classList.add('oculto');
+    el('aviso').classList.remove('mostrando');
     avisoAte = 0;
   }
 }, 250);
 
 function terminar(tabela) {
-  pararMotor();
-  const minha = tabela.find(l => l.tipo === 'jogador');
-  el('resultado-titulo').textContent = minha
-    ? `${minha.posicao}º LUGAR`
-    : 'CORRIDA ENCERRADA';
+  const eu = corrida.carros[0];
+  const minha = tabela.find(l => l.nome === eu.nome);
+  el('resultado-titulo').textContent = minha && minha.posicao === 1
+    ? 'VITÓRIA' : `${minha ? minha.posicao : '-'}º LUGAR`;
   el('resultado-lista').innerHTML = tabela.map(l =>
-    `<tr class="${l.tipo === 'jogador' ? 'eu' : ''}"><td>${l.posicao}</td><td>${l.nome}</td>`
-    + `<td>${l.voltas}</td><td>${formatar(l.melhorVolta)}</td>`
-    + `<td>${l.paradas}</td><td>${PONTOS[l.posicao - 1] || 0}</td></tr>`).join('');
+    `<li class="${l.nome === eu.nome ? 'eu' : ''}"><span>${l.posicao}. ${l.nome}</span>`
+    + `<span>${formatar(l.melhorVolta)}</span></li>`).join('');
 
   if (campeonato) {
     campeonato.resultados.push({ pilotos: tabela.map(l => l.nome) });
     campeonato.etapa++;
+    el('resultado-seguir').classList.toggle('oculto', campeonato.etapa >= PISTAS.length);
     el('resultado-seguir').textContent = campeonato.etapa < PISTAS.length
-      ? `PRÓXIMA ETAPA: ${PISTAS[campeonato.etapa].nome}`
-      : 'VER O CAMPEONATO';
-    el('resultado-seguir').classList.remove('oculto');
+      ? `PRÓXIMA: ${PISTAS[campeonato.etapa].nome}` : 'TABELA';
   } else {
     el('resultado-seguir').classList.add('oculto');
   }
+  tocar('fim');
   mostrar('resultado');
 }
 
 function mostrarTabela() {
   const tabela = classificacao(campeonato.resultados);
+  el('tabela-titulo').textContent = `CAMPEONATO · ${tabela[0].nome}`;
   el('tabela-lista').innerHTML = tabela.map((l, i) =>
-    `<tr class="${l.nome === 'VOCE' ? 'eu' : ''}"><td>${i + 1}</td><td>${l.nome}</td>`
-    + `<td>${l.pontos}</td><td>${l.vitorias}</td></tr>`).join('');
-  el('tabela-titulo').textContent = campeonato.etapa >= PISTAS.length
-    ? 'CAMPEONATO ENCERRADO'
-    : `CAMPEONATO — ${campeonato.etapa} de ${PISTAS.length} etapas`;
+    `<li class="${l.nome === 'VOCÊ' ? 'eu' : ''}"><span>${i + 1}. ${l.nome}</span>`
+    + `<span>${l.pontos} pts · ${l.vitorias} v</span></li>`).join('');
   mostrar('tabela');
 }
 
@@ -229,13 +252,25 @@ function atualizarHud() {
   el('hud-melhor').textContent = formatar(j.melhorVolta);
   el('hud-ultima').textContent = formatar(ultimaVolta);
   el('hud-vel').textContent = Math.round(velocidadeKmh(j));
-  el('hud-marcha').textContent = j.marcha;
-  el('hud-pneu').style.width = `${Math.max(0, (1 - j.pneus.desgaste) * 100)}%`;
-  el('hud-pneu').classList.toggle('critico', j.pneus.desgaste > 0.72);
-  el('hud-gas').style.width = `${(j.combustivel / CARRO.tanque) * 100}%`;
-  el('hud-giro').style.width = `${(j.rpm / CARRO.rpmMax) * 100}%`;
-  el('hud-giro').classList.toggle('corte', j.rpm > CARRO.rpmTroca);
-  el('hud-superficie').textContent = j.superficie === 'asfalto' ? '' : (j.superficie || '').toUpperCase();
+
+  const caixaItem = el('hud-item');
+  caixaItem.classList.toggle('cheio', !!j.item);
+  caixaItem.classList.toggle('vazio', !j.item);
+  el('hud-item-nome').textContent = j.item ? NOMES_DE_ITEM[j.item] : '—';
+
+  // A carga do mini-turbo e a informacao central do jogo: sem ela o jogador
+  // segura o gatilho no escuro e nunca aprende quando soltar.
+  const faixa = faixaDaCarga(j.carga);
+  const caixaCarga = el('hud-carga');
+  caixaCarga.classList.toggle('f1', faixa === 1);
+  caixaCarga.classList.toggle('f2', faixa === 2);
+  caixaCarga.classList.toggle('f3', faixa >= 3);
+  el('hud-carga-texto').textContent = faixa >= 3 ? 'SOLTE AGORA'
+    : faixa > 0 ? `FAIXA ${faixa}` : 'MINI-TURBO';
+
+  el('hud-turbo').classList.toggle('oculto', performance.now() > turboAte);
+  el('hud-superficie').textContent = j.superficie === 'asfalto' || j.superficie === 'zebra'
+    ? '' : (j.superficie || '').toUpperCase();
 
   if (corrida.estado === 'largada') {
     el('hud-luz').textContent = corrida.contagem > 2 ? '3'
@@ -247,7 +282,7 @@ function atualizarHud() {
 
   el('hud-ordem').innerHTML = corrida.ordem.slice(0, 6).map((c, i) =>
     `<li class="${c === j ? 'eu' : ''}"><b>${i + 1}</b> ${c.nome}`
-    + `${c.noBox ? ' <i>box</i>' : ''}</li>`).join('');
+    + `${c.turbo > 0 ? ' <i>turbo</i>' : ''}</li>`).join('');
 }
 
 // ------------------------------------------------------------------ botoes
@@ -270,14 +305,16 @@ el('som').addEventListener('click', (ev) => {
 });
 el('som').textContent = somLigado() ? 'SOM: LIGADO' : 'SOM: DESLIGADO';
 
-// Ficha do carro, gerada dos proprios numeros da fisica.
+// Ficha do kart, gerada dos proprios numeros da fisica — se o balanceamento
+// mudar, esta tabela muda com ele.
 el('ficha').innerHTML = [
-  ['massa', `${CARRO.massa} kg`],
-  ['potência', `${Math.round(CARRO.potencia / 745.7)} cv`],
-  ['tração', 'traseira'],
-  ['aderência de projeto', `${CARRO.atritoBase.toFixed(2)} g`],
-  ['aderência sustentada', `${CARRO.atritoUtil.toFixed(2)} g`],
-  ['tanque', `${CARRO.tanque} L`],
+  ['massa', `${KART.massa} kg`],
+  ['potência', `${Math.round(KART.potencia / 745.7)} cv`],
+  ['entre-eixos', `${KART.entreEixos.toFixed(2)} m`],
+  ['aderência de projeto', `${KART.atritoBase.toFixed(2)} g`],
+  ['teto de giro, aderência', `${(KART.fatorDeGiroEmAderencia * 100).toFixed(0)}%`],
+  ['teto de giro, de lado', `${(KART.fatorDeGiroNoDrift * 100).toFixed(0)}%`],
+  ['mini-turbo', `${KART.turboPorCarga.map(t => `${t.toFixed(1)} s`).join(' · ')}`],
 ].map(([a, b]) => `<tr><th>${a}</th><td>${b}</td></tr>`).join('');
 
 ajustarTela();
