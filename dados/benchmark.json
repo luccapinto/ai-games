@@ -1,16 +1,65 @@
 {
   "esquema": 1,
   "resumo": {
-    "jogos": 8,
+    "jogos": 9,
     "autores": 1,
     "modelos": 2,
-    "linhas": 24129,
-    "usd": 10.88,
-    "tokens_novos": 2548978,
+    "linhas": 27428,
+    "usd": 12.42,
+    "tokens_novos": 2651978,
     "tokens_cache": 159076224,
-    "chamadas": 1006
+    "chamadas": 1080
   },
   "jogos": [
+    {
+      "slug": "travessia",
+      "titulo": "TRAVESSIA",
+      "genero": "Mundo aberto",
+      "criado": "2026-09-17",
+      "estado": "jogavel",
+      "licenca": "MIT",
+      "autores": [
+        {
+          "nome": "Lucca Pinto",
+          "github": "luccapinto",
+          "site": "https://luccabuilds.com"
+        }
+      ],
+      "ia": [
+        {
+          "modelo": "claude-opus-5",
+          "provider": "Anthropic",
+          "agente": "Oh My Pi",
+          "papel": "o jogo inteiro: gerador de mundo, grafo de missões, sede e combate, render e o arranjo de provas",
+          "chamadas_api": 74,
+          "tokens": {
+            "entrada": 74000,
+            "saida": 29000,
+            "cache_leitura": 0,
+            "cache_escrita": 0
+          },
+          "usd_estimado": 1.54
+        }
+      ],
+      "medicao": {
+        "metodo": "diferença do contador de tokens da sessão do agente entre o início e o fim deste jogo; custo pela mesma taxa cega de US$ 15 por milhão de tokens novos usada nos outros jogos claude-opus-5 deste repositório",
+        "confianca": "estimado",
+        "medido_em": "2026-09-17",
+        "nota": "O total (103 mil tokens novos) é a diferença do contador da sessão e é a parte confiável; a divisão entre entrada e saída é estimativa minha. Saiu mais barato que o jogo de corrida porque o padrão já estava estabelecido: gerar, provar em trinta sementes, consertar o que a prova acha. O cache está zerado porque não foi medido, não porque não houve."
+      },
+      "totais": {
+        "tokens_entrada": 74000,
+        "tokens_saida": 29000,
+        "tokens_novos": 103000,
+        "tokens_cache": 0,
+        "tokens_totais": 103000,
+        "usd": 1.54,
+        "chamadas_api": 74,
+        "linhas": 3299,
+        "tem_custo": true
+      },
+      "url": "games/travessia/"
+    },
     {
       "slug": "subsolo",
       "titulo": "SUBSOLO",
@@ -414,16 +463,17 @@
         "curva",
         "processo",
         "seiva",
-        "subsolo"
+        "subsolo",
+        "travessia"
       ],
-      "n_jogos": 7,
-      "tokens_novos": 655000,
+      "n_jogos": 8,
+      "tokens_novos": 758000,
       "tokens_cache": 0,
-      "chamadas_api": 350,
-      "usd": 9.85,
-      "linhas": 13420,
-      "tokens_por_linha": 48.81,
-      "linhas_por_dolar": 1362.44
+      "chamadas_api": 424,
+      "usd": 11.39,
+      "linhas": 16719,
+      "tokens_por_linha": 45.34,
+      "linhas_por_dolar": 1467.87
     },
     {
       "nome": "deepseek-flash",
@@ -463,16 +513,17 @@
       "nome": "Oh My Pi",
       "jogos": [
         "curva",
-        "subsolo"
+        "subsolo",
+        "travessia"
       ],
-      "n_jogos": 2,
-      "tokens_novos": 259000,
+      "n_jogos": 3,
+      "tokens_novos": 362000,
       "tokens_cache": 0,
-      "chamadas_api": 214,
-      "usd": 3.89,
-      "linhas": 7985,
-      "tokens_por_linha": 32.44,
-      "linhas_por_dolar": 2052.7
+      "chamadas_api": 288,
+      "usd": 5.43,
+      "linhas": 11284,
+      "tokens_por_linha": 32.08,
+      "linhas_por_dolar": 2078.08
     },
     {
       "nome": "Hermes Agent (Talos)",
@@ -499,16 +550,17 @@
         "curva",
         "processo",
         "seiva",
-        "subsolo"
+        "subsolo",
+        "travessia"
       ],
-      "n_jogos": 7,
-      "tokens_novos": 655000,
+      "n_jogos": 8,
+      "tokens_novos": 758000,
       "tokens_cache": 0,
-      "chamadas_api": 350,
-      "usd": 9.85,
-      "linhas": 13420,
-      "tokens_por_linha": 48.81,
-      "linhas_por_dolar": 1362.44
+      "chamadas_api": 424,
+      "usd": 11.39,
+      "linhas": 16719,
+      "tokens_por_linha": 45.34,
+      "linhas_por_dolar": 1467.87
     },
     {
       "nome": "DeepSeek",
