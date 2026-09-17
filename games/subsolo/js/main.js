@@ -12,6 +12,7 @@ import {
 } from './jogo.js';
 import { quantidadeDaRodada } from './rodadas.js';
 import { criarRender } from './render.js';
+import { criarEntrada } from './entrada.js';
 import {
   ligarAmbiente, pararAmbiente, atualizarAmbiente, tocar, alternarSom, somLigado,
 } from './som.js';
@@ -37,23 +38,9 @@ const SOM_DA_ARMA = {
 
 const SIGLA_DO_PERK = { caldo: 'CAL', graxa: 'GRX', gatilho: 'GAT', talisma: 'TAL' };
 
-let jogo = null;
-let estado = 'menu';
-let mapaEscolhido = 0;
-let ultimo = performance.now();
-let acumulado = 0;
-let marcaAte = 0;
-let bannerAte = 0;
-let sangueAte = 0;
-let recordes = carregarRecordes();
-
-const teclas = new Set();
-const toque = {};
-let mouseApertado = false;
-let giroPendente = 0;
-let inclinacaoPendente = 0;
-const pulsos = { usar: false, recarregar: false, trocar: false, lanterna: false, pausa: false };
-
+// Recorde por mapa. Estas duas funcoes foram perdidas na extracao do modulo de
+// entrada e o jogo parou de abrir: `carregarRecordes is not defined` no proprio
+// corpo do modulo, sem erro no console porque o modulo nunca chegou a rodar.
 function carregarRecordes() {
   try {
     return JSON.parse(localStorage.getItem('subsolo.recordes.v2') || '{}');
@@ -65,97 +52,27 @@ function carregarRecordes() {
 function salvarRecorde(mapa, rodada) {
   if (!recordes[mapa] || rodada > recordes[mapa]) {
     recordes[mapa] = rodada;
-    try { localStorage.setItem('subsolo.recordes.v2', JSON.stringify(recordes)); } catch { /* sem armazenamento */ }
+    try {
+      localStorage.setItem('subsolo.recordes.v2', JSON.stringify(recordes));
+    } catch { /* sem armazenamento */ }
   }
 }
 
-// ------------------------------------------------------------- entrada
+let jogo = null;
+let estado = 'menu';
+let mapaEscolhido = 0;
+let ultimo = performance.now();
+let acumulado = 0;
+let marcaAte = 0;
+let bannerAte = 0;
+let sangueAte = 0;
+let recordes = carregarRecordes();
 
-window.addEventListener('keydown', (ev) => {
-  if (ev.repeat) return;
-  teclas.add(ev.code);
-  if (ev.code === 'KeyE') pulsos.usar = true;
-  if (ev.code === 'KeyR') pulsos.recarregar = true;
-  if (ev.code === 'KeyQ' || ev.code === 'Digit1' || ev.code === 'Digit2') pulsos.trocar = true;
-  if (ev.code === 'KeyF') pulsos.lanterna = true;
-  if (ev.code === 'Escape') pulsos.pausa = true;
-  if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(ev.code)) {
-    ev.preventDefault();
-  }
-});
-window.addEventListener('keyup', ev => teclas.delete(ev.code));
-window.addEventListener('blur', () => { teclas.clear(); mouseApertado = false; });
+const entrada = criarEntrada(palco, tela);
 
-tela.addEventListener('mousedown', (ev) => {
-  if (estado !== 'jogando') return;
-  if (document.pointerLockElement !== tela) {
-    tela.requestPointerLock();
-    return;
-  }
-  if (ev.button === 0) mouseApertado = true;
-});
-window.addEventListener('mouseup', () => { mouseApertado = false; });
-window.addEventListener('mousemove', (ev) => {
-  if (document.pointerLockElement !== tela) return;
-  giroPendente += ev.movementX * SENSIBILIDADE;
-  inclinacaoPendente -= ev.movementY * SENSIBILIDADE * 0.8;
-});
 document.addEventListener('pointerlockchange', () => {
   if (estado === 'jogando' && document.pointerLockElement !== tela) mostrar('pausa');
 });
-
-for (const botao of palco.querySelectorAll('[data-controle]')) {
-  const qual = botao.dataset.controle;
-  const liga = (ev) => { ev.preventDefault(); toque[qual] = true; if (qual === 'usar') pulsos.usar = true; if (qual === 'recarregar') pulsos.recarregar = true; };
-  const desliga = (ev) => { ev.preventDefault(); toque[qual] = false; };
-  botao.addEventListener('touchstart', liga, { passive: false });
-  botao.addEventListener('touchend', desliga, { passive: false });
-  botao.addEventListener('touchcancel', desliga, { passive: false });
-  botao.addEventListener('mousedown', liga);
-  botao.addEventListener('mouseup', desliga);
-  botao.addEventListener('mouseleave', desliga);
-}
-
-// No celular, arrastar na tela olha em volta: o unico jeito de mirar sem mouse.
-let dedoDeOlhar = null;
-tela.addEventListener('touchstart', (ev) => {
-  const dedo = ev.changedTouches[0];
-  dedoDeOlhar = { id: dedo.identifier, x: dedo.clientX, y: dedo.clientY };
-}, { passive: true });
-tela.addEventListener('touchmove', (ev) => {
-  if (!dedoDeOlhar) return;
-  for (const dedo of ev.changedTouches) {
-    if (dedo.identifier !== dedoDeOlhar.id) continue;
-    giroPendente += (dedo.clientX - dedoDeOlhar.x) * SENSIBILIDADE * 2.2;
-    inclinacaoPendente -= (dedo.clientY - dedoDeOlhar.y) * SENSIBILIDADE * 1.6;
-    dedoDeOlhar.x = dedo.clientX;
-    dedoDeOlhar.y = dedo.clientY;
-  }
-}, { passive: true });
-tela.addEventListener('touchend', () => { dedoDeOlhar = null; }, { passive: true });
-
-function lerComandos() {
-  const tem = (...codigos) => codigos.some(c => teclas.has(c));
-  const comandos = {
-    frente: tem('KeyW', 'ArrowUp') || !!toque.frente,
-    tras: tem('KeyS', 'ArrowDown') || !!toque.tras,
-    esq: tem('KeyA', 'ArrowLeft') || !!toque.esq,
-    dir: tem('KeyD', 'ArrowRight') || !!toque.dir,
-    correr: tem('ShiftLeft', 'ShiftRight') || !!toque.correr,
-    atirar: mouseApertado || tem('Space') || !!toque.atirar,
-    recarregar: pulsos.recarregar,
-    usar: pulsos.usar,
-    trocar: pulsos.trocar,
-    girar: giroPendente,
-    inclinar: inclinacaoPendente,
-  };
-  pulsos.recarregar = false;
-  pulsos.usar = false;
-  pulsos.trocar = false;
-  giroPendente = 0;
-  inclinacaoPendente = 0;
-  return comandos;
-}
 
 // --------------------------------------------------------------- telas
 
@@ -195,6 +112,7 @@ function comecar() {
   acumulado = 0;
   el('hud-banner').textContent = '';
   el('hud-dica').textContent = '';
+  entrada.limpar();
   mostrar('jogando');
   tela.requestPointerLock?.();
   if (new URLSearchParams(location.search).has('depurar')) window.__jogo = jogo;
@@ -227,11 +145,11 @@ function laco(agora) {
     let passos = 0;
     while (acumulado >= DT && passos++ < 5) {
       acumulado -= DT;
-      const comandos = lerComandos();
-      if (pulsos.lanterna) { jogo.jogador.lanterna = !jogo.jogador.lanterna; pulsos.lanterna = false; }
+      const comandos = entrada.ler();
+      if (entrada.consumir('lanterna')) jogo.jogador.lanterna = !jogo.jogador.lanterna;
       for (const evento of passo(jogo, comandos, DT)) tratar(evento);
     }
-    if (pulsos.pausa) { pulsos.pausa = false; mostrar('pausa'); }
+    if (entrada.consumir('pausa')) mostrar('pausa');
     if (estado === 'jogando') {
       render.desenhar(jogo, dt);
       atualizarHud();
@@ -258,6 +176,11 @@ function tratar(evento) {
       tocar(nome, { volume: arma.forjada ? 1.1 : 1 });
       break;
     }
+    case 'golpe':
+      // Picareta nao estoura: o som e o ferro cortando o ar, e o de carne vem
+      // do evento de acerto, se houver.
+      tocar('impacto-pedra', { volume: evento.acertos ? 0.35 : 0.5 });
+      break;
     case 'vazio':
       tocar('vazio');
       break;
@@ -332,7 +255,8 @@ function terminar() {
     ['mapa', jogo.mapa.nome],
     ['zumbis abatidos', r.mortes],
     ['na cabeca', `${r.cabecas} (${Math.round((r.cabecas / Math.max(1, r.mortes)) * 100)}%)`],
-    ['precisao', `${Math.round((r.acertos / Math.max(1, r.tiros)) * 100)}%`],
+    ['precisao', r.tiros ? `${Math.round((r.acertos / r.tiros) * 100)}%` : '--'],
+    ['golpes de picareta', r.golpes],
     ['tabuas repostas', r.tabuasRepostas],
     ['portas abertas', r.portasAbertas],
     ['recorde neste mapa', `rodada ${recordes[jogo.mapa.nome] || jogo.rodada}`],
@@ -395,6 +319,7 @@ function atualizarHud() {
 
 el('menu-jogar').addEventListener('click', comecar);
 el('pausa-voltar').addEventListener('click', () => {
+  entrada.limpar();
   mostrar('jogando');
   tela.requestPointerLock?.();
 });

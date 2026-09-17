@@ -28,11 +28,16 @@ import { maisProximo, paraMundo } from './pista.js';
 // pistas — o perfil mais forte ficando mais lento, o que quebra a promessa do
 // campeonato. Em 0,93 o ouro e o mais rapido nas seis, com a soma crescendo do
 // ouro ao ferro, medido na media de tres sementes por pista.
+// A escala de habilidade foi REAFINADA depois do servo de guinada: com a escala
+// antiga (0,93 0,89 0,84 0,77) o ouro deixou de ser o mais rapido na SERRA —
+// chassi mais responsivo muda o que cada nivel consegue extrair. Medida do
+// afinador: com 0,97 0,90 0,83 0,75, a ordem ouro > prata > bronze > ferro sai
+// certa nas SEIS pistas, e nao em cinco.
 export const PERFIS = {
-  ouro: { habilidade: 0.93, agressao: 0.9, antecipacao: 1.0, erro: 0.0, drift: 1 },
-  prata: { habilidade: 0.89, agressao: 0.75, antecipacao: 0.95, erro: 0.04, drift: 0.85 },
-  bronze: { habilidade: 0.84, agressao: 0.6, antecipacao: 0.9, erro: 0.08, drift: 0.6 },
-  ferro: { habilidade: 0.77, agressao: 0.45, antecipacao: 0.85, erro: 0.13, drift: 0.3 },
+  ouro: { habilidade: 0.97, agressao: 0.9, antecipacao: 1.0, erro: 0.0, drift: 1 },
+  prata: { habilidade: 0.90, agressao: 0.75, antecipacao: 0.95, erro: 0.04, drift: 0.85 },
+  bronze: { habilidade: 0.83, agressao: 0.6, antecipacao: 0.9, erro: 0.08, drift: 0.6 },
+  ferro: { habilidade: 0.75, agressao: 0.45, antecipacao: 0.85, erro: 0.13, drift: 0.3 },
 };
 
 // Os ganhos da IA, num lugar so e com nome. Nenhum destes numeros foi escolhido
@@ -73,6 +78,12 @@ export function criarPiloto(nome, perfilNome = 'prata', semente = 1) {
     perfil,
     desvio: 0,
     desvioAlvo: 0,
+    // Estilo de linha: cada piloto anda alguns centimetros deslocado da linha
+    // ideal, para sempre. Sem isso, dez karts perseguiam a MESMA curva com a
+    // mesma precisao e o pelotao virava uma fila de batidas — 235 toques numa
+    // corrida de tres voltas, com dois karts sem completar uma volta. Piloto de
+    // verdade tambem nao usa a linha do vizinho.
+    estilo: (((semente | 0) % 7) - 3) * 0.42,
     semente: semente | 0 || 1,
     ruido: 0,
     relogioRuido: 0,
@@ -105,7 +116,17 @@ export function pilotar(carro, piloto, pista, linha, ctx = {}, dt = 1 / 60) {
       * piloto.perfil.antecipacao;
   const olhada = Math.max(2, Math.round(distanciaOlhada / pista.passo));
   const alvoIndice = (perto.i + olhada) % n;
-  const deslocaLinha = naGrama ? 0 : linha.deslocamentos[alvoIndice] + piloto.desvio;
+  const linhaIdeal = naGrama
+    ? 0
+    : linha.deslocamentos[alvoIndice] + piloto.desvio + piloto.estilo;
+  // Pelotao colado: segure a sua coluna. Com kart a menos de 6 m, a IA para de
+  // puxar para a linha ideal e mantem a lateral onde esta — e o que um piloto
+  // faz na largada, e sem isso dez karts convergiam na mesma curva 1 e se
+  // destruiam antes da primeira volta.
+  const aperto = Number.isFinite(ctx.aperto) ? ctx.aperto : Infinity;
+  const apertado = naGrama ? 0 : Math.max(0, Math.min(1, (6 - aperto) / 4));
+  const colunaAtual = Number.isFinite(ctx.lateral) ? ctx.lateral : linhaIdeal;
+  const deslocaLinha = linhaIdeal * (1 - apertado) + colunaAtual * apertado;
   const limite = pista.centro[alvoIndice].largura / 2 - KART.largura / 2 - 0.3;
   const alvo = paraMundo(pista, alvoIndice, Math.max(-limite, Math.min(limite, deslocaLinha)));
 
@@ -188,7 +209,10 @@ export function pilotar(carro, piloto, pista, linha, ctx = {}, dt = 1 / 60) {
   } else {
     piloto.desvioAlvo = 0;
   }
-  piloto.desvio += (piloto.desvioAlvo - piloto.desvio) * Math.min(1, dt * 1.6);
+  // 3,2 e nao 1,6: o desvio levava 0,6 s para sair, e nesse tempo o kart de
+  // tras ja tinha encostado. Com o chassi respondendo (servo de guinada), o
+  // desvio pode ser rapido.
+  piloto.desvio += (piloto.desvioAlvo - piloto.desvio) * Math.min(1, dt * 3.2);
 
   if (velocidade < alvoVelocidade - 0.3) {
     acelerador = Math.min(1, (alvoVelocidade - velocidade) / 3 + 0.4);

@@ -10,7 +10,7 @@ costs. Each game is a self-contained, playable folder that records the model tha
 wrote it, the agent that drove it, and the tokens it burned.*
 
 **9 jogos** de **1 pessoa**, 30.921 linhas de código,
-3,3 M tokens novos e US$ 22,14 de API no total.
+3,4 M tokens novos e US$ 22,14 de API no total.
 
 👉 **[Jogar tudo](https://luccapinto.github.io/ai-games/)** · **[Ver o benchmark](https://luccapinto.github.io/ai-games/benchmark.html)** · **[Mandar o seu jogo](CONTRIBUTING.md)**
 
@@ -19,8 +19,8 @@ wrote it, the agent that drove it, and the tokens it burned.*
 | Jogo | Gênero | Quem fez | Modelo | Tokens novos | Custo | Jogar |
 | --- | --- | --- | --- | --- | --- | --- |
 | **TRAVESSIA** [`travessia`](games/travessia/README.md) | Mundo aberto | Lucca Pinto | claude-opus-5 | 103,0 k | US$ 1,54 | [jogar](https://luccapinto.github.io/ai-games/games/travessia/) |
-| **SUBSOLO** [`subsolo`](games/subsolo/README.md) | FPS de rodadas | Lucca Pinto | claude-opus-5 | 553,0 k | US$ 8,30 | [jogar](https://luccapinto.github.io/ai-games/games/subsolo/) |
-| **CURVA** [`curva`](games/curva/README.md) | Kart 3D | Lucca Pinto | claude-opus-5 | 354,0 k | US$ 5,31 | [jogar](https://luccapinto.github.io/ai-games/games/curva/) |
+| **SUBSOLO** [`subsolo`](games/subsolo/README.md) | FPS de rodadas | Lucca Pinto | claude-opus-5 | 623,0 k | US$ 8,30 | [jogar](https://luccapinto.github.io/ai-games/games/subsolo/) |
+| **CURVA** [`curva`](games/curva/README.md) | Kart 3D | Lucca Pinto | claude-opus-5 | 414,0 k | US$ 5,31 | [jogar](https://luccapinto.github.io/ai-games/games/curva/) |
 | **SEIVA** [`seiva`](games/seiva/README.md) | Defesa de torre | Lucca Pinto | claude-opus-5 | 70,0 k | US$ 1,05 | [jogar](https://luccapinto.github.io/ai-games/games/seiva/) |
 | **PROCESSO** [`processo`](games/processo/README.md) | Cartas com construção de baralho | Lucca Pinto | claude-opus-5 | 44,0 k | US$ 0,66 | [jogar](https://luccapinto.github.io/ai-games/games/processo/) |
 | **CRIPTA** [`cripta`](games/cripta/README.md) | Puzzle | Lucca Pinto | claude-opus-5 | 86,0 k | US$ 1,30 | [jogar](https://luccapinto.github.io/ai-games/games/cripta/) |
@@ -32,7 +32,7 @@ wrote it, the agent that drove it, and the tokens it burned.*
 
 | Modelo | Jogos | Tokens novos | Cache | Custo | Linhas |
 | --- | --- | --- | --- | --- | --- |
-| claude-opus-5 | 8 | 1,4 M | 0 | US$ 21,11 | 20.212 |
+| claude-opus-5 | 8 | 1,5 M | 0 | US$ 21,11 | 20.212 |
 | deepseek-flash | 1 | 1,9 M | 159,1 M | US$ 1,03 | 10.709 |
 
 Tokens novos são entrada + saída. Cache aparece em coluna separada de propósito:
@@ -134,7 +134,7 @@ O que tem dentro:
 - O capataz nao e um zumbi com mais vida: blindagem que corta 45% do dano de corpo e nada do dano de cabeca, entao rajada no peito nao resolve e mira resolve
 
 - **Quem fez:** Lucca Pinto
-- **Modelo:** claude-opus-5 via Anthropic, dirigido por Oh My Pi — 553,0 k tokens novos, 0 de cache, 402 chamadas, US$ 8,30
+- **Modelo:** claude-opus-5 via Anthropic, dirigido por Oh My Pi — 623,0 k tokens novos, 0 de cache, 455 chamadas, US$ 8,30
 - **Custo total:** US$ 8,30 (estimado)
 - **Tamanho:** 6.568 linhas de código próprio, 0,4 MB
 - **Pasta:** [`games/subsolo/`](games/subsolo/README.md)
@@ -145,16 +145,17 @@ Seis kartódromos com relevo, nove adversários e um kart com duas personalidade
 
 O que tem dentro:
 
-- O jogo inteiro gira em torno de um número: o teto de velocidade de giro. Em aderência o kart gira 65% do que o pneu daria e não faz grampo de 10 m; de lado ele gira 240% e carrega mini-turbo. Com esse teto em 100%, medido, derrapar era só custo — o kart fazia o grampo de frente e o gatilho não servia para nada
-- Derrapar rende de 1,00 s (CERRADO, curvas de 30 a 45 m) a 6,28 s (PORTO, noventas de 12 m) por volta, medido com cada modo seguindo a linha de corrida dele: com as duas corridas na mesma linha a medida dizia que derrapar atrasa, porque o kart sem drift ganhava tempo cortando zebra numa linha que não era a dele
-- As pistas são escritas como um projetista escreve — reta de tantos metros, curva de tantos graus com tanto raio — e fecham por duas regras verificáveis: a soma dos ângulos é 360 exatos (fecha o rumo) e o erro de posição é linear nos comprimentos de reta, resolvido exatamente num passo com correção de norma mínima. O formato polar anterior não expressava grampo: a 32 m do centro, 12 graus de arco tem de girar 140, o que dá raio de 2,6 m
-- O volante pede velocidade de giro, não ângulo de roda. Com 0,62 rad de esterço ligados direto no comando, meia volta a 80 km/h pedia 1,9 g de um asfalto que dá 1,4: o kart rodopiava em meio segundo e terminava andando para trás, medido em três versões seguidas
-- A IA aprende o próprio limite: quem escapa entra mais devagar na curva seguinte. Sem isso o perfil `ouro` perdia do `prata` em uma das seis pistas — o piloto mais forte ficando mais lento, o que quebra a promessa do campeonato
-- As provas acharam que a IA tinha 20% de freio exatamente dentro da curva, porque a elipse de atrito limitava a força duas vezes: uma na física e outra na decisão. Ela chegava 14 km/h acima do alvo no grampo, batia no muro e ficava atolada a 3 km/h — e era esse acidente, não a pilotagem, que decidia todo tempo de volta do jogo
-- Render 3D sem biblioteca, sem arquivo de modelo e sem textura: a fita da pista sai da mesma lista de números que a física usa, e a saia de grama desce até um piso de vale porque, sem ela, o circuito terminava no ar a 7 m da zebra
+- Kartodromo de verdade: seis circuitos escritos como projetista escreve - reta de 120 m, curva de 175 graus com raio 11 - e o fechamento do circuito e resolvido por conta (soma de angulos 360 exatos, erro de posicao linear nas retas)
+- Drift que paga: de lado o kart gira 3,7 vezes mais do que a aderencia deixa, e soltar o gatilho entrega mini-turbo em tres faixas. Medido nas seis pistas: 3,1 a 6,2 s por volta
+- Servo de guinada: o chassi persegue a velocidade de giro pedida em vez de chegar nela meio segundo depois - foi o que tirou a sensacao de barco sem levantar o teto de aderencia (subir o teto foi medido e revertido: derrapar passava a CUSTAR 1,43 s por volta)
+- Teto geometrico de giro: nenhum kart gira mais rapido que velocidade / raio minimo, porque o teto do pneu cresce como 1/v e a 13 km/h ele pedia 6,6 rad/s - o kart rodopiava no lugar ao apertar o gatilho na largada
+- Nove adversarios com estilo de linha proprio: dez karts na mesma linha ideal viravam uma fila de batidas (146 dos 278 contatos nos primeiros 20 s), e ninguem ataca a linha com kart a menos de 6 m
+- Volta conta mesmo suja: contagem e cronometragem separadas, porque kart recolocado uma vez por volta nunca registrava volta - cruzava a linha duas vezes e terminava com zero
+- Render 3D em WebGL2 escrito a mao - sem biblioteca, sem modelo, sem textura em disco: a fita da pista sai da mesma lista de numeros que a fisica usa
+- 36 provas sem navegador, incluindo uma que carrega a casca inteira com uma tela de mentira - o arquivo que fala com a tela era o unico que nenhuma prova tocava
 
 - **Quem fez:** Lucca Pinto
-- **Modelo:** claude-opus-5 via Anthropic, dirigido por Oh My Pi — 354,0 k tokens novos, 0 de cache, 246 chamadas, US$ 5,31
+- **Modelo:** claude-opus-5 via Anthropic, dirigido por Oh My Pi — 414,0 k tokens novos, 0 de cache, 292 chamadas, US$ 5,31
 - **Custo total:** US$ 5,31 (estimado)
 - **Tamanho:** 4.910 linhas de código próprio, 0,3 MB
 - **Pasta:** [`games/curva/`](games/curva/README.md)

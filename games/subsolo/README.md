@@ -173,6 +173,34 @@ cd games/subsolo && node provas.mjs
 
 ES modules nativos não carregam por `file://`. Precisa de WebGL2.
 
+## O que o dono do repo achou jogando
+
+**Mouse e setas invertidos.** Mesma causa do jogo de kart: o mapeamento de
+entrada morava em `main.js`, o unico arquivo que as provas nao carregavam. A
+entrada virou `js/entrada.js` e ganhou quatro provas - sinal do mouse, sinal das
+setas, mapa de teclas e o giro chegando no jogo com o mesmo sinal.
+
+**A picareta atirava.** Ela usava a mesma funcao da pistola: raio instantaneo,
+um alvo so, bonus de cabeca por altura de mira, clarao de cano e som de
+disparo. Agora golpe e golpe: varre um arco de 100 graus, pega TODO mundo dentro
+dele, nao gasta municao, nao acende nada (o escuro continua escuro) e nao entra
+na conta de precisao - precisao e quantos dos seus tiros acertaram.
+
+**Nao dava para atirar em quem estava na sua janela.** O zumbi arrancava tabua
+parado na celula de FORA da janela, que e rocha solida para bala. O jogador via
+o braco entre as tabuas, atirava e nada acontecia - a barricada deixava de ser
+"tempo para atirar" e virava "tempo para nao poder fazer nada". Tabua e vao:
+agora quem arranca fica no buraco, o unico lugar por onde o tiro passa. O robo
+de prova, que antes parava na rodada 5 a 8, passou a chegar na 8 e na 9.
+
+**E uma quebra que eu mesmo causei.** Ao extrair o modulo de entrada, apaguei
+duas funcoes de `main.js`. As 41 provas continuaram verdes, `node --check`
+passou (a sintaxe estava certa) e o jogo **nao abria**: o corpo do modulo jogava
+`carregarRecordes is not defined` antes de registrar o clique do menu. Quem
+descobriu foi o dono do repo. A prova que faltava agora existe: `provas-dom.mjs`
+monta uma tela de mentira e o harness carrega `js/main.js` inteiro - todo
+identificador, todo import, todo `getElementById` do corpo do modulo.
+
 ## Ficha
 
 - **Quem fez:** Lucca Pinto

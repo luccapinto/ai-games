@@ -862,6 +862,12 @@ export function criarRender(canvas) {
     // Camera segue com atraso, e o atraso e maior na posicao do que no alvo:
     // sem isso, derrapar gira a tela junto com o kart e o jogador perde a
     // referencia de para onde a pista vai.
+    // Atraso lateral: de lado, a camera fica um pouco atras do rumo do kart, e e
+    // isso que mostra a derrapagem em vez de esconder. Sem isso o kart gira e a
+    // tela gira junto, e o jogador nao ve que esta derrapando.
+    const deriva = Math.atan2(jogador.vy || 0, Math.max(3, jogador.vx || 0));
+    alvo.x -= Math.sin(jogador.ang) * deriva * 2.6;
+    alvo.y += Math.cos(jogador.ang) * deriva * 2.6;
     const k = opcoes.cockpit ? 1 : Math.min(1, dt * 7.5);
     const ko = Math.min(1, dt * 10);
     camera.x += (alvo.x - camera.x) * k;
@@ -909,8 +915,14 @@ export function criarRender(canvas) {
     gl.depthMask(true);
     gl.clear(gl.DEPTH_BUFFER_BIT);
 
+    // Campo de visao que abre com a velocidade: e o truque mais antigo de jogo
+    // de corrida e o mais eficiente. A 96 km/h o mundo passa 12 graus mais
+    // largo do que parado, e a sensacao de velocidade dobra sem mudar um numero
+    // da fisica.
+    const rapidez = Math.hypot(jogador.vx || 0, jogador.vy || 0);
+    const abertura = (opcoes.cockpit ? 80 : 68) + Math.min(12, rapidez * 0.45);
     const projecao = perspectiva(
-      (opcoes.cockpit ? 78 : 68) * Math.PI / 180,
+      abertura * Math.PI / 180,
       Math.max(0.4, largura / Math.max(1, altura)), 0.35, 420,
     );
     const vista = olhar(

@@ -315,8 +315,10 @@ function andarPara(jogo, comandos, destino, fugindo) {
     const sen = Math.sin(erro);
     comandos.frente = cos > 0.35;
     comandos.tras = cos < -0.35;
-    comandos.dir = sen > 0.35;
-    comandos.esq = sen < -0.35;
+    // Erro angular positivo e sentido anti-horario, que e a ESQUERDA da tela.
+    // Este sinal acompanha o conserto de mao em `jogo.js`.
+    comandos.esq = sen > 0.35;
+    comandos.dir = sen < -0.35;
     comandos.correr = cos > 0.6;
   } else {
     comandos.girar = Math.max(-6 * (1 / 60), Math.min(6 * (1 / 60), erro));

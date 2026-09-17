@@ -6,9 +6,9 @@
     "modelos": 2,
     "linhas": 30921,
     "usd": 22.14,
-    "tokens_novos": 3299978,
+    "tokens_novos": 3429978,
     "tokens_cache": 159076224,
-    "chamadas": 1514
+    "chamadas": 1613
   },
   "jogos": [
     {
@@ -80,10 +80,10 @@
           "provider": "Anthropic",
           "agente": "Oh My Pi",
           "papel": "o jogo inteiro: geometria dos mapas, rodadas, armas e balistica, IA dos zumbis, economia, render 3D em WebGL2 e o robo que joga; audio e casca/HUD feitos por subagentes do mesmo modelo",
-          "chamadas_api": 402,
+          "chamadas_api": 455,
           "tokens": {
-            "entrada": 402000,
-            "saida": 151000,
+            "entrada": 455000,
+            "saida": 168000,
             "cache_leitura": 0,
             "cache_escrita": 0
           },
@@ -94,16 +94,16 @@
         "metodo": "diferença do contador de tokens da sessão do agente entre o início e o fim deste jogo; custo pela mesma taxa cega de US$ 15 por milhão de tokens novos usada nos outros jogos claude-opus-5 deste repositório",
         "confianca": "estimado",
         "medido_em": "2026-09-17",
-        "nota": "O total (553 mil tokens novos) inclui a versao de raycasting anterior e a reconstrucao em 3D com sobrevivencia por rodadas, e e a diferenca do contador da sessao: essa e a parte confiavel. A divisao entre entrada e saida e estimativa minha. Dois subagentes do mesmo modelo escreveram o audio e a casca/HUD, e o custo deles esta nesse total. A maior parte foi afinacao medida, nao digitacao: o robo que joga achou seis defeitos de regra que estariam no jogo sem ele."
+        "nota": "O total (623 mil tokens novos) inclui a versao de raycasting anterior, a reconstrucao em 3D com sobrevivencia por rodadas e a rodada de consertos depois de o dono do repo jogar: mouse e setas invertidos, picareta que atirava como pistola e zumbi de janela inalvejavel. E a diferenca do contador da sessao: essa e a parte confiavel. A divisao entre entrada e saida e estimativa minha. Dois subagentes do mesmo modelo escreveram o audio e a casca/HUD, e o custo deles esta nesse total."
       },
       "totais": {
-        "tokens_entrada": 402000,
-        "tokens_saida": 151000,
-        "tokens_novos": 553000,
+        "tokens_entrada": 455000,
+        "tokens_saida": 168000,
+        "tokens_novos": 623000,
         "tokens_cache": 0,
-        "tokens_totais": 553000,
+        "tokens_totais": 623000,
         "usd": 8.3,
-        "chamadas_api": 402,
+        "chamadas_api": 455,
         "linhas": 6568,
         "tem_custo": true
       },
@@ -129,10 +129,10 @@
           "provider": "Anthropic",
           "agente": "Oh My Pi",
           "papel": "o jogo inteiro: geometria dos kartódromos, física do kart, otimizador da linha, IA de pilotagem, render 3D em WebGL2 e o banco de medidas",
-          "chamadas_api": 246,
+          "chamadas_api": 292,
           "tokens": {
-            "entrada": 258000,
-            "saida": 96000,
+            "entrada": 302000,
+            "saida": 112000,
             "cache_leitura": 0,
             "cache_escrita": 0
           },
@@ -143,16 +143,16 @@
         "metodo": "diferença do contador de tokens da sessão do agente entre o início e o fim deste jogo; custo pela mesma taxa cega de US$ 15 por milhão de tokens novos usada nos outros jogos claude-opus-5 deste repositório",
         "confianca": "estimado",
         "medido_em": "2026-09-17",
-        "nota": "O total (354 mil tokens novos) inclui a versão de cima anterior e a reconstrução em 3D, e é a diferença do contador da sessão: essa é a parte confiável. A divisão entre entrada e saída é estimativa minha. A maior parte foi afinação medida, não digitação: física, geometria de pista, otimizador da linha e IA passaram por rodadas de medir, consertar e medir de novo, cada uma rodando seis corridas simuladas. O cache está zerado porque não foi medido, não porque não houve."
+        "nota": "O total (414 mil tokens novos) inclui a versao de cima anterior, a reconstrucao em 3D e a rodada de consertos que veio depois de o dono do repo jogar: volante invertido, resposta do chassi, pelotao que se destruia na largada e volta que nao contava para quem foi recolocado. E a diferenca do contador da sessao: essa e a parte confiavel. A divisao entre entrada e saida e estimativa minha. A maior parte foi afinacao medida, nao digitacao: fisica, geometria de pista, otimizador da linha e IA passaram por rodadas de medir, consertar e medir de novo."
       },
       "totais": {
-        "tokens_entrada": 258000,
-        "tokens_saida": 96000,
-        "tokens_novos": 354000,
+        "tokens_entrada": 302000,
+        "tokens_saida": 112000,
+        "tokens_novos": 414000,
         "tokens_cache": 0,
-        "tokens_totais": 354000,
+        "tokens_totais": 414000,
         "usd": 5.31,
-        "chamadas_api": 246,
+        "chamadas_api": 292,
         "linhas": 4910,
         "tem_custo": true
       },
@@ -467,12 +467,12 @@
         "travessia"
       ],
       "n_jogos": 8,
-      "tokens_novos": 1406000,
+      "tokens_novos": 1536000,
       "tokens_cache": 0,
-      "chamadas_api": 858,
+      "chamadas_api": 957,
       "usd": 21.11,
       "linhas": 20212,
-      "tokens_por_linha": 69.56,
+      "tokens_por_linha": 75.99,
       "linhas_por_dolar": 957.46
     },
     {
@@ -517,12 +517,12 @@
         "travessia"
       ],
       "n_jogos": 3,
-      "tokens_novos": 1010000,
+      "tokens_novos": 1140000,
       "tokens_cache": 0,
-      "chamadas_api": 722,
+      "chamadas_api": 821,
       "usd": 15.15,
       "linhas": 14777,
-      "tokens_por_linha": 68.35,
+      "tokens_por_linha": 77.15,
       "linhas_por_dolar": 975.38
     },
     {
@@ -554,12 +554,12 @@
         "travessia"
       ],
       "n_jogos": 8,
-      "tokens_novos": 1406000,
+      "tokens_novos": 1536000,
       "tokens_cache": 0,
-      "chamadas_api": 858,
+      "chamadas_api": 957,
       "usd": 21.11,
       "linhas": 20212,
-      "tokens_por_linha": 69.56,
+      "tokens_por_linha": 75.99,
       "linhas_por_dolar": 957.46
     },
     {

@@ -237,6 +237,41 @@ export function paredeNaLinha(solidoEm, de, para) {
   return false;
 }
 
+// Arco de um golpe de picareta, em radianos. Um golpe nao e um tiro: ele varre
+// um arco e pega TODO mundo dentro dele.
+export const ARCO_DO_GOLPE = 1.75;
+
+// Golpe de corpo a corpo. Existe separado de `tracar` por um motivo que o dono
+// do repo sentiu jogando: a picareta usava a mesma funcao da pistola, entao ela
+// "atirava" — raio instantaneo, um alvo so, bonus de cabeca por altura de mira,
+// clarao de cano e som de disparo. Picareta e outra coisa: varredura curta em
+// arco, sem municao, sem recarga, e o que ela acerta e corpo.
+export function golpear(solidoEm, origem, direcao, arma, alvos) {
+  const rumo = Math.atan2(direcao.y, direcao.x);
+  const acertos = [];
+  for (const alvo of alvos) {
+    const dx = alvo.x - origem.x;
+    const dy = alvo.y - origem.y;
+    const distancia = Math.hypot(dx, dy);
+    if (distancia > arma.alcance) continue;
+    let desvio = Math.atan2(dy, dx) - rumo;
+    while (desvio > Math.PI) desvio -= Math.PI * 2;
+    while (desvio < -Math.PI) desvio += Math.PI * 2;
+    if (Math.abs(desvio) > ARCO_DO_GOLPE / 2) continue;
+    if (paredeNaLinha(solidoEm, origem, alvo)) continue;
+    // Cabeca de picareta e golpe de cima em bicho alto e perto — nao e uma
+    // faixa de altura de mira, porque golpe nao tem mira.
+    const naCabeca = alvo.altura > 1.2 && distancia < arma.alcance * 0.75;
+    acertos.push({
+      alvo,
+      distancia,
+      naCabeca,
+      dano: arma.dano * (naCabeca ? arma.cabeca : 1),
+    });
+  }
+  return acertos.sort((a, b) => a.distancia - b.distancia);
+}
+
 // Tracado de um projetil: devolve os alvos atingidos, em ordem de distancia,
 // respeitando penetracao. `alvos` e uma lista de { x, y, raio, altura, ... }.
 //

@@ -23,10 +23,10 @@
       "provider": "Anthropic",
       "agente": "Oh My Pi",
       "papel": "o jogo inteiro: geometria dos mapas, rodadas, armas e balistica, IA dos zumbis, economia, render 3D em WebGL2 e o robo que joga; audio e casca/HUD feitos por subagentes do mesmo modelo",
-      "chamadas_api": 402,
+      "chamadas_api": 455,
       "tokens": {
-        "entrada": 402000,
-        "saida": 151000,
+        "entrada": 455000,
+        "saida": 168000,
         "cache_leitura": 0,
         "cache_escrita": 0
       },
@@ -37,7 +37,7 @@
     "confianca": "estimado",
     "metodo": "diferença do contador de tokens da sessão do agente entre o início e o fim deste jogo; custo pela mesma taxa cega de US$ 15 por milhão de tokens novos usada nos outros jogos claude-opus-5 deste repositório",
     "medido_em": "2026-09-17",
-    "nota": "O total (553 mil tokens novos) inclui a versao de raycasting anterior e a reconstrucao em 3D com sobrevivencia por rodadas, e e a diferenca do contador da sessao: essa e a parte confiavel. A divisao entre entrada e saida e estimativa minha. Dois subagentes do mesmo modelo escreveram o audio e a casca/HUD, e o custo deles esta nesse total. A maior parte foi afinacao medida, nao digitacao: o robo que joga achou seis defeitos de regra que estariam no jogo sem ele.",
+    "nota": "O total (623 mil tokens novos) inclui a versao de raycasting anterior, a reconstrucao em 3D com sobrevivencia por rodadas e a rodada de consertos depois de o dono do repo jogar: mouse e setas invertidos, picareta que atirava como pistola e zumbi de janela inalvejavel. E a diferenca do contador da sessao: essa e a parte confiavel. A divisao entre entrada e saida e estimativa minha. Dois subagentes do mesmo modelo escreveram o audio e a casca/HUD, e o custo deles esta nesse total.",
     "reconstruido_de": "versao anterior do mesmo jogo, FPS de raycasting com nove fases, que somava 105 mil tokens"
   },
   "stack": [
