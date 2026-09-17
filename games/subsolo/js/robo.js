@@ -71,8 +71,19 @@ function distanciaNaCelula(m, campo, x, y) {
   return campo[cy * m.largura + cx];
 }
 
+// Sorteio proprio do robo, semeado. Nao e capricho: a mira dele tinha erro por
+// `Math.random`, entao duas execucoes da MESMA prova davam resultados
+// diferentes — a prova da forja passou duas vezes e reprovou na terceira, em
+// `main`. Prova instavel e pior que prova nenhuma, porque ela ensina a ignorar
+// vermelho. Mesmo gerador que o piloto do jogo de kart usa.
+function sortear(robo) {
+  robo.semente = (robo.semente * 1103515245 + 12345) & 0x7FFFFFFF;
+  return robo.semente / 0x7FFFFFFF;
+}
+
 export function criarRobo(opcoes = {}) {
   return {
+    semente: (opcoes.semente | 0) || 20260917,
     // Erro de mira em radianos por metro de distancia: a 10 m, 0,012 rad/m da
     // 7 graus de erro, o que erra cabeca de vez em quando.
     erroDeMira: opcoes.erroDeMira ?? 0.012,
@@ -275,7 +286,7 @@ export function passoDoRobo(jogo, robo, dt) {
     const alturaDaCabeca = alvo.altura * 0.85;
     const alvoInclinacao = (alturaDaCabeca - CONFIG.alturaDoOlho) / Math.max(1, menor);
     comandos.inclinar = (alvoInclinacao - j.inclinacao) * Math.min(1, dt * 9)
-      + (Math.random() - 0.5) * robo.erroDeMira * menor * dt;
+      + (sortear(robo) - 0.5) * robo.erroDeMira * menor * dt;
     const mirado = Math.abs(erro) < 0.09 + robo.erroDeMira * menor;
     const noAlcance = menor <= arma.alcance * 0.95;
     if (mirado && noAlcance && arma.recarregando <= 0) comandos.atirar = true;

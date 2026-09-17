@@ -6,9 +6,9 @@
     "modelos": 2,
     "linhas": 30921,
     "usd": 22.14,
-    "tokens_novos": 3506978,
+    "tokens_novos": 3538978,
     "tokens_cache": 159076224,
-    "chamadas": 1678
+    "chamadas": 1706
   },
   "jogos": [
     {
@@ -80,10 +80,10 @@
           "provider": "Anthropic",
           "agente": "Oh My Pi",
           "papel": "o jogo inteiro: geometria dos mapas, rodadas, armas e balistica, IA dos zumbis, economia, render 3D em WebGL2 e o robo que joga; audio e casca/HUD feitos por subagentes do mesmo modelo",
-          "chamadas_api": 496,
+          "chamadas_api": 524,
           "tokens": {
-            "entrada": 492000,
-            "saida": 181000,
+            "entrada": 515000,
+            "saida": 190000,
             "cache_leitura": 0,
             "cache_escrita": 0
           },
@@ -94,16 +94,16 @@
         "metodo": "diferença do contador de tokens da sessão do agente entre o início e o fim deste jogo; custo pela mesma taxa cega de US$ 15 por milhão de tokens novos usada nos outros jogos claude-opus-5 deste repositório",
         "confianca": "estimado",
         "medido_em": "2026-09-17",
-        "nota": "O total (673 mil tokens novos) inclui a versao de raycasting anterior, a reconstrucao em 3D com sobrevivencia por rodadas e a rodada de consertos depois de o dono do repo jogar: mouse e setas invertidos, picareta que atirava como pistola e zumbi de janela inalvejavel. E a diferenca do contador da sessao: essa e a parte confiavel. A divisao entre entrada e saida e estimativa minha. Dois subagentes do mesmo modelo escreveram o audio e a casca/HUD, e o custo deles esta nesse total."
+        "nota": "O total (705 mil tokens novos) inclui a versao de raycasting anterior, a reconstrucao em 3D com sobrevivencia por rodadas e a rodada de consertos depois de o dono do repo jogar: mouse e setas invertidos, picareta que atirava como pistola e zumbi de janela inalvejavel. E a diferenca do contador da sessao: essa e a parte confiavel. A divisao entre entrada e saida e estimativa minha. Dois subagentes do mesmo modelo escreveram o audio e a casca/HUD, e o custo deles esta nesse total."
       },
       "totais": {
-        "tokens_entrada": 492000,
-        "tokens_saida": 181000,
-        "tokens_novos": 673000,
+        "tokens_entrada": 515000,
+        "tokens_saida": 190000,
+        "tokens_novos": 705000,
         "tokens_cache": 0,
-        "tokens_totais": 673000,
+        "tokens_totais": 705000,
         "usd": 8.3,
-        "chamadas_api": 496,
+        "chamadas_api": 524,
         "linhas": 6568,
         "tem_custo": true
       },
@@ -467,12 +467,12 @@
         "travessia"
       ],
       "n_jogos": 8,
-      "tokens_novos": 1613000,
+      "tokens_novos": 1645000,
       "tokens_cache": 0,
-      "chamadas_api": 1022,
+      "chamadas_api": 1050,
       "usd": 21.11,
       "linhas": 20212,
-      "tokens_por_linha": 79.8,
+      "tokens_por_linha": 81.39,
       "linhas_por_dolar": 957.46
     },
     {
@@ -517,12 +517,12 @@
         "travessia"
       ],
       "n_jogos": 3,
-      "tokens_novos": 1217000,
+      "tokens_novos": 1249000,
       "tokens_cache": 0,
-      "chamadas_api": 886,
+      "chamadas_api": 914,
       "usd": 15.15,
       "linhas": 14777,
-      "tokens_por_linha": 82.36,
+      "tokens_por_linha": 84.52,
       "linhas_por_dolar": 975.38
     },
     {
@@ -554,12 +554,12 @@
         "travessia"
       ],
       "n_jogos": 8,
-      "tokens_novos": 1613000,
+      "tokens_novos": 1645000,
       "tokens_cache": 0,
-      "chamadas_api": 1022,
+      "chamadas_api": 1050,
       "usd": 21.11,
       "linhas": 20212,
-      "tokens_por_linha": 79.8,
+      "tokens_por_linha": 81.39,
       "linhas_por_dolar": 957.46
     },
     {
