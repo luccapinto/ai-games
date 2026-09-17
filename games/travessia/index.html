@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>TRAVESSIA</title>
+<meta name="description" content="Mundo aberto no sertao: mundo gerado por semente, sede que manda no caminho, sete missoes em grafo de dependencia e trinta sementes provadas.">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="palco">
+  <canvas id="tela" width="960" height="600" aria-label="TRAVESSIA, mundo aberto visto de cima"></canvas>
+
+  <div id="hud" aria-hidden="true">
+    <div class="bloco medidores">
+      <div class="medida"><span>VIDA</span><div class="barra"><i id="hud-vida"></i></div></div>
+      <div class="medida"><span>CANTIL</span><div class="barra"><i id="hud-sede"></i></div></div>
+      <div class="relogio"><b id="hud-hora">06:30</b><span id="hud-agua">água a 3 passos</span></div>
+    </div>
+
+    <div class="bloco recado" id="hud-missao"></div>
+
+    <div class="bloco bolsa">
+      <div class="linha-bolsa"><span>ARMA</span><b id="hud-arma">FACA</b></div>
+      <div class="linha-bolsa"><span>MIL RÉIS</span><b id="hud-moedas">12</b></div>
+      <ul id="hud-bolsa"></ul>
+    </div>
+
+    <canvas id="mapa" width="256" height="256"></canvas>
+    <div id="aviso" class="oculto"></div>
+    <div id="recado" class="oculto"></div>
+  </div>
+
+  <section id="menu" class="cortina">
+    <h1>TRAVESSIA</h1>
+    <p class="linha">A adutora velha secou e as cinco vilas estão bebendo do
+      fundo da cacimba. O sertão é gerado por semente: relevo, rios, biomas,
+      vilas, estradas e gente. <b>A sede é que manda no caminho.</b></p>
+
+    <div class="colunas">
+      <table class="controles">
+        <tr><th>andar</th><td><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> ou setas</td></tr>
+        <tr><th>correr</th><td><kbd>shift</kbd> — gasta mais água</td></tr>
+        <tr><th>golpear</th><td><kbd>espaço</kbd></td></tr>
+        <tr><th>conversar</th><td><kbd>E</kbd></td></tr>
+        <tr><th>beber</th><td><kbd>Q</kbd> — perto de água</td></tr>
+        <tr><th>diário</th><td><kbd>J</kbd></td></tr>
+        <tr><th>mapa grande</th><td><kbd>M</kbd></td></tr>
+        <tr><th>pausar</th><td><kbd>P</kbd> ou <kbd>esc</kbd></td></tr>
+      </table>
+      <div>
+        <p class="titulo-lista">A linha principal</p>
+        <ol id="linha-principal" class="lista"></ol>
+      </div>
+    </div>
+
+    <p class="linha regra">O dia inteiro leva oito minutos. Ao meio-dia o cantil
+      dura pouco mais de um minuto e meio andando; de madrugada, quase o dobro —
+      e é por isso que às vezes vale esperar a noite para atravessar a caatinga.
+      Cada alvo de missão tem água a menos de meio cantil de distância: isso não
+      é sorte, é provado nas trinta sementes que a bateria de provas gera.</p>
+
+    <div id="sementes" class="sementes"></div>
+    <button id="menu-sorteio" class="botao">SERTÃO NOVO (SEMENTE SORTEADA)</button>
+    <button id="som" class="botao secundario">SOM: LIGADO</button>
+    <p class="rodape" id="travessias"></p>
+  </section>
+
+  <section id="pausa" class="cortina oculto">
+    <h2>PAUSA</h2>
+    <button id="pausa-voltar" class="botao">CONTINUAR</button>
+    <button id="pausa-menu" class="botao secundario">SAIR PARA O MENU</button>
+  </section>
+
+  <section id="diario" class="cortina oculto">
+    <h2>DIÁRIO</h2>
+    <ul id="diario-lista" class="diario"></ul>
+    <button id="diario-voltar" class="botao">FECHAR</button>
+  </section>
+
+  <section id="fim" class="cortina oculto">
+    <h2 id="fim-titulo">A ÁGUA DESCEU</h2>
+    <p class="linha" id="fim-resumo"></p>
+    <button id="fim-denovo" class="botao">ATRAVESSAR DE NOVO</button>
+    <button id="fim-menu" class="botao secundario">MENU</button>
+  </section>
+
+  <div id="toque" aria-hidden="true">
+    <div id="manche"></div>
+    <button class="acao" data-acao="atacar">GOLPE</button>
+    <button class="acao" data-acao="interagir">FALAR</button>
+    <button class="acao" data-acao="beber">BEBER</button>
+    <button class="acao" data-acao="diario">DIÁRIO</button>
+  </div>
+</div>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>

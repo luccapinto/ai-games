@@ -1,0 +1,6 @@
+{
+  "name": "travessia",
+  "private": true,
+  "type": "module",
+  "description": "So existe para o Node ler os modulos do jogo como ES modules em provas.mjs. O jogo no navegador nao le este arquivo: nao ha build, nao ha dependencia."
+}
