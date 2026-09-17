@@ -1,227 +1,181 @@
 # SUBSOLO
 
-FPS de raycasting no navegador. A mina de manganês foi reaberta como depósito,
-as bombas do fundo pararam e você é a manutenção. Nove níveis para baixo.
+Sobrevivência por rodadas numa mina de manganês reaberta como depósito, em 3D,
+no navegador, com WebGL2 escrito à mão: sem biblioteca, sem arquivo de modelo,
+sem textura em disco.
 
-- **Jogar:** abra o `index.html` desta pasta (servido por HTTP — veja
-  [Rodar local](#rodar-local)), ou vá pelo hub
+A mina é escura de verdade. Você tem uma lanterna, uma pistola, quinhentos
+pontos e duas janelas com tábuas. A cada rodada chega mais gente, mais rápido, e
+com mais vida — e o que você faz com os pontos entre uma rodada e outra é o jogo.
+
+- **[Jogar](https://luccapinto.github.io/ai-games/games/subsolo/)** ou abra
+  `index.html` desta pasta servido por HTTP (ver [Rodar](#rodar))
 - **Parte de:** [ai-games](../../README.md)
 
 ![SUBSOLO](capa.jpg)
 
-## Como se joga
+## O laço
 
 | ação | tecla |
 | --- | --- |
-| andar | <kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> |
-| olhar | mouse, ou <kbd>&larr;</kbd> <kbd>&rarr;</kbd> |
-| atirar | clique |
-| correr | <kbd>shift</kbd> — barulhento |
-| agachar | <kbd>ctrl</kbd> ou <kbd>C</kbd> — silencioso |
+| mover | <kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> |
+| olhar | mouse (clique na tela para travar o cursor) |
+| atirar | clique ou <kbd>espaço</kbd> |
+| recarregar | <kbd>R</kbd> |
+| usar / comprar | <kbd>E</kbd> |
+| trocar de arma | <kbd>Q</kbd> |
+| correr | <kbd>shift</kbd> (4,2 s de vigor) |
 | lanterna | <kbd>F</kbd> |
-| usar, abrir, procurar segredo | <kbd>E</kbd> ou <kbd>espaço</kbd> |
-| trocar de arma | <kbd>1</kbd>–<kbd>4</kbd>, roda do mouse ou <kbd>Q</kbd> |
-| recomeçar o nível | <kbd>R</kbd> |
-| pausar | <kbd>P</kbd> ou <kbd>esc</kbd> |
+| pausar | <kbd>esc</kbd> |
 
-No celular, o polegar esquerdo anda e o direito olha; toque curto na metade
-direita atira, e os botões de luz, arma e agachar ficam no canto.
+**Ponto vem de dano, não de morte:** 10 por acerto, 60 por morte, **100 por
+morte na cabeça**. Sem ponto por acerto, uma arma forte seca a economia e o
+jogador chega na rodada 15 sem ter comprado nada.
 
-## A lanterna é a decisão
+Com ponto você compra: **vão de escombro** (abre uma zona nova), **arma de
+parede**, **munição** (45% do preço da arma), **caixa misteriosa** (950, arma
+sorteada), **forja** (5.000, dobra o dano e aumenta o pente) e **perks** — que
+só funcionam depois de ligar a força na subestação.
 
-Ver custa duas coisas ao mesmo tempo: pilha, que acaba, e anonimato, que não
-volta. Com a lanterna acesa você vê a 9,5 células e o bicho que tem olho vê você
-a **1,7 vez** o alcance normal de visão dele. Apagada, você vê a 4,2 e ele te vê
-a metade da distância.
+| perk | custo | o que faz |
+| --- | --- | --- |
+| CALDO | 2.500 | dobra a vida |
+| GRAXA | 3.000 | recarrega no dobro |
+| GATILHO | 2.000 | cadência 1,85× |
+| TALISMA | 1.500 | levanta você sozinho, uma vez |
 
-A pilha entra cheia em cada nível (100 unidades, 2,6 por segundo: 38 segundos de
-luz) e há pilhas espalhadas. A prova cobra as duas pontas dessa conta: a pilha
-disponível tem de cobrir **pelo menos 80%** do tempo do caminho mínimo até o
-elevador, e **no máximo 75%** do tempo de varrer a fase célula por célula. A
-primeira desigualdade impede um nível cego; a segunda impede que a decisão
-desapareça.
+Zumbi não mata: **derruba**. Caído, você rasteja e sangra por 32 segundos — o
+TALISMA é a diferença entre um erro e o fim da partida.
 
-## Ruído é mecânica, não enfeite
+## Os dois mapas
 
-O som anda pela mesma topologia que o corpo, menos as paredes: `alcanceRuido` é
-um Dijkstra na grade em que porta fechada cobra pedágio de 4 células. Cada
-evento de ruído tem uma força, e cada bicho tem uma audição que é um **raio em
-células de caminhada** — não de linha reta. Um grito dobra a curva do corredor;
-a lanterna não.
+Quatro zonas em anel cada um. **O anel é requisito de projeto, não enfeite:**
+num jogo de horda, mapa sem volta é mapa onde a rodada 12 mata todo mundo no
+mesmo canto, sempre. As provas medem o tamanho da volta e quantas zonas ela
+cruza, porque "tem volta" precisa ser número e não opinião.
 
-| evento | força |
-| --- | --- |
-| andar agachado | 0 |
-| andar | 6 |
-| correr | 13 |
-| pisar em poça | +5 |
-| picareta | 0 |
-| pineira | 9 |
-| espingarda | 20 |
-| bicho morrendo | 7 |
+| mapa | zonas | janelas | máquinas | piso | volta | custo de abrir tudo |
+| --- | --- | --- | --- | --- | --- | --- |
+| BOCA DA MINA | 4 | 12 | 11 | 561 células | 216 células | 4.000 |
+| POÇO FUNDO | 4 | 12 | 11 | 446 células | 166 células | 5.000 |
 
-Daí a regra que dá forma ao jogo: **matar de picareta é silencioso, mas o grito
-do bicho não é.** E a poça de água da fase BOMBAS transforma cada passo num
-anúncio — é por isso que a cisterna é o berçário dos cegos.
+Zumbi nasce **só em zona aberta**: comprar menos mapa é comprar menos janela
+para defender. Ficar no galpão de entrada com três janelas para sempre é uma
+estratégia legítima, e o jogo não proíbe.
 
-## Os cinco bichos
+## A escada
 
-| bicho | vida | vê | ouve | o que ele é |
-| --- | --- | --- | --- | --- |
-| LARVA | 46 | 6 | 8 | lenta, surda, em grupo |
-| RASTEJO | 30 | 4 | 16 | frágil e rápida; ouve você antes de ver |
-| CEGO | 75 | — | 19 | não vê nada. Do escuro não se esconde dele |
-| CUSPIDOR | 62 | 11 | 6 | só cospe no que está **vendo**, e avisa meio segundo antes |
-| CAPATAZ | 200 | 9 | 14 | blindado a 35% enquanto anda; abre a guarda ao armar o golpe |
+| rodada | zumbis | vida | velocidade | intervalo | composição |
+| --- | --- | --- | --- | --- | --- |
+| 1 | 5 | 150 | 1,25 m/s | 3,40 s | 5 comuns |
+| 5 | 15 | 550 | 1,80 m/s | 1,99 s | 10 comuns + 5 rastejantes |
+| 7 | 20 | 750 | 2,40 m/s | 1,51 s | 14 comuns + 1 capataz |
+| 10 | 27 | 1.055 | 3,00 m/s | 0,99 s | 27 comuns |
+| 15 | 34 | 1.777 | 3,60 m/s | 0,55 s | 20 comuns + 12 rastejantes |
+| 25 | 34 | 5.045 | 4,10 m/s | 0,55 s | 21 comuns + 11 rastejantes |
 
-O capataz é a única luta com resposta escrita: ele blinda o corpo enquanto
-caminha, e fica **vulnerável durante os 0,9 s em que arma a investida** — os
-mesmos 0,9 s em que ele está mirado e parado. Quem só atira quando ele brilha
-gasta um terço da munição; quem fica colado nele leva o golpe comum de graça.
+O degrau que importa é o da rodada 15: dali para frente o zumbi anda mais
+rápido do que você **andando**, e correr deixa de ser opcional. Na rodada 40 ele
+ainda é mais lento do que você **correndo** — sem isso não haveria fuga, e o
+jogo viraria loteria.
 
-## As nove fases
+Três tipos, e o capataz não é um zumbi com mais vida: ele é **blindado** (corta
+45% do dano de corpo e nada do dano de cabeça), lento e bate o dobro. Rajada no
+peito não resolve; mira resolve.
 
-Plantas em ASCII, um caractere por célula, escritas à mão em
-[`js/fases.js`](js/fases.js) — geometria, luz, item e bicho no mesmo lugar, nada
-sorteado em tempo de jogo.
+## As armas
 
-| # | fase | tamanho | bichos | o que ela ensina |
-| --- | --- | --- | --- | --- |
-| 01 | BOCA DA MINA | 40×20 | 9 | lanterna, picareta, porta |
-| 02 | GALERIA | 40×24 | 12 | crachá e porta travada; a espingarda |
-| 03 | BOMBAS | 44×24 | 14 | poça faz ruído; o cego |
-| 04 | CORREIA | 48×22 | 17 | cuspidor em corredor reto; o maçarico |
-| 05 | SILO | 44×28 | 16 | o elevador está dentro do silo |
-| 06 | VENTILAÇÃO | 40×28 | 22 | labirinto apertado, pouca luz |
-| 07 | POÇO | 48×28 | 15 | caverna aberta, pilar como cobertura |
-| 08 | SUBESTAÇÃO | 48×26 | 18 | três crachás, três portas |
-| 09 | FUNDO | 44×26 | 14 | o capataz, e o elevador que ele tranca |
+Nenhuma arma é "a melhor" — cada uma ganha em um eixo e perde em outro, e as
+provas cobram essa tabela: se uma arma dominar dano de perto, dano de cabeça a
+distância, pente e preço ao mesmo tempo, a escolha morre.
 
-## Como foi provado
+| arma | custo | dps de perto | dps de cabeça a 18 m | pente | alcance | eixo |
+| --- | --- | --- | --- | --- | --- | --- |
+| PICARETA | 0 | 275 | 0 | ∞ | 2,2 m | não gasta nada |
+| PISTOLA | 0 | 483 | 843 | 10 | 34 m | a que você já tem |
+| PINEIRA | 1.300 | 399 | 768 | 32 | 26 m | sustenta corredor |
+| ESPINGARDA | 1.500 | 512 | 0 | 6 | 13 m | cerco de perto |
+| MACARICO | 2.200 | 271 | 0 | 90 | 5,2 m | pega quatro juntos |
+| CARABINA | 2.600 | 392 | 1.646 | 8 | 60 m | cabeça a distância |
 
-`node provas.mjs` roda **25 provas** e imprime duas tabelas: o balanceamento de
-cada fase e a corrida do robô. Nada disso precisa de navegador — `fases.js`,
-`mapa.js`, `armas.js`, `inimigos.js`, `jogo.js` e `robo.js` não tocam em DOM, e é
-isso que torna as provas possíveis.
+A forja multiplica dano por 2,6 e pente por 1,6. A prova cobra que a rodada 25
+(5.045 de vida) caia em **no máximo quatro tiros de cabeça** da carabina
+forjada — sem isso o jogo teria um teto invisível, e o jogador perderia sem
+entender por quê.
 
-As provas estruturais: legenda completa, planta retangular, borda vedada, nenhum
-item ou bicho dentro de parede, **completabilidade por fechamento de crachás**
-(ande até onde dá, pegue o crachá que alcançou, destranque, repita), todo item
-alcançável, todo segredo alcançável **e escondendo algo**, faixa de dano
-disponível por vida de inimigo, as duas pontas da conta de pilha, A\* contínuo e
-do mesmo tamanho da busca em largura, ruído monótono e simétrico, porta fechada
-abafando, colisão que não atravessa parede, tiro que a parede bloqueia, o cego
-que não acorda com luz, e determinismo por semente.
+## O que dá o tom
 
-E a que decide: **um robô joga as nove fases** usando `criarJogo`/`passo`, a
-mesma física, as mesmas armas e a mesma IA do navegador. Ele pede caminho para
-`mapa.caminho`, escolhe objetivo pelo mesmo fechamento de crachás da prova, e a
-prova exige que ele **saia vivo das nove**. Hoje ele termina com 96 de 130 de
-vida, entre 14 e 58 segundos por fase.
+**A luz é a decisão de render mais importante.** Três fontes, calculadas por
+fragmento: a lanterna (um refletor cônico preso na câmera, com queda suave na
+borda), as lâmpadas da planta (as oito mais próximas, as mesmas que o mapa usa
+para decidir o que está iluminado) e o **clarão do cano** — o tiro é uma luz de
+verdade por 60 ms, e é ele que mostra o corredor no escuro.
 
-### O que o robô achou que eu não tinha achado
+**A rocha não tem textura de arquivo.** O fragmento sombreia por ruído de
+posição de mundo em duas escalas, o que dá grão de pedra sem repetir com padrão
+visível — e sem nenhum byte de imagem.
 
-- **A espingarda estava atrás de uma parede falsa.** O robô empatou 400 segundos
-  com o capataz: tinha 32 cartuchos, nenhuma arma que os usasse, e por isso se
-  considerava "com munição". Um jogador que não achasse o segredo da GALERIA
-  carregaria cartucho o jogo inteiro sem ter espingarda. A arma foi para o
-  caminho principal e a munição ficou no segredo.
-- **O capataz feria a cada quadro.** A investida durava 0,55 s e o contato
-  aplicava dano por quadro: 33 golpes, 726 de dano, morte sem aviso. O relatório
-  do robô separa dano por tipo de inimigo, e "capataz: 110" numa fase de 21
-  segundos foi o que denunciou.
-- **O aviso do capataz não servia para nada**, porque ele refazia a mira no fim
-  do aviso e seguia o desvio. A direção passou a travar no início do aviso — é o
-  que transforma o golpe numa pergunta em vez de um imposto.
-- **O cuspidor cuspia mais longe do que via.** Ele detectava a 5 células no
-  escuro e acertava a 10, o que furava a mecânica da lanterna inteira: ficar no
-  escuro deixava de proteger. Agora o alcance do cuspe é `min(alcance, o que ele
-  está vendo agora)`.
-- **Bicho em alerta parado no seu colo não atacava.** Um rastejo perdia você de
-  vista no escuro, caminhava até onde você estava, chegava — e ficava ali. A
-  prova do rastejo (chega **e** machuca) pegou.
-- **Três segredos não escondiam nada.** O do POÇO ficava atrás de parede *e*
-  segredo, inalcançável; o do SILO abria um silo que já tinha porta; o da
-  SUBESTAÇÃO tinha um armário que encostava na sala de baixo. A prova de segredo
-  exige alcançável **e** com prêmio: item que só existe do outro lado.
-- **O robô travava em cima de um cartucho.** Item que o jogo recusa entregar
-  (kit com a vida cheia, cartucho com a bolsa cheia) fica no chão — isso está
-  certo. Errado era o robô escolher esse item como destino: chegava, não pegava,
-  o destino não mudava, e a fase estourava o tempo.
+**Oclusão por vértice nas quinas.** Numa mina sem sol, quina escura é a única
+pista de forma que o olho tem quando a lanterna está apontada para outro lado.
 
-### O que a captura de tela achou
+**Zumbi tem seis partes.** Tronco, cabeça, dois braços e duas pernas, cada um
+com a sua matriz. A caminhada sai da mesma fase que o jogo usa; quem morde
+estica os braços; o rastejante é o mesmo modelo deitado — não existe segundo
+modelo.
 
-Duas coisas que nenhuma prova pegaria, porque são sobre o que se vê:
+**A navegação é um campo de fluxo, não A\* por bicho.** Uma busca em largura a
+partir do jogador, refeita quatro vezes por segundo, serve os vinte e quatro
+zumbis. Vinte e quatro A\* custariam mais que o resto do jogo junto e daria o
+mesmo resultado, porque todos perseguem o mesmo ponto.
 
-- **Com a pilha vazia a tela virava um retângulo preto.** A visão sem lanterna
-  era de 2,6 células; virou 4,2. Jogo cego não é jogo tenso.
-- **O vermelho de dano pintava a cena inteira.** O gradiente começava no meio da
-  tela com 0,6 de opacidade: a primeira captura do POÇO saiu irreconhecível.
-  Virou um anel estreito na borda, com um terço da opacidade.
+## As provas
 
-## O render
+`provas.mjs` roda o jogo inteiro sem navegador: mapa, rodadas, armas, economia,
+e **um robô que joga**. São **36 provas**.
 
-`js/render.js` escreve os 320×200 pixels à mão num `ImageData`: parede por
-coluna (DDA), piso e teto por linha com distância perspectiva, sprite por coluna
-com teste de profundidade contra o *z-buffer* das paredes, partícula projetada
-como os sprites. Não há `drawImage` de coluna nem filtro de CSS.
+O robô é a prova principal. Ele lê o mesmo estado que a tela mostra, manda os
+mesmos comandos que o teclado manda e não vê através de parede. Ele arrasta
+horda subindo o gradiente de distância da horda, mira na cabeça com erro
+proporcional à distância, e compra numa ordem: força, munição, arma, CALDO,
+TALISMA, vão, forja, resto.
 
-A razão de ser tudo à mão é a luz: **cada pixel passa pela mesma conta** —
-cone da lanterna, lâmpada estática da célula (assada na carga da fase), clarão do
-tiro, neblina da paleta. E `inimigos.js` consulta `mapa.luzDaCelula`, o mesmo
-valor que tinge o pixel: o bicho não pode ver você num escuro que a tela mostra
-iluminado.
+Em seis partidas (dois mapas, três sementes) ele atravessa **cinco rodadas em
+todas** e chega à **oitava na melhor**, abrindo pelo menos duas portas, com 62%
+a 77% das mortes na cabeça. Gente chega mais longe — ele mede se o jogo é
+jogável, não se ele é bom.
 
-Textura, bicho, item e arma são desenhados em canvas fora de tela na carga
-(`js/texturas.js`) e lidos como pixel cru. Cada fase tem uma paleta, e a mesma
-textura de rocha sai marrom na BOCA DA MINA e azul-chumbo no POÇO — nove fases
-que não parecem a mesma fase escura.
+Defeitos reais que as provas acharam, e que estariam no jogo sem elas:
 
-## Estrutura
+- **Uso sem travamento.** Segurar <kbd>E</kbd> comprava munição sessenta vezes
+  por segundo. O robô ficou parado na parede da pineira gastando tudo que
+  ganhava e morreu na rodada 7 com 11.240 pontos e o mapa fechado.
+- **Porta de uma célula prendia zumbi.** Com raio de 0,45 num vão de 1,0 a
+  passagem livre para o centro do bicho tinha 0,1 de largura: ele vibrava na
+  quina para sempre e a rodada nunca fechava. Porta virou **vão de três
+  células**, cobrado uma vez.
+- **Alcance de porta menor que o alcance da mão.** A sonda olhava uma célula à
+  frente e o alcance de uso é 2,6: dava para ficar do lado da porta, olhando
+  para ela, sem conseguir abrir.
+- **Arma na mão preta.** Ela é desenhada em espaço de câmera, e a conta da
+  lanterna procurava a luz a vinte metros no mundo.
+- **Custo de abrir o mapa contado por célula**, não por vão: dizia 12.000 onde
+  custa 4.000.
+- **A carabina era dominada pela pineira em todos os eixos** enquanto a tabela
+  só comparava dano de corpo — o eixo da carabina é cabeça a distância.
 
-```
-index.html        casca, HUD e as cortinas de menu/pausa/fim
-css/style.css     layout, HUD, controle de toque
-js/regras.js      todo numero que o jogo usa para decidir algo
-js/fases.js       as nove plantas ASCII, com paleta e dica
-js/mapa.js        grade, colisao, A*, ruido e as provas de fechamento da fase
-js/armas.js       as quatro armas e a balistica (tracar)
-js/inimigos.js    os cinco bichos e a maquina de estados
-js/jogo.js        o jogo inteiro, sem uma linha de DOM
-js/robo.js        o robo que joga as nove fases — a prova principal
-js/render.js      o raycaster, pixel por pixel
-js/texturas.js    textura, sprite e item desenhados em canvas
-js/som.js         WebAudio sintetizado, sem arquivo de audio
-js/entrada.js     teclado, mouse e toque no mesmo objeto de entrada
-js/main.js        laco de passo fixo, telas, minimapa
-provas.mjs        as 25 provas + a corrida do robo
-package.json      so para o Node ler os modulos como ES modules
-```
-
-Passo lógico fixo em 60 Hz; o desenho acompanha o monitor. Sem isso, uma fase
-calibrada num monitor de 60 Hz vira outra fase num de 144.
-
-## Rodar local
-
-O jogo usa ES modules nativos, e o navegador recusa `import` por `file://`
-(mesma situação dos outros jogos deste repositório). Qualquer servidor estático
-resolve:
+## Rodar
 
 ```bash
 python3 -m http.server 8765
-# abra http://127.0.0.1:8765/games/subsolo/
+# http://127.0.0.1:8765/games/subsolo/
+cd games/subsolo && node provas.mjs
 ```
 
-No hub publicado, que é servido por HTTPS, basta clicar em JOGAR.
+ES modules nativos não carregam por `file://`. Precisa de WebGL2.
 
-`?depurar` na URL expõe a partida em `window.__jogo` — foi assim que as capturas
-de tela deste README foram posicionadas. Sem o parâmetro, o jogo não cria nada
-global.
+## Ficha
 
-## Acessibilidade
-
-`prefers-reduced-motion` desliga cabeceio, tremor de dano e balanço da arma: o
-jogo continua inteiro, só para de se mexer sozinho. Os controles de toque só
-aparecem em ponteiro grosso. Nada pisca em frequência alta, e a informação de
-estado nunca depende só de cor: o crachá tem letra, a arma tem nome, o inimigo
-tem silhueta própria.
+- **Quem fez:** Lucca Pinto
+- **Modelo:** claude-opus-5 via Anthropic, dirigido por Oh My Pi
+- **Tamanho:** 6.568 linhas, zero dependência, zero asset
+- **Licença:** MIT

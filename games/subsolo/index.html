@@ -4,110 +4,99 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>SUBSOLO</title>
-<meta name="description" content="FPS de raycasting numa mina reaberta: a lanterna ve longe, gasta pilha e entrega voce. Nove niveis, cinco bichos, quatro armas.">
+<meta name="description" content="Sobrevivência por rodadas numa mina de manganês reaberta como depósito: tábuas nas janelas, portas compradas com pontos e zumbis que não param de chegar.">
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 <div id="palco">
-  <canvas id="tela" width="320" height="200" aria-label="SUBSOLO, jogo de tiro em primeira pessoa"></canvas>
+  <canvas id="tela" aria-label="SUBSOLO, sobrevivência por rodadas numa mina"></canvas>
+
+  <!-- Camadas de tela cheia vêm antes dos medidores para que os números
+       fiquem por cima do sangue e do banner sem precisar de z-index alto. -->
+  <div id="hud-sangue" aria-hidden="true"></div>
 
   <div id="hud" aria-hidden="true">
-    <div class="medidor">
-      <span class="rotulo">VIDA</span>
-      <span class="barra"><i id="hud-vida-barra"></i></span>
-      <b id="hud-vida">130</b>
+    <div id="hud-rodada-caixa">
+      <strong id="hud-rodada">1</strong>
+      <span id="hud-rodada-rotulo">RODADA</span>
+      <span id="hud-zumbis">0 NA GALERIA</span>
     </div>
-    <div class="medidor">
-      <span class="rotulo">PILHA</span>
-      <span class="barra"><i id="hud-bateria-barra"></i></span>
-      <b id="hud-bateria">60</b>
+
+    <div id="hud-esquerda">
+      <div id="hud-pontos">0</div>
+      <div id="hud-vida"><i id="hud-vida-barra"></i></div>
+      <div id="hud-perks"></div>
     </div>
-    <div class="arma">
-      <b id="hud-arma">PICARETA</b>
-      <span id="hud-municao">&infin;</span>
+
+    <div id="hud-arma">
+      <span id="hud-arma-nome">PICARETA</span>
+      <span id="hud-municao"><b id="hud-pente">0</b><i id="hud-reserva">/ 0</i></span>
+      <span id="hud-recarga">RECARREGANDO</span>
     </div>
-    <div id="hud-crachas" class="crachas"></div>
-    <div class="canto">
-      <span id="hud-fase">01 BOCA DA MINA</span>
-      <span id="hud-abates">0/0</span>
-      <span id="hud-tempo">0:00</span>
-    </div>
-    <canvas id="mapa" width="148" height="110"></canvas>
+
+    <div id="hud-mira"></div>
+    <div id="hud-marca"></div>
+    <div id="hud-dica"></div>
+    <div id="hud-banner"></div>
   </div>
 
-  <div id="aviso" class="oculto"></div>
-  <div id="dica" class="oculto"></div>
+  <div id="hud-baixado" aria-hidden="true">
+    <strong id="hud-baixado-tempo">0,0</strong>
+    <span>SANGRANDO</span>
+  </div>
 
   <section id="menu" class="cortina">
     <h1>SUBSOLO</h1>
-    <p class="linha">A mina de manganes foi reaberta como depósito e as bombas
-      pararam. Você é a manutenção. Nove níveis até o fundo.<br>
-      <b>A lanterna vê longe, gasta pilha e entrega você.</b></p>
+    <p class="linha">A mina de manganês virou depósito e alguma coisa voltou a
+      trabalhar aqui embaixo. <b>Aguente as rodadas.</b> Ponto compra porta,
+      ponto compra arma de parede, ponto compra perk — e cada tábua arrancada
+      da janela é uma rodada mais curta.</p>
 
-    <div class="colunas">
-      <table class="controles">
-        <tr><th>andar</th><td><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></td></tr>
-        <tr><th>olhar</th><td>mouse (ou <kbd>&larr;</kbd><kbd>&rarr;</kbd>)</td></tr>
-        <tr><th>atirar</th><td>clique</td></tr>
-        <tr><th>correr</th><td><kbd>shift</kbd> — barulhento</td></tr>
-        <tr><th>agachar</th><td><kbd>ctrl</kbd> — silencioso</td></tr>
-        <tr><th>lanterna</th><td><kbd>F</kbd></td></tr>
-        <tr><th>usar / abrir</th><td><kbd>E</kbd> ou <kbd>espaço</kbd></td></tr>
-        <tr><th>trocar arma</th><td><kbd>1</kbd>–<kbd>4</kbd> ou roda</td></tr>
-        <tr><th>recomeçar nível</th><td><kbd>R</kbd></td></tr>
-        <tr><th>pausar</th><td><kbd>P</kbd> ou <kbd>esc</kbd></td></tr>
-      </table>
+    <div id="mapas" class="mapas"></div>
 
-      <div class="fichas">
-        <table class="ficha"><caption>armas</caption><tbody id="armas"></tbody></table>
-        <table class="ficha"><caption>o que mora lá embaixo</caption><tbody id="bichos"></tbody></table>
-      </div>
-    </div>
+    <table id="controles" class="controles">
+      <tr><th>mover</th><td><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></td></tr>
+      <tr><th>olhar</th><td>mouse</td></tr>
+      <tr><th>atirar</th><td>clique</td></tr>
+      <tr><th>recarregar</th><td><kbd>R</kbd></td></tr>
+      <tr><th>usar / comprar</th><td><kbd>E</kbd></td></tr>
+      <tr><th>correr</th><td><kbd>shift</kbd></td></tr>
+      <tr><th>lanterna</th><td><kbd>F</kbd></td></tr>
+      <tr><th>pausar</th><td><kbd>esc</kbd></td></tr>
+    </table>
 
-    <p class="linha aviso-regra">Ruído é mecânica: correr chama, tiro chama mais,
-      poça de água chama a cada passo. A picareta é silenciosa. O <b>CEGO</b> não
-      vê nada e ouve tudo — dele não se esconde no escuro, dele se foge andando
-      agachado.</p>
-
-    <div id="fases" class="fases"></div>
-    <p class="linha" id="melhor"></p>
-    <button id="comecar" class="botao">DESCER</button>
+    <button id="menu-jogar" class="botao">DESCER</button>
     <button id="som" class="botao secundario">SOM: LIGADO</button>
     <p class="rodape">No celular: polegar esquerdo anda, direito olha e atira.</p>
   </section>
 
   <section id="pausa" class="cortina oculto">
     <h2>PAUSA</h2>
-    <button id="voltar" class="botao">CONTINUAR</button>
-    <button id="pausa-reiniciar" class="botao secundario">RECOMEÇAR O NÍVEL</button>
+    <p class="linha">A galeria espera. Ela é paciente.</p>
+    <button id="pausa-voltar" class="botao">CONTINUAR</button>
     <button id="pausa-menu" class="botao secundario">SAIR PARA O MENU</button>
   </section>
 
-  <section id="morto" class="cortina oculto">
-    <h2>A MINA FICOU COM VOCÊ</h2>
-    <p class="linha" id="morto-resumo"></p>
-    <button id="morto-repetir" class="botao">TENTAR DE NOVO</button>
-    <button id="morto-menu" class="botao secundario">MENU</button>
-  </section>
-
-  <section id="entre" class="cortina oculto">
-    <h2 id="entre-titulo">NÍVEL LIBERADO</h2>
-    <p class="linha" id="entre-resumo"></p>
-    <button id="entre-continuar" class="botao">DESCER MAIS UM</button>
-  </section>
-
   <section id="fim" class="cortina oculto">
-    <h2>AS BOMBAS VOLTARAM</h2>
+    <h2 id="fim-titulo">A MINA FICOU COM VOCÊ</h2>
     <p class="linha" id="fim-resumo"></p>
-    <button id="fim-menu" class="botao">MENU</button>
+    <button id="fim-denovo" class="botao">TENTAR DE NOVO</button>
+    <button id="fim-menu" class="botao secundario">MENU</button>
   </section>
 
   <div id="toque" aria-hidden="true">
-    <button class="tecla" data-acao="atirar">ATIRAR</button>
-    <button class="tecla" data-acao="lanterna">LUZ</button>
-    <button class="tecla" data-acao="usar">USAR</button>
-    <button class="tecla" data-acao="trocar">ARMA</button>
-    <button class="tecla" data-acao="agachar">AGACHAR</button>
+    <div class="toque-bloco toque-mover">
+      <button class="tecla" data-controle="frente">↑</button>
+      <button class="tecla" data-controle="esq">←</button>
+      <button class="tecla" data-controle="tras">↓</button>
+      <button class="tecla" data-controle="dir">→</button>
+    </div>
+    <div class="toque-bloco toque-agir">
+      <button class="tecla larga" data-controle="atirar">ATIRAR</button>
+      <button class="tecla" data-controle="recarregar">REC</button>
+      <button class="tecla" data-controle="usar">USAR</button>
+      <button class="tecla" data-controle="correr">CORRER</button>
+    </div>
   </div>
 </div>
 <script type="module" src="js/main.js"></script>

@@ -9,8 +9,8 @@ registrados ao lado.
 costs. Each game is a self-contained, playable folder that records the model that
 wrote it, the agent that drove it, and the tokens it burned.*
 
-**9 jogos** de **1 pessoa**, 29.167 linhas de código,
-2,9 M tokens novos e US$ 15,42 de API no total.
+**9 jogos** de **1 pessoa**, 30.921 linhas de código,
+3,3 M tokens novos e US$ 22,14 de API no total.
 
 👉 **[Jogar tudo](https://luccapinto.github.io/ai-games/)** · **[Ver o benchmark](https://luccapinto.github.io/ai-games/benchmark.html)** · **[Mandar o seu jogo](CONTRIBUTING.md)**
 
@@ -19,7 +19,7 @@ wrote it, the agent that drove it, and the tokens it burned.*
 | Jogo | Gênero | Quem fez | Modelo | Tokens novos | Custo | Jogar |
 | --- | --- | --- | --- | --- | --- | --- |
 | **TRAVESSIA** [`travessia`](games/travessia/README.md) | Mundo aberto | Lucca Pinto | claude-opus-5 | 103,0 k | US$ 1,54 | [jogar](https://luccapinto.github.io/ai-games/games/travessia/) |
-| **SUBSOLO** [`subsolo`](games/subsolo/README.md) | FPS | Lucca Pinto | claude-opus-5 | 105,0 k | US$ 1,58 | [jogar](https://luccapinto.github.io/ai-games/games/subsolo/) |
+| **SUBSOLO** [`subsolo`](games/subsolo/README.md) | FPS de rodadas | Lucca Pinto | claude-opus-5 | 553,0 k | US$ 8,30 | [jogar](https://luccapinto.github.io/ai-games/games/subsolo/) |
 | **CURVA** [`curva`](games/curva/README.md) | Kart 3D | Lucca Pinto | claude-opus-5 | 354,0 k | US$ 5,31 | [jogar](https://luccapinto.github.io/ai-games/games/curva/) |
 | **SEIVA** [`seiva`](games/seiva/README.md) | Defesa de torre | Lucca Pinto | claude-opus-5 | 70,0 k | US$ 1,05 | [jogar](https://luccapinto.github.io/ai-games/games/seiva/) |
 | **PROCESSO** [`processo`](games/processo/README.md) | Cartas com construção de baralho | Lucca Pinto | claude-opus-5 | 44,0 k | US$ 0,66 | [jogar](https://luccapinto.github.io/ai-games/games/processo/) |
@@ -32,7 +32,7 @@ wrote it, the agent that drove it, and the tokens it burned.*
 
 | Modelo | Jogos | Tokens novos | Cache | Custo | Linhas |
 | --- | --- | --- | --- | --- | --- |
-| claude-opus-5 | 8 | 958,0 k | 0 | US$ 14,39 | 18.458 |
+| claude-opus-5 | 8 | 1,4 M | 0 | US$ 21,11 | 20.212 |
 | deepseek-flash | 1 | 1,9 M | 159,1 M | US$ 1,03 | 10.709 |
 
 Tokens novos são entrada + saída. Cache aparece em coluna separada de propósito:
@@ -120,21 +120,23 @@ O que tem dentro:
 
 ### SUBSOLO
 
-Uma mina de manganês reaberta como depósito, nove níveis para baixo, e as bombas do fundo pararam. A lanterna vê longe, gasta pilha e entrega você: o que mora lá embaixo caça por som, e um deles é cego. Quatro armas, cinco bichos e um capataz que só abre a guarda quando arma o golpe.
+Uma mina de manganes reaberta como deposito, quatro zonas em anel e uma horda que cresce a cada rodada. Voce comeca com lanterna, pistola e quinhentos pontos; ponto vem de dano, e o que voce faz com ele entre duas rodadas e o jogo: abrir escombro, comprar arma de parede, ligar a forca, tomar perk, forjar. Zumbi nao mata, derruba — e o talisma e a diferenca entre um erro e o fim. Render 3D em WebGL2 escrito a mao, onde a luz e a decisao principal: lanterna conica, lampadas da planta e o clarao do cano como luz de verdade.
 
 O que tem dentro:
 
-- Nove fases provadas jogando: um robô joga as nove com a mesma física, as mesmas armas e a mesma IA do navegador, e a prova exige que ele saia vivo — hoje ele termina com 96 de 130 de vida
-- Ruído é mecânica e se propaga pela mesma topologia do corpo: Dijkstra na grade, com pedágio de 4 células em porta fechada, e a audição de cada bicho é um raio em células de caminhada, não de linha reta
-- O robô achou o defeito que nenhuma partida minha achou: a espingarda estava atrás de uma parede falsa, e quem não achasse o segredo carregava cartucho o jogo inteiro sem ter arma — ele empatou 400 segundos com o chefe por isso
-- O capataz feria a cada quadro durante a investida: 0,55 s de encosto valiam 33 golpes e 726 de dano. Só apareceu porque o relatório do robô separa o dano por tipo de inimigo
-- Raycaster escrito pixel por pixel em ImageData, e a conta de luz é uma só: o inimigo consulta o mesmo mapa de luz que tinge o pixel, então ele nunca vê você num escuro que a tela mostra iluminado
-- Zero arquivo de imagem e de áudio: textura, bicho, arma, item e som saem de canvas fora de tela e de WebAudio
+- A luz e a decisao de render, nao a geometria: lanterna conica presa na camera, as oito lampadas mais proximas da planta (as mesmas que o mapa usa para decidir o que esta iluminado) e o clarao do cano como luz de verdade por 60 ms — e o clarao que mostra o corredor no escuro
+- Rocha sem textura de arquivo: o fragmento sombreia por ruido de posicao de mundo em duas escalas, e as quinas tem oclusao por vertice, porque numa mina sem sol quina escura e a unica pista de forma quando a lanterna aponta para outro lado
+- O anel do mapa e requisito de projeto e prova numerica: a maior volta da BOCA DA MINA tem 216 celulas e cruza as quatro zonas. Mapa de horda sem volta e mapa onde a rodada 12 mata todo mundo no mesmo canto, sempre
+- Porta e VAO de tres celulas, cobrado uma vez, e isso foi um defeito achado por prova: com vao de uma celula, o zumbi de 0,45 de raio tinha 0,1 de largura livre para o centro e ficava vibrando na quina — a rodada nunca fechava
+- Uso tem travamento de 0,6 s, e isso foi o defeito mais caro: sem ele, segurar a tecla comprava municao sessenta vezes por segundo, e o robo morreu na rodada 7 com 11.240 pontos e o mapa fechado
+- Nenhuma arma domina todos os eixos, e a prova cobra isso comparando dano de perto, dano de cabeca a 18 m, pente e preco: enquanto a tabela comparava so dano de corpo, a pineira dominava a carabina e a escolha de arma nao existia
+- Vinte e quatro zumbis navegam por um campo de fluxo refeito quatro vezes por segundo, e nao por A* individual: todos perseguem o mesmo ponto, entao vinte e quatro buscas dariam o mesmo resultado custando mais que o resto do jogo
+- O capataz nao e um zumbi com mais vida: blindagem que corta 45% do dano de corpo e nada do dano de cabeca, entao rajada no peito nao resolve e mira resolve
 
 - **Quem fez:** Lucca Pinto
-- **Modelo:** claude-opus-5 via Anthropic, dirigido por Oh My Pi — 105,0 k tokens novos, 0 de cache, 96 chamadas, US$ 1,58
-- **Custo total:** US$ 1,58 (estimado)
-- **Tamanho:** 4.814 linhas de código próprio, 0,3 MB
+- **Modelo:** claude-opus-5 via Anthropic, dirigido por Oh My Pi — 553,0 k tokens novos, 0 de cache, 402 chamadas, US$ 8,30
+- **Custo total:** US$ 8,30 (estimado)
+- **Tamanho:** 6.568 linhas de código próprio, 0,4 MB
 - **Pasta:** [`games/subsolo/`](games/subsolo/README.md)
 
 ### CURVA
