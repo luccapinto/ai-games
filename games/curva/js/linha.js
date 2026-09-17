@@ -20,7 +20,16 @@
 import { CARRO } from './fisica.js';
 
 const VELOCIDADE_MAXIMA = 82;
-const MARGEM_FRENAGEM = 0.94;
+// 0,70 e nao 0,94: o perfil e o que a IA persegue, entao a desaceleracao suposta
+// aqui tem de ser a que o kart ENTREGA enquanto vira, nao a que o pneu daria em
+// linha reta. Com 0,94 o perfil pedia uma frenagem que a elipse de atrito nao
+// deixa acontecer, e a IA chegava no grampo 60% acima da velocidade de apice.
+const MARGEM_FRENAGEM = 0.7;
+// O piso existe para o tempo de volta nao estourar num ponto de curvatura
+// absurda, mas ele NAO pode passar do que o pneu segura: com piso fixo de 8 m/s
+// o perfil pedia 1,44 g num grampo e, pior, uma dobra de 4,5 m de raio saia de
+// graca para o otimizador — velocidade no piso, tempo quase igual. Com o piso
+// preso ao atrito, dobra custa tempo e o otimizador para de fazer.
 const PISO_DE_VELOCIDADE = 8;
 // Reserva de curva: o perfil pede 92% do atrito util, e nao 100%. Sem reserva o
 // carro entra no grampo exatamente no limite do que ele sustenta, e qualquer
@@ -40,7 +49,8 @@ const cache = new Map();
 export function linhaIdeal(pista, opcoes = {}) {
   // O otimizador roda uma vez por pista e o resultado nao muda: sem cache,
   // provas.mjs pagaria a conta seis vezes por prova.
-  const chave = `${pista.nome}|${opcoes.otimizar === false ? 'eixo' : 'ideal'}`;
+  const chave = `${pista.nome}|${opcoes.otimizar === false ? 'eixo' : 'ideal'}`
+    + `|${opcoes.semDrift ? 'aderencia' : 'drift'}`;
   if (!opcoes.semCache && cache.has(chave)) return cache.get(chave);
 
   const n = pista.centro.length;
@@ -98,9 +108,20 @@ export function linhaIdeal(pista, opcoes = {}) {
     }
     for (let i = 0; i < n; i++) {
       const k = Math.abs(curvaturas[i]);
+      // Duas curvas, dois tetos. Abaixo da curvatura de drift o kart esta no
+      // modo de aderencia, que gira 65% do que o pneu daria — e o teto lateral
+      // cai junto. Acima dela a curva so sai com o gatilho segurado, e ai vale o
+      // pneu inteiro. E isto que faz o perfil dizer "aqui voce derrapa".
+      // `semDrift` calcula a linha de quem nao usa o gatilho: teto de aderencia
+      // em TODA curva. E a unica comparacao justa da tecnica — antes desta
+      // opcao, a corrida sem drift perseguia um perfil que supoe drift e ganhava
+      // tempo cortando zebra, o que fazia a medida dizer que derrapar atrasa.
+      const teto = k > CARRO.curvaturaDeDrift && !opcoes.semDrift
+        ? atrito
+        : atrito * CARRO.fatorDeGiroEmAderencia;
       velocidades[i] = k < 1e-6
         ? VELOCIDADE_MAXIMA
-        : Math.min(VELOCIDADE_MAXIMA, Math.sqrt((atrito * RESERVA_DE_CURVA) / k));
+        : Math.min(VELOCIDADE_MAXIMA, Math.sqrt((teto * RESERVA_DE_CURVA) / k));
     }
     for (let volta = 0; volta < 3; volta++) {
       for (let i = n - 1; i >= 0; i--) {
@@ -119,7 +140,11 @@ export function linhaIdeal(pista, opcoes = {}) {
     }
     let tempo = 0;
     for (let i = 0; i < n; i++) {
-      velocidades[i] = Math.max(PISO_DE_VELOCIDADE, velocidades[i]);
+      const k = Math.abs(curvaturas[i]);
+      const tetoDoPneu = k < 1e-6 ? VELOCIDADE_MAXIMA
+        : Math.sqrt((atrito * RESERVA_DE_CURVA) / k);
+      // (o piso nunca passa do pneu; ver comentario em PISO_DE_VELOCIDADE)
+      velocidades[i] = Math.max(Math.min(PISO_DE_VELOCIDADE, tetoDoPneu), velocidades[i]);
       tempo += ds[i] / velocidades[i];
     }
     return tempo;
@@ -198,6 +223,7 @@ export function linhaIdeal(pista, opcoes = {}) {
   }
 
   const resultado = {
+    semDrift: !!opcoes.semDrift,
     deslocamentos: d,
     pontos,
     curvaturas,

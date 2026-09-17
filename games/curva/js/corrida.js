@@ -1,20 +1,35 @@
-// A corrida: dez carros, contagem de setor, vacuo, toque, muro, box e
+// A corrida: dez karts, contagem de setor, vacuo, toque, muro, caixas de item e
 // classificacao. Sem DOM — o navegador so le o estado que sai daqui.
 //
 // A parte que mais importa e a mais chata: volta so conta com os tres setores na
 // ordem. Sem isso, cortar a curva vira estrategia e atravessar a linha de re
-// vira volta. A prova correspondente e a primeira que eu escrevi.
+// vira volta. A prova correspondente foi a primeira que eu escrevi.
 
-import { CARRO, criarCarro, passoCarro, comandosNulos, DT } from './fisica.js';
-import { PISTAS, carregar, superficie, maisProximo } from './pista.js';
+import {
+  KART, criarCarro, passoCarro, comandosNulos, darTurbo, rodopiar, DT,
+} from './fisica.js';
+import {
+  PISTAS, carregar, superficie, maisProximo, alturaDoChao, paraMundo,
+  LIMITE_GRAMA,
+} from './pista.js';
 import { linhaIdeal } from './linha.js';
 import { criarPiloto, pilotar, PERFIS } from './piloto.js';
 
 export const PONTOS = [25, 18, 15, 12, 10, 8, 6, 4, 2, 1];
 
 const CONTAGEM = 3.2;
-const TEMPO_BASE_BOX = 3.2;
-const LIMITE_BOX = 12;
+const TEMPO_DE_RECARGA_DA_CAIXA = 6;
+const ALCANCE_DO_CASCO = 70;
+
+// Sorteio de item enviesado pela posicao: quem esta atras tira item melhor. E a
+// regra que faz corrida de kart ter volta por cima sem a IA precisar trapacear
+// na fisica — e ela e explicita aqui, em vez de escondida num multiplicador de
+// velocidade.
+const TABELA_DE_ITENS = [
+  { item: 'cogumelo', peso: (pos) => 3 + pos * 1.6 },
+  { item: 'casco', peso: (pos) => 2 + pos * 1.1 },
+  { item: 'banana', peso: (pos) => 4.5 - pos * 0.3 },
+];
 
 const NOMES = [
   'V. ANDRADE', 'R. KOBAYASHI', 'M. TEIXEIRA', 'D. OKONKWO', 'S. LARSEN',
@@ -27,7 +42,7 @@ const CORES = [
 
 export function criarCorrida(indicePista, opcoes = {}) {
   const pista = carregar(PISTAS[indicePista]);
-  const linha = linhaIdeal(pista);
+  const linha = linhaIdeal(pista, { semDrift: !!opcoes.semDrift });
   const voltas = opcoes.voltas ?? pista.voltas;
   const comJogador = opcoes.jogador ?? true;
   const quantidadeIA = Math.min(9, opcoes.ia ?? 9);
@@ -37,8 +52,9 @@ export function criarCorrida(indicePista, opcoes = {}) {
   let lugar = 0;
   if (comJogador) {
     const g = pista.grade[opcoes.largadaDoJogador ?? 0];
-    const carro = criarCarro(g.x, g.y, g.ang, { nome: 'VOCE', cor: '#ffffff' });
-    carros.push(preparar(carro, 'jogador', null, pista));
+    carros.push(preparar(criarCarro(g.x, g.y, g.ang, {
+      nome: 'VOCE', cor: '#ffffff', z: g.z,
+    }), 'jogador', null, pista));
     lugar = 1;
   }
   for (let i = 0; i < quantidadeIA; i++) {
@@ -46,9 +62,11 @@ export function criarCorrida(indicePista, opcoes = {}) {
     const carro = criarCarro(g.x, g.y, g.ang, {
       nome: NOMES[i % NOMES.length],
       cor: CORES[i % CORES.length],
+      z: g.z,
     });
     const perfil = opcoes.perfil || perfis[i % perfis.length];
-    carros.push(preparar(carro, 'ia', criarPiloto(carro.nome, perfil, (opcoes.semente || 1) + i * 977), pista));
+    carros.push(preparar(carro, 'ia',
+      criarPiloto(carro.nome, perfil, (opcoes.semente || 1) + i * 977), pista));
   }
 
   const corrida = {
@@ -62,9 +80,22 @@ export function criarCorrida(indicePista, opcoes = {}) {
     classificacao: [],
     toques: 0,
     menorDistancia: Infinity,
+    bananas: [],
+    cascos: [],
+    semente: opcoes.semente || 1,
+    sorteio: criarSorteio(opcoes.semente || 1),
   };
+  for (const caixa of pista.caixas) { caixa.cheia = true; caixa.relogio = 0; }
   ordenar(corrida);
   return corrida;
+}
+
+function criarSorteio(semente) {
+  let estado = (semente | 0) || 1;
+  return () => {
+    estado = (estado * 1103515245 + 12345) & 0x7fffffff;
+    return estado / 0x7fffffff;
+  };
 }
 
 function preparar(carro, tipo, piloto, pista) {
@@ -81,12 +112,12 @@ function preparar(carro, tipo, piloto, pista) {
   carro.indice = perto.i;
   carro.progresso = perto.i / pista.centro.length;
   carro.posicao = 0;
-  carro.noBox = false;
-  carro.tempoDeBox = 0;
-  carro.paradas = 0;
   carro.toques = 0;
   carro.foraDaPista = 0;
+  carro.atolado = 0;
+  carro.recolocacoes = 0;
   carro.terminou = false;
+  carro.turbosUsados = 0;
   return carro;
 }
 
@@ -105,6 +136,12 @@ export function passoCorrida(corrida, comandosJogador, dt = DT) {
   }
 
   const pista = corrida.pista;
+  for (const caixa of pista.caixas) {
+    if (caixa.cheia) continue;
+    caixa.relogio -= dt;
+    if (caixa.relogio <= 0) caixa.cheia = true;
+  }
+
   for (const carro of corrida.carros) {
     const sup = superficie(pista, carro.x, carro.y);
     carro.indice = sup.i;
@@ -112,8 +149,8 @@ export function passoCorrida(corrida, comandosJogador, dt = DT) {
     carro.superficie = sup.tipo;
 
     const vizinho = carroNaFrente(corrida, carro);
-    const vacuo = vizinho && vizinho.distancia < 30 && Math.abs(vizinho.lateral) < 3.5
-      ? 1 - vizinho.distancia / 30
+    const vacuo = vizinho && vizinho.distancia < 22 && Math.abs(vizinho.lateral) < 2.6
+      ? 1 - vizinho.distancia / 22
       : 0;
 
     let comandos;
@@ -122,24 +159,38 @@ export function passoCorrida(corrida, comandosJogador, dt = DT) {
     } else if (carro.tipo === 'jogador') {
       comandos = comandosJogador || comandosNulos();
     } else {
-      comandos = pilotar(carro, carro.piloto, pista, corrida.linha,
-        { frente: vizinho, noBox: carro.noBox, superficie: sup.tipo }, dt);
+      comandos = pilotar(carro, carro.piloto, pista, corrida.linha, {
+        frente: vizinho, superficie: sup.tipo, atrito: sup.atrito, temItem: !!carro.item,
+      }, dt);
     }
 
-    if (carro.noBox) {
-      atenderBox(corrida, carro, eventos, dt);
-      continue;
+    const antes = carro.turbo;
+    passoCarro(carro, comandos, { atrito: sup.atrito, vacuo, subida: sup.subida }, dt);
+    if (carro.turbo > antes + 0.2) {
+      carro.turbosUsados++;
+      eventos.push({ tipo: 'turbo', carro: carro.nome, faixa: carro.turboFaixa || 1 });
     }
+    // O kart fica colado no chao da pista: a altura vem da geometria, nao de
+    // uma simulacao de suspensao que nao existe. A inclinacao e a rampa do chao
+    // vao junto porque o render 3D deita e arfa o kart com elas — a mesma
+    // sobrelevacao que a fisica usa na gravidade.
+    const chao = alturaDoChao(pista, carro.x, carro.y);
+    carro.z += (chao - carro.z) * Math.min(1, dt * 12);
+    carro.inclinacaoDoChao = sup.inclinacao;
+    carro.subidaDoChao = sup.subida;
+    carro.giroDaRoda = (carro.giroDaRoda || 0) + (carro.vx / 0.14) * dt;
 
-    passoCarro(carro, comandos, { atrito: sup.atrito, vacuo }, dt);
+    if (comandos.item && carro.item) usarItem(corrida, carro, eventos);
     if (sup.tipo === 'grama' || sup.tipo === 'muro') carro.foraDaPista += dt;
-
-    if (sup.tipo === 'muro') baterNoMuro(corrida, carro, eventos);
-    conferirBox(corrida, carro, comandos, eventos);
+    if (sup.tipo === 'muro') baterNoMuro(corrida, carro, eventos, dt);
+    recolocar(corrida, carro, sup, eventos, dt);
+    pegarCaixa(corrida, carro, eventos);
     if (corrida.estado === 'correndo') contarVolta(corrida, carro, eventos);
     carro.tempoVolta += dt;
   }
 
+  moverCascos(corrida, eventos, dt);
+  conferirBananas(corrida, eventos, dt);
   resolverToques(corrida, eventos);
   ordenar(corrida);
   return eventos;
@@ -155,7 +206,7 @@ function carroNaFrente(corrida, carro) {
     const dx = outro.x - carro.x;
     const dy = outro.y - carro.y;
     const distancia = Math.hypot(dx, dy);
-    if (distancia > 40) continue;
+    if (distancia > 30) continue;
     const frontal = dx * Math.cos(carro.ang) + dy * Math.sin(carro.ang);
     if (frontal <= 0) continue;
     const avanco = ((outro.indice - carro.indice + n) % n);
@@ -164,7 +215,7 @@ function carroNaFrente(corrida, carro) {
       melhor = {
         carro: outro, distancia,
         lateral: outro.lateral,
-        fechado: Math.abs(outro.lateral - carro.lateral) < CARRO.largura * 1.3,
+        fechado: Math.abs(outro.lateral - carro.lateral) < KART.largura * 1.4,
       };
     }
   }
@@ -173,16 +224,12 @@ function carroNaFrente(corrida, carro) {
 
 function resolverToques(corrida, eventos) {
   const carros = corrida.carros;
-  const minimo = CARRO.largura * 1.05;
-  // Tres passagens de separacao. Com uma so, tres carros lado a lado terminam
-  // sobrepostos: a prova de "os carros nao se atravessam" pegou dois deles a
-  // 0,57 m de centro a centro.
+  const minimo = KART.largura * 1.1;
   for (let passagem = 0; passagem < 3; passagem++) {
     for (let i = 0; i < carros.length; i++) {
       for (let j = i + 1; j < carros.length; j++) {
         const a = carros[i];
         const b = carros[j];
-        if (a.noBox || b.noBox) continue;
         const dx = b.x - a.x;
         const dy = b.y - a.y;
         const d = Math.hypot(dx, dy) || 1e-6;
@@ -195,84 +242,227 @@ function resolverToques(corrida, eventos) {
         b.x += nx * sobra;
         b.y += ny * sobra;
         if (passagem > 0) continue;
-        // Troca de quantidade de movimento na direcao do contato, com perda:
-        // toque custa velocidade nos dois, e e isso que faz brigar por posicao
-        // ter preco.
         const projetar = (c) => c.vx * Math.cos(c.ang) + c.vy * -Math.sin(c.ang);
-        const troca = (projetar(a) * nx - projetar(b) * nx) * 0.25;
+        const troca = (projetar(a) * nx - projetar(b) * nx) * 0.3;
         a.vx -= troca * 0.5;
         b.vx += troca * 0.5;
-        a.omega += (ny * 0.12) * Math.sign(a.vx || 1);
-        b.omega -= (ny * 0.12) * Math.sign(b.vx || 1);
+        a.omega += ny * 0.2 * Math.sign(a.vx || 1);
+        b.omega -= ny * 0.2 * Math.sign(b.vx || 1);
         a.toques++;
         b.toques++;
         corrida.toques++;
-        a.dano = Math.min(1, a.dano + 0.01);
-        b.dano = Math.min(1, b.dano + 0.01);
         eventos.push({ tipo: 'toque', carros: [a.nome, b.nome], forca: Math.abs(troca) });
       }
     }
   }
-  // A menor distancia e medida depois da separacao: e ela que diz se o jogo
-  // deixou dois carros ocuparem o mesmo lugar.
   for (let i = 0; i < carros.length; i++) {
     for (let j = i + 1; j < carros.length; j++) {
-      const a = carros[i];
-      const b = carros[j];
-      if (a.noBox || b.noBox) continue;
       corrida.menorDistancia = Math.min(corrida.menorDistancia,
-        Math.hypot(b.x - a.x, b.y - a.y));
+        Math.hypot(carros[i].x - carros[j].x, carros[i].y - carros[j].y));
     }
   }
 }
 
-function baterNoMuro(corrida, carro, eventos) {
+// Bater no muro. A primeira versao grudava: ela reposicionava o kart no limite e
+// cortava a velocidade pela metade TODO quadro, entao quem encostava ficava
+// preso a 4 km/h com o pe no fundo. Aqui a batida tem carencia e devolve o kart
+// para dentro — bater custa caro uma vez, e nao para sempre.
+const CARENCIA_DO_MURO = 0.4;
+
+function baterNoMuro(corrida, carro, eventos, dt) {
   const perto = maisProximo(corrida.pista, carro.x, carro.y);
-  const limite = perto.largura / 2 + 8.9;
+  const limite = perto.largura / 2 + LIMITE_GRAMA - 0.1;
   const sinal = Math.sign(perto.lateral) || 1;
   const c = corrida.pista.centro[perto.i];
   const nx = -Math.sin(c.ang);
   const ny = Math.cos(c.ang);
   carro.x = c.x + nx * limite * sinal;
   carro.y = c.y + ny * limite * sinal;
-  carro.vx *= 0.55;
-  carro.vy *= -0.3;
+  // Empurrao para dentro, no rumo da pista: sem ele o kart raspa o muro
+  // paralelo e nunca volta.
+  const paraDentro = -sinal * 2.2;
+  carro.vy += paraDentro * Math.cos(carro.ang - c.ang);
+  carro.relogioDoMuro = (carro.relogioDoMuro || 0) - dt;
+  if (carro.relogioDoMuro > 0) return;
+  carro.relogioDoMuro = CARENCIA_DO_MURO;
+  carro.vx *= 0.62;
   carro.omega *= -0.2;
-  carro.dano = Math.min(1, carro.dano + 0.04);
+  carro.turbo = 0;
+  carro.carga = 0;
   eventos.push({ tipo: 'muro', carro: carro.nome, x: carro.x, y: carro.y });
 }
 
-// -------------------------------------------------------------------- box
+// Kart atolado volta para a pista. Isto nao e conveniencia: sem isto, um kart
+// que bate de frente no muro do grampo fica parado a 3 km/h para sempre, porque
+// o modelo nao tem marcha a re — foi exatamente o que a medida do grampo achou,
+// e era esse acidente, e nao a tecnica, que decidia todo tempo de volta do jogo.
+//
+// A regra tem de ser cobravel em prova, entao ela e explicita: **em corrida**,
+// parado (abaixo de `PARADO_KMH`), fora do asfalto, ou andando na contramao por
+// mais de `PACIENCIA` segundos seguidos, o kart reaparece na linha de corrida,
+// apontado para frente, a 7 m/s. Nao adianta como atalho porque o progresso e o
+// setor nao mudam.
+//
+// O "em corrida" nao e detalhe: na primeira versao o relogio corria durante a
+// contagem, e como todo mundo esta parado na largada, os dez karts eram
+// teleportados para a linha de corrida antes da luz verde — o grid inteiro
+// embaralhado, e o jogador aparecia na grama sem ter tocado em nada.
+const PARADO_KMH = 9;
+const PACIENCIA = 2.2;
 
-function conferirBox(corrida, carro, comandos, eventos) {
-  const box = corrida.pista.box;
-  const d = Math.hypot(carro.x - box.x, carro.y - box.y);
-  if (d > box.raio) return;
-  if (Math.abs(carro.vx) > LIMITE_BOX) return;
-  if (comandos.acelerador > 0.2) return;
-  carro.noBox = true;
-  carro.tempoDeBox = 0;
-  carro.vx = 0;
+function recolocar(corrida, carro, sup, eventos, dt) {
+  if (corrida.estado !== 'correndo') { carro.atolado = 0; return; }
+  const devagar = Math.hypot(carro.vx, carro.vy) * 3.6 < PARADO_KMH;
+  const foraDoAsfalto = sup.tipo === 'grama' || sup.tipo === 'muro';
+  // Contramao: a velocidade projetada no rumo da pista. Um kart girado por
+  // casco sai andando para tras a 30 km/h e nunca mais volta sozinho.
+  const c0 = corrida.pista.centro[sup.i];
+  const aoLongo = (carro.vx * Math.cos(carro.ang) - carro.vy * Math.sin(carro.ang))
+    * Math.cos(c0.ang)
+    + (carro.vx * Math.sin(carro.ang) + carro.vy * Math.cos(carro.ang)) * Math.sin(c0.ang);
+  const naContramao = aoLongo < -1.5;
+  if (devagar || foraDoAsfalto || naContramao) carro.atolado += dt;
+  else carro.atolado = 0;
+  if (carro.atolado < PACIENCIA) return;
+
+  const c = corrida.pista.centro[sup.i];
+  // Lugar livre: dois karts atolados no mesmo ponto sairiam um dentro do outro,
+  // e a prova de que karts nao se atravessam pegou exatamente isso (0,00 m de
+  // centro a centro). Procura de dentro para fora, e desiste no eixo.
+  const base = corrida.linha ? corrida.linha.deslocamentos[sup.i] : 0;
+  const teto = c.largura / 2 - KART.largura / 2 - 0.2;
+  let desvio = base;
+  for (const tentativa of [base, base + 2.2, base - 2.2, base + 4.4, base - 4.4]) {
+    const onde = Math.max(-teto, Math.min(teto, tentativa));
+    const ponto = paraMundo(corrida.pista, sup.i, onde);
+    const livre = corrida.carros.every(outro => outro === carro
+      || Math.hypot(outro.x - ponto.x, outro.y - ponto.y) > KART.largura * 1.6);
+    if (livre) { desvio = onde; break; }
+  }
+  const posto = paraMundo(corrida.pista, sup.i, desvio);
+  carro.x = posto.x;
+  carro.y = posto.y;
+  carro.z = posto.z;
+  carro.ang = c.ang;
+  carro.vx = 7;
   carro.vy = 0;
   carro.omega = 0;
-  eventos.push({ tipo: 'box-inicio', carro: carro.nome });
+  carro.rodopio = 0;
+  carro.turbo = 0;
+  carro.carga = 0;
+  carro.atolado = 0;
+  carro.recolocacoes++;
+  eventos.push({ tipo: 'recolocado', carro: carro.nome, x: carro.x, y: carro.y });
 }
 
-function atenderBox(corrida, carro, eventos, dt) {
-  carro.tempoDeBox += dt;
-  carro.vx = 0;
-  carro.vy = 0;
-  carro.omega = 0;
-  carro.tempoVolta += dt;
-  const necessario = TEMPO_BASE_BOX + Math.min(1, carro.pneus.desgaste) * 1.5;
-  if (carro.tempoDeBox < necessario) return;
-  carro.pneus.desgaste = 0;
-  carro.pneus.temp = 0.25;
-  carro.combustivel = CARRO.tanque;
-  carro.dano = Math.max(0, carro.dano - 0.5);
-  carro.noBox = false;
-  carro.paradas++;
-  eventos.push({ tipo: 'box-fim', carro: carro.nome, tempo: carro.tempoDeBox });
+// ------------------------------------------------------------------ itens
+
+function pegarCaixa(corrida, carro, eventos) {
+  if (carro.item) return;
+  for (const caixa of corrida.pista.caixas) {
+    if (!caixa.cheia) continue;
+    if (Math.hypot(caixa.x - carro.x, caixa.y - carro.y) > 1.35) continue;
+    caixa.cheia = false;
+    caixa.relogio = TEMPO_DE_RECARGA_DA_CAIXA;
+    carro.item = sortearItem(corrida, carro);
+    eventos.push({ tipo: 'item-pego', carro: carro.nome, item: carro.item });
+    return;
+  }
+}
+
+function sortearItem(corrida, carro) {
+  const posicao = Math.max(0, carro.posicao - 1);
+  const pesos = TABELA_DE_ITENS.map(t => Math.max(0.2, t.peso(posicao)));
+  const total = pesos.reduce((s, p) => s + p, 0);
+  let sorte = corrida.sorteio() * total;
+  for (const [i, peso] of pesos.entries()) {
+    sorte -= peso;
+    if (sorte <= 0) return TABELA_DE_ITENS[i].item;
+  }
+  return TABELA_DE_ITENS[0].item;
+}
+
+function usarItem(corrida, carro, eventos) {
+  const item = carro.item;
+  carro.item = null;
+  if (item === 'cogumelo') {
+    darTurbo(carro);
+    eventos.push({ tipo: 'item-usado', carro: carro.nome, item });
+    return;
+  }
+  if (item === 'banana') {
+    const atras = carro.ang + Math.PI;
+    corrida.bananas.push({
+      x: carro.x + Math.cos(atras) * 2.2,
+      y: carro.y + Math.sin(atras) * 2.2,
+      z: carro.z,
+      vida: 40,
+      dono: carro.nome,
+    });
+    eventos.push({ tipo: 'item-usado', carro: carro.nome, item });
+    return;
+  }
+  // casco: persegue quem esta na frente, em progresso de pista
+  const alvo = alvoDoCasco(corrida, carro);
+  corrida.cascos.push({
+    x: carro.x + Math.cos(carro.ang) * 2,
+    y: carro.y + Math.sin(carro.ang) * 2,
+    z: carro.z,
+    alvo, dono: carro.nome, vida: 6,
+  });
+  eventos.push({ tipo: 'item-usado', carro: carro.nome, item, alvo: alvo ? alvo.nome : null });
+}
+
+function alvoDoCasco(corrida, carro) {
+  let melhor = null;
+  for (const outro of corrida.carros) {
+    if (outro === carro) continue;
+    if (outro.progresso <= carro.progresso) continue;
+    const diferenca = outro.progresso - carro.progresso;
+    if (!melhor || diferenca < melhor.diferenca) melhor = { diferenca, carro: outro };
+  }
+  if (!melhor) return null;
+  const distancia = Math.hypot(melhor.carro.x - carro.x, melhor.carro.y - carro.y);
+  return distancia < ALCANCE_DO_CASCO ? melhor.carro : null;
+}
+
+function moverCascos(corrida, eventos, dt) {
+  for (let i = corrida.cascos.length - 1; i >= 0; i--) {
+    const casco = corrida.cascos[i];
+    casco.vida -= dt;
+    const alvo = casco.alvo;
+    if (!alvo || casco.vida <= 0) {
+      corrida.cascos.splice(i, 1);
+      continue;
+    }
+    const dx = alvo.x - casco.x;
+    const dy = alvo.y - casco.y;
+    const d = Math.hypot(dx, dy) || 1;
+    const velocidade = 34;
+    casco.x += (dx / d) * velocidade * dt;
+    casco.y += (dy / d) * velocidade * dt;
+    casco.z = alturaDoChao(corrida.pista, casco.x, casco.y);
+    if (d < 1.4) {
+      rodopiar(alvo);
+      eventos.push({ tipo: 'acertou', de: casco.dono, em: alvo.nome, item: 'casco' });
+      corrida.cascos.splice(i, 1);
+    }
+  }
+}
+
+function conferirBananas(corrida, eventos, dt) {
+  for (let i = corrida.bananas.length - 1; i >= 0; i--) {
+    const banana = corrida.bananas[i];
+    banana.vida -= dt;
+    if (banana.vida <= 0) { corrida.bananas.splice(i, 1); continue; }
+    for (const carro of corrida.carros) {
+      if (Math.hypot(carro.x - banana.x, carro.y - banana.y) > 1.2) continue;
+      rodopiar(carro);
+      eventos.push({ tipo: 'acertou', de: banana.dono, em: carro.nome, item: 'banana' });
+      corrida.bananas.splice(i, 1);
+      break;
+    }
+  }
 }
 
 // --------------------------------------------------------- setor e volta
@@ -284,8 +474,6 @@ function contarVolta(corrida, carro, eventos) {
   if (de === para) return;
   const avanco = (para - de + n) % n;
   if (avanco > n / 2) {
-    // Andou para tras: a volta perde a validade, e e assim que dar re na
-    // chegada deixa de contar.
     carro.voltaValida = false;
     carro.ultimoIndice = para;
     return;
@@ -306,7 +494,10 @@ function contarVolta(corrida, carro, eventos) {
           if (!corrida.melhorVolta || carro.tempoVolta < corrida.melhorVolta.tempo) {
             corrida.melhorVolta = { tempo: carro.tempoVolta, nome: carro.nome };
           }
-          eventos.push({ tipo: 'volta', carro: carro.nome, tempo: carro.tempoVolta, voltas: carro.voltas });
+          eventos.push({
+            tipo: 'volta', carro: carro.nome,
+            tempo: carro.tempoVolta, voltas: carro.voltas,
+          });
           if (carro.voltas >= corrida.voltas && !carro.terminou) {
             carro.terminou = true;
             eventos.push({ tipo: 'bandeirada', carro: carro.nome });
@@ -351,13 +542,12 @@ function terminar(corrida, eventos) {
     voltas: carro.voltas,
     progresso: carro.progresso,
     melhorVolta: carro.melhorVolta || 0,
-    paradas: carro.paradas,
+    turbos: carro.turbosUsados,
     toques: carro.toques,
   }));
   eventos.push({ tipo: 'fim', classificacao: corrida.classificacao });
 }
 
-// Campeonato: recebe uma lista de corridas, cada uma com a ordem de chegada.
 export function classificacao(corridas) {
   const soma = new Map();
   for (const corrida of corridas) {

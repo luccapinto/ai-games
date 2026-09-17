@@ -9,8 +9,8 @@ registrados ao lado.
 costs. Each game is a self-contained, playable folder that records the model that
 wrote it, the agent that drove it, and the tokens it burned.*
 
-**9 jogos** de **1 pessoa**, 27.428 linhas de código,
-2,7 M tokens novos e US$ 12,42 de API no total.
+**9 jogos** de **1 pessoa**, 29.167 linhas de código,
+2,9 M tokens novos e US$ 15,42 de API no total.
 
 👉 **[Jogar tudo](https://luccapinto.github.io/ai-games/)** · **[Ver o benchmark](https://luccapinto.github.io/ai-games/benchmark.html)** · **[Mandar o seu jogo](CONTRIBUTING.md)**
 
@@ -20,7 +20,7 @@ wrote it, the agent that drove it, and the tokens it burned.*
 | --- | --- | --- | --- | --- | --- | --- |
 | **TRAVESSIA** [`travessia`](games/travessia/README.md) | Mundo aberto | Lucca Pinto | claude-opus-5 | 103,0 k | US$ 1,54 | [jogar](https://luccapinto.github.io/ai-games/games/travessia/) |
 | **SUBSOLO** [`subsolo`](games/subsolo/README.md) | FPS | Lucca Pinto | claude-opus-5 | 105,0 k | US$ 1,58 | [jogar](https://luccapinto.github.io/ai-games/games/subsolo/) |
-| **CURVA** [`curva`](games/curva/README.md) | Corrida | Lucca Pinto | claude-opus-5 | 154,0 k | US$ 2,31 | [jogar](https://luccapinto.github.io/ai-games/games/curva/) |
+| **CURVA** [`curva`](games/curva/README.md) | Kart 3D | Lucca Pinto | claude-opus-5 | 354,0 k | US$ 5,31 | [jogar](https://luccapinto.github.io/ai-games/games/curva/) |
 | **SEIVA** [`seiva`](games/seiva/README.md) | Defesa de torre | Lucca Pinto | claude-opus-5 | 70,0 k | US$ 1,05 | [jogar](https://luccapinto.github.io/ai-games/games/seiva/) |
 | **PROCESSO** [`processo`](games/processo/README.md) | Cartas com construção de baralho | Lucca Pinto | claude-opus-5 | 44,0 k | US$ 0,66 | [jogar](https://luccapinto.github.io/ai-games/games/processo/) |
 | **CRIPTA** [`cripta`](games/cripta/README.md) | Puzzle | Lucca Pinto | claude-opus-5 | 86,0 k | US$ 1,30 | [jogar](https://luccapinto.github.io/ai-games/games/cripta/) |
@@ -32,7 +32,7 @@ wrote it, the agent that drove it, and the tokens it burned.*
 
 | Modelo | Jogos | Tokens novos | Cache | Custo | Linhas |
 | --- | --- | --- | --- | --- | --- |
-| claude-opus-5 | 8 | 758,0 k | 0 | US$ 11,39 | 16.719 |
+| claude-opus-5 | 8 | 958,0 k | 0 | US$ 14,39 | 18.458 |
 | deepseek-flash | 1 | 1,9 M | 159,1 M | US$ 1,03 | 10.709 |
 
 Tokens novos são entrada + saída. Cache aparece em coluna separada de propósito:
@@ -139,21 +139,22 @@ O que tem dentro:
 
 ### CURVA
 
-Seis pistas, nove adversários e um carro de tração traseira com ângulo de deriva por eixo, transferência de peso, pneu que gasta e combustível que pesa. A linha de corrida não foi desenhada à mão: ela é calculada minimizando o tempo de volta, e a IA lê a mesma linha que você pode ligar na tela.
+Seis kartódromos com relevo, nove adversários e um kart com duas personalidades: no modo de aderência ele gira 65% do que o pneu daria e não faz grampo de 10 m; com o gatilho segurado ele gira 2,4 vezes mais e carrega mini-turbo em três faixas. Derrapar vale de 1 a 6 segundos por volta, e isso não é opinião: está medido pista por pista nas provas, cada modo seguindo a linha de corrida dele.
 
 O que tem dentro:
 
-- A linha de corrida é calculada, não desenhada: descida coordenada com empurrão em forma de morro, minimizando o tempo de volta do mesmo perfil de velocidade que a IA consulta — e a primeira versão, que empurrava um ponto por vez, terminou com deslocamento máximo de 0,000 m porque mover um ponto sozinho sempre piora a curvatura local
-- Todo número do carro no README sai do banco de medidas simulando o modelo que o jogador dirige: 283 km/h de máxima, 3,02 s até 100, 120 m para parar de 200 e 1,29 g de lateral sustentado
-- A IA corre a 1,03–1,07 da volta teórica nas seis pistas e passa 100% do tempo no asfalto, e chegou lá por três consertos medidos: pré-alimentação pela curvatura, elipse de atrito no pé direito e alinhar a aderência de projeto com a medida
-- As provas acharam que o freio empurrava o carro para trás — força de freio sem sinal, e na largada a IA saía de ré a 134 km/h
-- Pista descrita em coordenadas polares, que é um formato onde circuito não se cruza consigo mesmo por construção; a prova de fita ainda confere, mas o atalho invisível deixa de ser possível
-- Volta só conta com os três setores na ordem, e andar para trás invalida a volta: sem isso, cortar curva vira estratégia
+- O jogo inteiro gira em torno de um número: o teto de velocidade de giro. Em aderência o kart gira 65% do que o pneu daria e não faz grampo de 10 m; de lado ele gira 240% e carrega mini-turbo. Com esse teto em 100%, medido, derrapar era só custo — o kart fazia o grampo de frente e o gatilho não servia para nada
+- Derrapar rende de 1,00 s (CERRADO, curvas de 30 a 45 m) a 6,28 s (PORTO, noventas de 12 m) por volta, medido com cada modo seguindo a linha de corrida dele: com as duas corridas na mesma linha a medida dizia que derrapar atrasa, porque o kart sem drift ganhava tempo cortando zebra numa linha que não era a dele
+- As pistas são escritas como um projetista escreve — reta de tantos metros, curva de tantos graus com tanto raio — e fecham por duas regras verificáveis: a soma dos ângulos é 360 exatos (fecha o rumo) e o erro de posição é linear nos comprimentos de reta, resolvido exatamente num passo com correção de norma mínima. O formato polar anterior não expressava grampo: a 32 m do centro, 12 graus de arco tem de girar 140, o que dá raio de 2,6 m
+- O volante pede velocidade de giro, não ângulo de roda. Com 0,62 rad de esterço ligados direto no comando, meia volta a 80 km/h pedia 1,9 g de um asfalto que dá 1,4: o kart rodopiava em meio segundo e terminava andando para trás, medido em três versões seguidas
+- A IA aprende o próprio limite: quem escapa entra mais devagar na curva seguinte. Sem isso o perfil `ouro` perdia do `prata` em uma das seis pistas — o piloto mais forte ficando mais lento, o que quebra a promessa do campeonato
+- As provas acharam que a IA tinha 20% de freio exatamente dentro da curva, porque a elipse de atrito limitava a força duas vezes: uma na física e outra na decisão. Ela chegava 14 km/h acima do alvo no grampo, batia no muro e ficava atolada a 3 km/h — e era esse acidente, não a pilotagem, que decidia todo tempo de volta do jogo
+- Render 3D sem biblioteca, sem arquivo de modelo e sem textura: a fita da pista sai da mesma lista de números que a física usa, e a saia de grama desce até um piso de vale porque, sem ela, o circuito terminava no ar a 7 m da zebra
 
 - **Quem fez:** Lucca Pinto
-- **Modelo:** claude-opus-5 via Anthropic, dirigido por Oh My Pi — 154,0 k tokens novos, 0 de cache, 118 chamadas, US$ 2,31
-- **Custo total:** US$ 2,31 (estimado)
-- **Tamanho:** 3.171 linhas de código próprio, 0,2 MB
+- **Modelo:** claude-opus-5 via Anthropic, dirigido por Oh My Pi — 354,0 k tokens novos, 0 de cache, 246 chamadas, US$ 5,31
+- **Custo total:** US$ 5,31 (estimado)
+- **Tamanho:** 4.910 linhas de código próprio, 0,3 MB
 - **Pasta:** [`games/curva/`](games/curva/README.md)
 
 ### SEIVA

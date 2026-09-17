@@ -1,222 +1,192 @@
 # CURVA
 
-Corrida vista de cima, no navegador, com física de carro de verdade: ângulo de
-deriva por eixo, transferência de peso, elipse de atrito, pneu que gasta e
-combustível que pesa. Seis pistas, nove adversários, campeonato de seis etapas.
+Kart em três dimensões, no navegador, com WebGL2 escrito à mão: sem biblioteca,
+sem arquivo de modelo, sem textura em disco. Seis kartódromos com relevo, nove
+adversários, itens — e uma técnica que decide a corrida.
 
-- **Jogar:** abra o `index.html` desta pasta (servido por HTTP — veja
-  [Rodar local](#rodar-local)), ou vá pelo hub
+- **[Jogar](https://luccapinto.github.io/ai-games/games/curva/)** ou abra
+  `index.html` desta pasta servido por HTTP (ver [Rodar](#rodar))
 - **Parte de:** [ai-games](../../README.md)
 
 ![CURVA](capa.jpg)
 
-## Como se joga
+## A decisão do jogo
+
+O kart tem dois modos, e a diferença entre eles é um número: **o teto de
+velocidade de giro**.
+
+| | teto de giro | g lateral sustentado | deriva |
+| --- | --- | --- | --- |
+| aderência | 65% do que o pneu daria | 0,84 g | até 0,11 rad |
+| de lado (`shift`) | 240% | 0,93 g | até 0,24 rad |
+
+Em aderência o kart é macio e sai largo: **grampo de 10 a 14 m ele não faz**. De
+lado ele gira 2,4 vezes mais rápido do que a aderência permitiria, e a
+derrapagem carrega o **mini-turbo** em três faixas (0,3 s, 0,7 s e 1,2 s de
+gatilho segurado). Soltar o gatilho entrega o empurrão.
+
+Derrapar não é enfeite, e isso é medido pelas provas:
+
+| pista | volta de lado | volta de frente | ganho | grampo isolado |
+| --- | --- | --- | --- | --- |
+| BAIXADA | 45,67 s | 50,42 s | **4,75 s** | +0,87 s |
+| CANAVIAL | 51,70 s | 54,65 s | **2,95 s** | +0,75 s |
+| SERRA | 39,88 s | 42,17 s | **2,28 s** | +0,50 s |
+| PORTO | 32,32 s | 38,60 s | **6,28 s** | +1,50 s |
+| CERRADO | 47,85 s | 48,85 s | **1,00 s** | +0,73 s |
+| VIADUTO | 38,37 s | 41,90 s | **3,53 s** | +1,00 s |
+
+A comparação é feita com a **linha de corrida de cada modo**: quem não derrapa
+tem outro traçado e outro perfil de velocidade, calculados com o teto de giro da
+aderência. Com as duas corridas na mesma linha, a medida dizia que derrapar
+atrasa — e dizia isso porque o kart sem drift ganhava tempo cortando zebra numa
+linha que não era a dele.
+
+O CERRADO (curvas de 30 a 45 m) é a pista onde a técnica menos vale, e isso é
+balanceamento: se derrapar rendesse o mesmo em toda pista, escolher pista não
+decidiria nada.
+
+## Jogar
 
 | ação | tecla |
 | --- | --- |
-| acelerar | <kbd>W</kbd> ou <kbd>&uarr;</kbd> |
-| frear | <kbd>S</kbd> ou <kbd>&darr;</kbd> |
-| virar | <kbd>A</kbd> <kbd>D</kbd> ou <kbd>&larr;</kbd> <kbd>&rarr;</kbd> |
-| freio de mão | <kbd>espaço</kbd> |
-| ver a linha ideal | <kbd>L</kbd> |
-| câmera fixa (norte) | <kbd>N</kbd> |
-| recomeçar | <kbd>R</kbd> |
-| pausar | <kbd>P</kbd> ou <kbd>esc</kbd> |
+| acelerar / frear | <kbd>W</kbd> <kbd>S</kbd> ou <kbd>↑</kbd> <kbd>↓</kbd> |
+| virar | <kbd>A</kbd> <kbd>D</kbd> ou <kbd>←</kbd> <kbd>→</kbd> |
+| derrapar | <kbd>shift</kbd> — segure na curva, solte na saída |
+| usar item | <kbd>espaço</kbd> |
+| câmera | <kbd>C</kbd> (perseguição ou capacete) |
+| pausar / reiniciar | <kbd>esc</kbd> <kbd>R</kbd> |
 
-O volante do teclado tem rampa (4,2 por segundo para encher, 6,5 para
-centralizar). Tecla é liga-desliga e volante de verdade não é: sem a rampa,
-dirigir um carro de tração traseira no teclado é uma sucessão de rodopios.
+No celular os controles aparecem na tela. Seis etapas de campeonato com a
+pontuação 25-18-15-12-10-8-6-4-2-1.
 
-## O carro, medido
+## As seis pistas
 
-Nenhum número desta tabela foi escrito à mão. Todos saem de `js/banco.js`, que
-simula o mesmo modelo que você dirige, e `node provas.mjs` os imprime a cada
-execução:
+Escritas como um projetista escreve: sequência de retas e curvas, cada curva com
+raio e ângulo em graus.
+
+| pista | tema | volta | curvas | raio menor | reta maior | desnível |
+| --- | --- | --- | --- | --- | --- | --- |
+| BAIXADA | fundo de vale, duas lombas | 751 m | 9 | 11 m | 120 m | 8,0 m |
+| CANAVIAL | reta longa entre canaviais | 825 m | 9 | 12 m | 138 m | 11,5 m |
+| SERRA | três grampos, nada de reta | 589 m | 8 | 10 m | 118 m | 15,5 m |
+| PORTO | oito noventas secos, muro perto | 501 m | 8 | 12 m | 97 m | 10,5 m |
+| CERRADO | curvas longas e rápidas | 832 m | 9 | 14 m | 106 m | 14,0 m |
+| VIADUTO | estreito, duas chicanes | 575 m | 11 | 11 m | 71 m | 8,5 m |
+
+Duas regras valem para toda pista, e as duas são verificáveis:
+
+1. **A soma dos ângulos das curvas é 360 exatos.** É o que fecha o rumo.
+2. **O comprimento das retas fecha a posição.** Alongar uma reta translada
+   rigidamente tudo que vem depois dela, então o erro de fechamento é *linear*
+   nos comprimentos de reta — e o solucionador resolve isso exatamente, num
+   passo, com correção de norma mínima. Raio e ângulo nunca mudam: são intenção
+   de projeto.
+
+A linha de largada não fica onde a lista de trechos começou: ela é colocada na
+reta mais comprida, com 52 m de reta atrás para o grid de dez karts. Antes disso
+a BAIXADA largava dentro do grampo de 12 m, e quem acelerava reto ia para a grama
+antes do primeiro comando.
+
+## O que dá o tom
+
+**Física de kart, não de carro pequeno.** Modelo de bicicleta com ângulo de
+deriva por eixo, transferência de peso, elipse de atrito e rampa: ladeira freia,
+descida solta. Mas o comando do volante **pede velocidade de giro**, não ângulo
+de roda. Com 0,62 rad de esterço ligados direto no comando, meia volta de volante
+a 80 km/h pedia 1,9 g de um asfalto que dá 1,4: o kart rodopiava em meio segundo
+e terminava andando para trás. Três versões seguidas mediram isso.
+
+**Um teto de deriva, e não um reza.** O único ponto do modelo que não é pneu.
+Abaixo dele o pneu manda sozinho; acima, a guinada é puxada de volta. O gatilho
+de drift levanta esse teto — e é só por isso que derrapar é técnica em vez de
+acidente.
+
+**A linha de corrida é calculada, não desenhada.** Descida coordenada com
+empurrão em forma de morro, minimizando o *tempo de volta do perfil de
+velocidade*, não a curvatura. O perfil tem dois tetos: acima da curvatura de
+drift vale o pneu inteiro, abaixo vale o teto da aderência. É o perfil dizendo
+"aqui você derrapa".
+
+**A IA lê o mesmo perfil que as provas usam.** Ela não anda em trilho: pede giro
+por segundo, segue o perfil de velocidade da linha e decide derrapar pela
+curvatura. Faz voltas 1,11 a 1,19 vez a volta teórica, passando menos de 8% do
+tempo fora do asfalto. Quem escapa fica mais cauteloso na curva seguinte — e é
+isso que faz o perfil `ouro` ser o mais rápido nas seis pistas em vez de o mais
+agressivo.
+
+**Render 3D em WebGL2 escrito à mão.** A fita da pista sai da *mesma* lista de
+números que a física usa: se a pista parece subir, o kart perde velocidade
+subindo. Zebra, muro, saia de grama até o piso do vale, cenário por tema
+(árvore, cana, armazém, cupinzeiro) assado num único buffer estático, neblina
+exponencial na cor do horizonte, fagulha de mini-turbo colorida pela faixa de
+carga.
+
+**Som sintetizado.** Motor de dois tempos em três osciladores desafinados, com a
+frequência presa ao mesmo `rpm` que a física calcula.
+
+## Números do kart
+
+Todos medidos pelo banco de medidas em `js/banco.js`, no mesmo modelo que o
+jogador dirige — nenhum deles foi escrito à mão:
 
 | medida | valor |
 | --- | --- |
-| velocidade máxima | 283,2 km/h |
-| máxima no vácuo de outro carro | 321,7 km/h |
-| 0 a 100 km/h | 3,02 s |
-| 200 km/h a zero | 120,2 m |
-| aderência lateral sustentada, asfalto | 1,29 g |
-| na zebra | 1,07 g |
-| na grama | não sustenta curva nenhuma |
-| com pneu no fim da vida | 1,14 g |
+| velocidade máxima | 95,8 km/h |
+| com vácuo | 108,1 km/h |
+| com mini-turbo | 109,3 km/h |
+| subindo 12% / descendo 12% | 66,1 / 107,3 km/h |
+| 0 a 50 km/h | 3,05 s |
+| 80 km/h a zero | 21,1 m |
+| g lateral: asfalto / de lado / zebra / grama | 0,84 / 0,93 / 0,71 / 0,39 |
+| derrapagem até a faixa 3 | 1,35 s |
+| turbo da faixa 3 | 2,30 s |
 
-O `skidpad` do banco de medidas errou duas vezes antes de acertar, e as duas
-versões erradas estão comentadas no código: medir "volante todo a 38 m/s" dava
-**0,08 g**, porque o carro rodava e a velocidade longitudinal virava lateral;
-medir o **pico** de cada ângulo de volante dava 1,51 g em qualquer superfície e
-com qualquer pneu, porque o pico é sempre o transiente da entrada. O que vale é a
-média do último quarto de cada tentativa que termina estável.
+## As provas
 
-## A linha de corrida não foi desenhada
+`provas.mjs` roda o jogo inteiro sem navegador: pista, kart, linha de corrida,
+IA e corrida de dez karts. **31 provas.** Elas cobram o que o jogo promete:
 
-Ela é calculada, e o objetivo é o tempo:
+- a fita fecha, não se cruza consigo mesma e cabe dois karts lado a lado
+- toda rampa fica abaixo de 18% e o grid inteiro nasce em reta
+- o kart não ganha energia de graça e a mesma entrada dá a mesma volta
+- derrapar paga em toda pista, e o grampo isolado paga em cinco das seis
+- volta só conta com os três setores na ordem
+- kart atolado volta para a pista — e **não** durante a contagem
+- caixa de item entrega, esvazia e recarrega; casco acerta quem está na frente;
+  banana pega quem passa
+- piloto melhor anda mais rápido que piloto pior, na média de três sementes
 
-```
-J = soma, ao longo da volta, de ds / v(curvatura)
-```
+Alguns defeitos que elas acharam, e que estariam no jogo sem elas:
 
-O otimizador é descida coordenada com **empurrão em forma de morro**: para cada
-ponto do circuito, empurra a vizinhança inteira para um lado e para o outro,
-refaz o perfil de velocidade da volta e fica com o que baixou o tempo. Passo
-grande primeiro (morro de 48 pontos, quase 100 m), passo fino depois (3 pontos).
+- **A largada dentro do grampo.** Dez karts largavam em curva na BAIXADA.
+- **O relógio de atolado correndo na contagem.** Todo mundo está parado antes da
+  luz verde, então o grid inteiro era teleportado para a linha de corrida.
+- **O freio limitado duas vezes.** A elipse de atrito já limita a força de freio
+  na física; limitar de novo na decisão da IA deixava ela com 20% de freio
+  exatamente dentro da curva. Ela chegava 14 km/h acima do alvo no grampo, batia
+  no muro e ficava atolada a 3 km/h — e era esse acidente, não a pilotagem, que
+  decidia todo tempo de volta.
+- **O muro grudando.** A batida cortava a velocidade pela metade *todo quadro*.
+- **`vx * omega` como aceleração lateral.** Media 1,87 g num asfalto que dá 1,4,
+  porque essa conta ignora o escorregamento.
+- **O piso de 8 m/s no perfil de velocidade.** Fazia uma dobra de 4,5 m de raio
+  sair de graça para o otimizador da linha.
 
-Duas tentativas anteriores estão documentadas no arquivo porque as duas erram de
-maneiras instrutivas:
-
-- **Caminho mínimo** (relaxação para o meio dos vizinhos) cola na borda de
-  dentro: anda menos metro e perde velocidade de curva.
-- **Curvatura mínima** abre o raio de uma curva constante: ganha velocidade e
-  anda mais metro do que precisa. Numa pista quase circular como a BAIXADA ela
-  chega a ser *mais lenta* que o eixo.
-- E a primeira versão da descida coordenada, que empurrava **um ponto por vez**,
-  terminou com deslocamento máximo de **0,000 m**: mover um ponto sozinho sempre
-  piora a curvatura local, então nenhuma tentativa isolada melhorava o tempo e a
-  linha ficou idêntica ao eixo da pista. Uma curva de cem metros só melhora se
-  ela se mover inteira — por isso o morro, e por isso ele tem cinco larguras.
-
-| pista | volta pela linha | volta da IA | razão | comprimento |
-| --- | --- | --- | --- | --- |
-| BAIXADA | 36,69 s | 38,65 s | 1,053 | 1752 m |
-| CANAVIAL | 43,69 s | 46,53 s | 1,065 | 2301 m |
-| SERRA | 42,52 s | 44,63 s | 1,050 | 1536 m |
-| PORTO | 39,42 s | 42,13 s | 1,069 | 2136 m |
-| CERRADO | 54,81 s | 57,80 s | 1,055 | 3114 m |
-| VIADUTO | 47,74 s | 49,25 s | 1,032 | 1832 m |
-
-## A IA lê a mesma linha
-
-`js/piloto.js` não anda em trilho: recebe a linha e o perfil de velocidade e
-dirige com volante, acelerador e freio, como você. Ela pode errar, e erra.
-
-Três coisas a fizeram passar de 30% do tempo na grama para 0%:
-
-1. **Pré-alimentação pela curvatura.** Controle proporcional puro tem erro
-   permanente numa curva de raio constante — ele só pede volante quando o carro
-   *já* está apontando errado, e numa curva longa a 75 m/s isso significa sair
-   larga do começo ao fim. A pré-alimentação pede o volante que aquele raio
-   exige, e o termo em v² é o gradiente de subesterço.
-   (Tentei também a lei geométrica da perseguição pura, `atan(2L·senα/d)`, e
-   ficou **pior**: ela pressupõe carro cinemático, e neste modelo o mesmo
-   esterço rende menos curvatura por causa do ângulo de deriva.)
-2. **A elipse de atrito no pé direito.** Pneu que está fazendo curva não tem
-   sobra para tracionar. Sem essa conta a IA pisava fundo dentro da curva,
-   saturava o eixo de trás e saía larga: o traço de uma volta mostrava
-   derrapagem 1,00 desde o primeiro segundo e o carro no muro em sete.
-3. **Alinhar o projeto com a medição.** A linha pedia 1,5 g — o limite do modelo
-   de pneu — mas o chassi só *sustenta* 1,29 g. Enquanto os dois números
-   discordaram, a IA entrava em toda curva 7% rápido demais. Hoje a linha usa
-   `atritoUtil` (medido) com 8% de reserva.
-
-## A corrida
-
-Volta só conta com os **três setores na ordem**. Sem isso, cortar a curva vira
-estratégia e atravessar a linha de ré vira volta — e a prova correspondente foi
-a primeira que escrevi. Andar para trás invalida a volta em curso.
-
-O vácuo tira até 32% do arrasto e vale 38 km/h de ponta. Toque entre carros
-troca quantidade de movimento com perda, então brigar por posição custa
-velocidade nos dois. Muro devolve o carro para a pista com 45% da velocidade e
-mais 4% de dano.
-
-O box é o retângulo amarelo pintado na borda interna da reta principal: passar
-por ele devagar (abaixo de 43 km/h, sem acelerador) é entrar. A parada leva 3,5 s
-mais 1,5 s proporcional ao desgaste, e devolve pneu novo e tanque cheio.
-
-## Como foi provado
-
-`node provas.mjs` roda **23 provas** sem navegador e imprime duas tabelas: as
-seis pistas com volta ideal, volta da IA e razão, e as medidas do carro.
-
-Pista: circuito fechado, fita que não se cruza consigo mesma, largura para dois
-carros lado a lado com folga, superfície mudando de asfalto para zebra e para
-grama com aderência decrescente, três setores em ordem e dez lugares de grid
-todos no asfalto.
-
-Carro: máxima, 0 a 100, frenagem, g lateral em três superfícies, g com pneu
-gasto, desgaste que cresce com escorregada, vácuo que aumenta a ponta, e duas
-provas que pegam integrador instável — **o carro não ganha energia de graça**
-(soltar tudo e ver a velocidade cair, sem ganhar movimento lateral do nada) e
-determinismo por semente.
-
-Linha: dentro da pista em todos os pontos, mais rápida que o eixo, e perfil de
-velocidade que respeita o atrito em toda curva.
-
-IA: fecha volta nas seis pistas, fica entre 1,00 e 1,45 da volta estimada, passa
-mais de 96% do tempo no asfalto, e perfil melhor é mais rápido que perfil pior.
-
-Corrida: volta não conta sem os três setores, corrida de nove carros termina e
-classifica todo mundo em ordem coerente, os carros não se atravessam (e se
-tocam), o box troca pneu e cobra tempo, e a tabela de pontos soma como
-campeonato.
-
-### O que as provas acharam
-
-- **O freio empurrava o carro para trás.** A força de freio era aplicada sem
-  sinal, então frear parado acelerava o carro em marcha a ré: na largada a IA
-  saía de ré a 134 km/h. O relatório da volta mostrou isso em duas linhas, com
-  velocidade negativa crescendo.
-- **Dois carros no mesmo lugar.** Uma passagem de separação não bastava para
-  três carros lado a lado; a prova pegou dois deles a 0,57 m de centro a centro.
-  Agora são três passagens, e a menor distância é medida **depois** de separar.
-- **O centro de massa estava adiantado** (1,25/1,40), o que deixava o eixo
-  dianteiro com mais aderência e o carro rodava em vez de curvar. Com 1,50/1,15,
-  o eixo de trás carrega 57% do peso e o carro sai de frente — que é o erro
-  perdoável.
-- **A IA vivia no limite exato do atrito** e qualquer irregularidade a fazia
-  perder a traseira no terceiro grampo da SERRA, chegando a 20 m/s onde a linha
-  pedia 34. O perfil passou a pedir 92% do atrito útil.
-
-## Estrutura
-
-```
-index.html        casca, HUD e as cortinas
-css/style.css     layout, HUD, controle de toque
-js/pista.js       as seis pistas em coordenadas polares, reamostradas de 2 em 2 m
-js/fisica.js      o carro: deriva, peso, elipse de atrito, pneu, combustivel
-js/linha.js       a linha de corrida e o perfil de velocidade
-js/piloto.js      a IA, que le a linha e dirige com tres comandos
-js/corrida.js     setores, voltas, vacuo, toque, muro, box, pontos
-js/banco.js       o banco de medidas: e daqui que sai a tabela do carro
-js/render.js      render de cima, com a pista pre-desenhada e marca de pneu
-js/som.js         motor e pneu sintetizados em WebAudio
-js/entrada.js     teclado e toque virando os mesmos tres comandos
-js/main.js        laco de passo fixo, telas, campeonato
-provas.mjs        as 23 provas e as duas tabelas
-package.json      so para o Node ler os modulos como ES modules
-```
-
-As pistas são descritas em coordenadas polares (ângulo, raio) em volta de um
-centro. O formato não é capricho: circuito assim é sempre estrelado em relação
-ao centro e portanto **não se cruza consigo mesmo** — o defeito de pista mais
-chato de achar depois, porque ele não aparece olhando, aparece quando alguém
-descobre um atalho que a contagem de setor não pega.
-
-O render desenha a pista inteira **uma vez** numa tela fora de tela, em
-coordenadas do mundo, e depois só transforma e blita. A marca de pneu é
-desenhada na mesma tela fora de tela e por isso ela fica: a borracha no asfalto
-é memória da corrida, não efeito de um quadro.
-
-## Rodar local
-
-ES modules nativos não carregam por `file://` (mesma situação dos outros jogos
-deste repositório). Qualquer servidor estático resolve:
+## Rodar
 
 ```bash
 python3 -m http.server 8765
-# abra http://127.0.0.1:8765/games/curva/
+# http://127.0.0.1:8765/games/curva/
+cd games/curva && node provas.mjs
 ```
 
-`?depurar` expõe a corrida em `window.__corrida` — foi assim que as capturas de
-tela deste README foram posicionadas.
+ES modules nativos não carregam por `file://` — mesma situação dos outros jogos
+deste repositório. Precisa de WebGL2 (qualquer navegador de 2020 em diante).
 
-## Acessibilidade
+## Ficha
 
-`prefers-reduced-motion` desliga o tremor de derrapagem. A câmera fixa
-(<kbd>N</kbd>) para de girar o mundo, para quem passa mal com câmera rotativa. A
-informação de estado nunca depende só de cor: pneu e gás têm rótulo, a
-superfície fora do asfalto é escrita na tela, e cada adversário tem nome ao lado
-do carro.
+- **Quem fez:** Lucca Pinto
+- **Modelo:** claude-opus-5 via Anthropic, dirigido por Oh My Pi
+- **Tamanho:** 4.910 linhas, zero dependência, zero asset
+- **Licença:** MIT

@@ -1,11 +1,14 @@
-// O banco de medidas. Tudo que o README afirma sobre o carro sai daqui, medido
-// no mesmo modelo que o jogador dirige — nao de uma tabela escrita a mao.
+// O banco de medidas. Tudo que o README afirma sobre o kart sai daqui, medido no
+// mesmo modelo que o jogador dirige — nao de uma tabela escrita a mao.
 //
-// E o banco tambem e o que transforma "a IA vai bem" em numero: uma volta
-// lancada por pista, com a fracao de tempo que ela passou no asfalto.
+// E o banco tambem e o que transforma "a IA vai bem" e "o drift compensa" em
+// numero: uma volta lancada por pista, com a fracao de tempo no asfalto, e a
+// mesma volta com o gatilho de drift desligado.
 
-import { CARRO, criarCarro, passoCarro, comandosNulos, DT } from './fisica.js';
-import { PISTAS, carregar, superficie } from './pista.js';
+import {
+  KART, criarCarro, passoCarro, comandosNulos, faixaDaCarga, DT,
+} from './fisica.js';
+import { PISTAS, carregar, superficie, maisProximo, paraMundo } from './pista.js';
 import { linhaIdeal } from './linha.js';
 import { criarCorrida, passoCorrida } from './corrida.js';
 
@@ -18,30 +21,35 @@ function reta(carro, comandos, ctx, segundos, aoPasso = null) {
   return segundos;
 }
 
-// Skidpad: procura o maior g lateral que o carro SEGURA em regime, e nao o pico
-// de um rodopio. Duas versoes anteriores erraram aqui: medir "volante todo a 38
-// m/s" dava 0,08 g, porque o carro girava e a velocidade longitudinal virava
-// lateral; medir o pico de cada angulo dava 1,51 g em qualquer superficie e com
-// qualquer pneu, porque o pico e sempre o transiente da entrada. O que vale e a
-// media do ultimo quarto de cada tentativa estavel.
-function medirLateral(atrito, desgaste = 0) {
+// Skidpad: procura o maior g lateral que o kart SEGURA em regime, e nao o pico
+// de um transiente. Tres versoes erraram aqui. Medir "volante todo" dava 0,08 g
+// porque o kart rodopiava; medir o pico de cada angulo dava o mesmo numero em
+// qualquer superficie, porque o pico e a entrada; e medir `vx * omega` dava
+// 1,87 g num asfalto de 1,4 g, porque essa conta ignora o escorregamento.
+//
+// Esta versao varre angulo PEQUENO (a 22 m/s meia volta de volante ja pede 1,9
+// g, e nenhum angulo da varredura antiga estava em regime), cobra deriva
+// controlada e le a forca do pneu dividida pela massa.
+function medirLateral(atrito, drift = false) {
   let maior = 0;
-  for (let volante = 0.15; volante <= 1.0001; volante += 0.05) {
+  for (let volante = 0.05; volante <= 1.0001; volante += 0.05) {
     const carro = criarCarro(0, 0, 0);
-    carro.pneus.desgaste = desgaste;
-    carro.pneus.temp = 1;
-    carro.vx = 34;
+    carro.vx = 22;
     let estavel = true;
     let soma = 0;
     let amostras = 0;
-    const passos = Math.round(6 / DT);
+    const passos = Math.round(5 / DT);
+    const teto = (drift ? KART.derivaDoDrift : KART.derivaDeAderencia) * 1.3;
     for (let i = 0; i < passos; i++) {
-      passoCarro(carro, { volante, acelerador: 0.4, freio: 0, freioMao: false },
+      passoCarro(carro, { ...comandosNulos(), volante, acelerador: 0.45, drift },
         { atrito, vacuo: 0 }, DT);
-      const deriva = Math.abs(Math.atan2(carro.vy, Math.max(4, Math.abs(carro.vx))));
-      if (deriva > 0.3 || Math.abs(carro.vx) < 8) { estavel = false; break; }
-      if (i > passos * 0.75) {
-        soma += Math.abs(carro.vx * carro.omega) / 9.81;
+      const deriva = Math.abs(Math.atan2(carro.vy, Math.max(3, Math.abs(carro.vx))));
+      if (deriva > teto || Math.abs(carro.vx) < 8) {
+        estavel = false;
+        break;
+      }
+      if (i > passos * 0.6) {
+        soma += Math.abs(carro.aceleracaoLateral) / 9.81;
         amostras++;
       }
     }
@@ -51,66 +59,93 @@ function medirLateral(atrito, desgaste = 0) {
 }
 
 export function medirCarro() {
-  const cheio = { volante: 0, acelerador: 1, freio: 0, freioMao: false };
+  const cheio = { ...comandosNulos(), acelerador: 1 };
 
   const maxima = criarCarro(0, 0, 0);
-  reta(maxima, cheio, { atrito: 1, vacuo: 0 }, 70);
+  reta(maxima, cheio, { atrito: 1, vacuo: 0 }, 40);
 
   const vacuo = criarCarro(0, 0, 0);
-  reta(vacuo, cheio, { atrito: 1, vacuo: 1 }, 70);
+  reta(vacuo, cheio, { atrito: 1, vacuo: 1 }, 40);
+
+  const comTurbo = criarCarro(0, 0, 0);
+  comTurbo.vx = maxima.vx;
+  comTurbo.turbo = 999;
+  reta(comTurbo, cheio, { atrito: 1, vacuo: 0 }, 6);
 
   const arrancada = criarCarro(0, 0, 0);
-  let zeroCem = 0;
-  reta(arrancada, cheio, { atrito: 1, vacuo: 0 }, 20, (c, i) => {
-    if (c.vx >= 100 / 3.6) { zeroCem = i * DT; return false; }
+  let zeroCinquenta = 0;
+  reta(arrancada, cheio, { atrito: 1, vacuo: 0 }, 15, (c, i) => {
+    if (c.vx >= 50 / 3.6) { zeroCinquenta = i * DT; return false; }
     return true;
   });
 
   const freada = criarCarro(0, 0, 0);
-  freada.vx = 200 / 3.6;
-  freada.pneus.temp = 1;
+  freada.vx = 80 / 3.6;
   let distancia = 0;
-  reta(freada, { volante: 0, acelerador: 0, freio: 1, freioMao: false },
-    { atrito: 1, vacuo: 0 }, 12, (c) => {
-      distancia += Math.abs(c.vx) * DT;
-      return c.vx > 0.4;
-    });
+  reta(freada, { ...comandosNulos(), freio: 1 }, { atrito: 1, vacuo: 0 }, 8, (c) => {
+    distancia += Math.abs(c.vx) * DT;
+    return c.vx > 0.4;
+  });
 
-  // Desgaste: a mesma quantidade de tempo, andando reto e derrapando.
-  const liso = criarCarro(0, 0, 0);
-  liso.vx = 45;
-  reta(liso, { volante: 0, acelerador: 0.5, freio: 0, freioMao: false }, { atrito: 1, vacuo: 0 }, 6);
-  const derrapando = criarCarro(0, 0, 0);
-  derrapando.vx = 45;
-  reta(derrapando, { volante: 1, acelerador: 1, freio: 0, freioMao: true }, { atrito: 1, vacuo: 0 }, 6);
+  // Rampa: a mesma aceleracao subindo 12% e descendo 12%.
+  const subindo = criarCarro(0, 0, 0);
+  reta(subindo, cheio, { atrito: 1, vacuo: 0, subida: 0.12 }, 12);
+  const descendo = criarCarro(0, 0, 0);
+  reta(descendo, cheio, { atrito: 1, vacuo: 0, subida: -0.12 }, 12);
+
+  // Mini-turbo: quanto tempo de derrapagem cada faixa de carga custa, e quanto
+  // de velocidade o empurrao devolve.
+  const driftando = criarCarro(0, 0, 0);
+  driftando.vx = 20;
+  let tempoAteFaixa3 = 0;
+  reta(driftando, { ...comandosNulos(), volante: 1, acelerador: 0.8, drift: true },
+    { atrito: 1, vacuo: 0 }, 6, (c, i) => {
+      if (faixaDaCarga(c.carga) >= 3) { tempoAteFaixa3 = i * DT; return false; }
+      return true;
+    });
+  const cargaFinal = driftando.carga;
+  // solta o gatilho: o turbo nasce aqui
+  passoCarro(driftando, { ...comandosNulos(), acelerador: 1 }, { atrito: 1, vacuo: 0 }, DT);
+  const turboGanho = driftando.turbo;
 
   return {
     velocidadeMaxima: maxima.vx,
     velocidadeVacuo: vacuo.vx,
-    zeroCem,
-    frenagem200: distancia,
+    velocidadeComTurbo: comTurbo.vx,
+    zeroCinquenta,
+    frenagem80: distancia,
     gMaximo: medirLateral(1),
-    gZebra: medirLateral(0.82),
-    gGrama: medirLateral(0.42),
-    gPneuGasto: medirLateral(1, 1),
-    desgasteLiso: liso.pneus.desgaste,
-    desgasteDerrapando: derrapando.pneus.desgaste,
+    gDeLado: medirLateral(1, true),
+    gZebra: medirLateral(0.84),
+    gGrama: medirLateral(0.46),
+    velocidadeSubindo: subindo.vx,
+    velocidadeDescendo: descendo.vx,
+    tempoAteFaixa3,
+    cargaFinal,
+    turboGanho,
   };
 }
 
 // Uma volta lancada de IA na pista pedida. Roda uma corrida de duas voltas com
-// um carro so: a primeira sai da largada parada, a segunda e a que vale.
+// um kart so: a primeira sai da largada parada, a segunda e a que vale.
 export function voltaDeReferencia(indicePista, perfil = 'ouro', opcoes = {}) {
   const corrida = criarCorrida(indicePista, {
     voltas: 2, ia: 1, jogador: false, perfil, semente: opcoes.semente || 42,
+    semDrift: !!opcoes.semDrift,
   });
   const carro = corrida.carros[0];
-  const linha = linhaIdeal(corrida.pista);
+  if (opcoes.semDrift) {
+    carro.piloto.perfil = { ...carro.piloto.perfil, drift: 0 };
+  }
+  const linha = linhaIdeal(corrida.pista, { semDrift: !!opcoes.semDrift });
   const limite = Math.round((opcoes.limite || 400) / DT);
   let passos = 0;
   let noAsfalto = 0;
+  let turbos = 0;
   while (passos < limite && corrida.estado !== 'terminada') {
-    passoCorrida(corrida, comandosNulos(), DT);
+    for (const evento of passoCorrida(corrida, comandosNulos(), DT)) {
+      if (evento.tipo === 'turbo') turbos++;
+    }
     const sup = superficie(corrida.pista, carro.x, carro.y);
     if (sup.tipo === 'asfalto' || sup.tipo === 'zebra') noAsfalto++;
     passos++;
@@ -123,6 +158,79 @@ export function voltaDeReferencia(indicePista, perfil = 'ouro', opcoes = {}) {
     estimado: linha.tempoEstimado,
     fracaoNaPista: passos ? noAsfalto / passos : 0,
     voltas: carro.voltas,
+    turbos,
+  };
+}
+
+// A troca do grampo, medida sozinha. Volta inteira e medida ruidosa para decidir
+// se derrapar paga: um incidente em qualquer outra curva move o tempo mais do
+// que a tecnica move. Aqui o kart entra no grampo mais fechado da pista com a
+// mesma velocidade e o mesmo controlador nas duas passagens, e o cronometro
+// fecha 50 m depois da saida — o intervalo em que o mini-turbo ou paga, ou nao.
+export function medirGrampo(indicePista, opcoes = {}) {
+  const pista = carregar(PISTAS[indicePista]);
+  const linha = linhaIdeal(pista);
+  const n = pista.centro.length;
+
+  let apice = 0;
+  for (let i = 0; i < n; i++) {
+    if (Math.abs(pista.centro[i].curvatura) > Math.abs(pista.centro[apice].curvatura)) apice = i;
+  }
+  const antes = Math.round((opcoes.entrada || 45) / pista.passo);
+  const depois = Math.round((opcoes.saida || 50) / pista.passo);
+  const largada = ((apice - antes) % n + n) % n;
+  const chegada = (apice + depois) % n;
+
+  const correr = (deixarDriftar) => {
+    const corrida = criarCorrida(indicePista, {
+      voltas: 2, ia: 1, jogador: false, perfil: 'ouro', semente: 7,
+      semDrift: !deixarDriftar,
+    });
+    const carro = corrida.carros[0];
+    if (!deixarDriftar) carro.piloto.perfil = { ...carro.piloto.perfil, drift: 0 };
+
+    // Cada modo entra na SUA linha, na velocidade que aquela linha pede ali:
+    // comparar a tecnica usando a linha do outro modo mede a linha, nao a
+    // tecnica.
+    const suaLinha = linhaIdeal(pista, { semDrift: !deixarDriftar });
+    const posto = paraMundo(pista, largada, suaLinha.deslocamentos[largada]);
+    corrida.estado = 'correndo';
+    corrida.contagem = 0;
+    carro.x = posto.x;
+    carro.y = posto.y;
+    carro.ang = posto.ang;
+    carro.vx = suaLinha.velocidades[largada];
+    carro.vy = 0;
+    carro.omega = 0;
+    carro.turbo = 0;
+    carro.carga = 0;
+
+    let tempo = 0;
+    let faixaMaxima = 0;
+    let passouApice = false;
+    for (let passo = 0; passo < Math.round(30 / DT); passo++) {
+      passoCorrida(corrida, comandosNulos(), DT);
+      tempo += DT;
+      faixaMaxima = Math.max(faixaMaxima, carro.faixaDeCarga);
+      const i = maisProximo(pista, carro.x, carro.y).i;
+      const distanciaAoApice = Math.min(Math.abs(i - apice), n - Math.abs(i - apice));
+      if (distanciaAoApice < 4) passouApice = true;
+      const distanciaAChegada = Math.min(Math.abs(i - chegada), n - Math.abs(i - chegada));
+      if (passouApice && distanciaAChegada < 3) {
+        return { tempo, faixaMaxima, velocidadeFinal: carro.vx, chegou: true };
+      }
+    }
+    return { tempo, faixaMaxima, velocidadeFinal: carro.vx, chegou: false };
+  };
+
+  const com = correr(true);
+  const sem = correr(false);
+  return {
+    pista: pista.nome,
+    raio: 1 / Math.abs(pista.centro[apice].curvatura),
+    com,
+    sem,
+    ganho: sem.tempo - com.tempo,
   };
 }
 
@@ -130,17 +238,20 @@ export function corridaCompleta(indicePista, opcoes = {}) {
   const corrida = criarCorrida(indicePista, { jogador: false, ...opcoes });
   const limite = Math.round((opcoes.limite || 900) / DT);
   let passos = 0;
+  const itens = { pegos: 0, usados: 0, acertos: 0 };
   while (passos < limite && corrida.estado !== 'terminada') {
-    passoCorrida(corrida, comandosNulos(), DT);
+    for (const evento of passoCorrida(corrida, comandosNulos(), DT)) {
+      if (evento.tipo === 'item-pego') itens.pegos++;
+      if (evento.tipo === 'item-usado') itens.usados++;
+      if (evento.tipo === 'acertou') itens.acertos++;
+    }
     passos++;
   }
   if (corrida.estado !== 'terminada') {
-    // Sem bandeirada, classifica pelo que andou: o relatorio tem de dizer algo
-    // util mesmo quando a corrida nao fecha.
     corrida.classificacao = corrida.ordem.map((carro, i) => ({
       posicao: i + 1, nome: carro.nome, tipo: carro.tipo, voltas: carro.voltas,
       progresso: carro.progresso, melhorVolta: carro.melhorVolta || 0,
-      paradas: carro.paradas, toques: carro.toques,
+      turbos: carro.turbosUsados, toques: carro.toques,
     }));
   }
   return {
@@ -150,6 +261,7 @@ export function corridaCompleta(indicePista, opcoes = {}) {
     melhorVoltaDaCorrida: corrida.melhorVolta ? corrida.melhorVolta.tempo : 0,
     toques: corrida.toques,
     menorDistanciaEntreCarros: corrida.menorDistancia,
+    itens,
   };
 }
 
