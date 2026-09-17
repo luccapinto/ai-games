@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Benchmark — ai-games</title>
-<meta name="description" content="Quanto custou, em tokens e em dólar, cada jogo feito com IA neste repositório.">
+<title>SUBSOLO — ai-games</title>
+<meta name="description" content="Uma mina de manganês reaberta como depósito, nove níveis para baixo, e as bombas do fundo pararam. A lanterna vê longe, gasta pilha e entrega você: o que mora l">
 <style>
   :root {
     --bg: #05070d; --painel: #0a1018; --linha: #1b2c38; --ink: #d8e6e4;
@@ -211,51 +211,66 @@
 <body>
 <div class="envelope">
   <header class="topo">
-    <div class="marca"><a href="index.html">AI-GAMES</a> / BENCHMARK</div>
-    <h1>O que custou cada jogo</h1>
-    <p class="sub">Um jogo inteiro é uma tarefa longa, bagunçada e com um juiz honesto no fim:
-      ou dá para jogar, ou não dá. Esta tabela registra quanto cada modelo gastou para chegar lá,
-      declarado por quem fez.</p>
-    <div class="numeros"><div><span>JOGOS</span><strong>7</strong></div><div><span>MODELOS</span><strong>2</strong></div><div><span>TOKENS NOVOS</span><strong>2,4 M</strong></div><div><span>TOKENS DE CACHE</span><strong>159,1 M</strong></div><div><span>CHAMADAS</span><strong>888</strong></div><div><span>CUSTO TOTAL</span><strong>US$ 8,57</strong></div></div>
-    <nav class="navegacao">
-      <a href="index.html">VOLTAR AO HUB</a>
-      <a href="dados/benchmark.csv">CSV</a>
-      <a href="dados/benchmark.json">JSON</a>
-      <a href="https://github.com/luccapinto/ai-games/blob/main/docs/CUSTOS.md">METODOLOGIA</a>
-    </nav>
+    <div class="marca"><a href="../index.html">AI-GAMES</a> / FPS</div>
+    <h1>SUBSOLO</h1>
+    <p class="sub">FPS de raycasting numa mina onde o que caça você caça por som</p>
+    <p class="autoria">por <a href="https://github.com/luccapinto">Lucca Pinto</a> · 2026-09-17</p>
   </header>
 
-  <h2 class="secao">Por jogo</h2>
-  <div class="rolagem"><table><thead><tr><th>Jogo</th><th>Quem fez</th><th>Modelo</th><th>Agente</th><th class="num">Tokens novos</th><th class="num">Cache</th><th class="num">Custo</th><th class="num">Linhas</th><th>Medição</th></tr></thead><tbody><tr><td class="txt"><a href="games/subsolo/">SUBSOLO</a></td><td class="txt">Lucca Pinto</td><td class="txt">claude-opus-5</td><td class="txt">Oh My Pi</td><td class="num">105,0 k</td><td class="num">0</td><td class="num destaque">US$ 1,58</td><td class="num">4.814</td><td><span class="selo estimado">estimado</span></td></tr><tr><td class="txt"><a href="games/seiva/">SEIVA</a></td><td class="txt">Lucca Pinto</td><td class="txt">claude-opus-5</td><td class="txt">Claude Code</td><td class="num">70,0 k</td><td class="num">0</td><td class="num destaque">US$ 1,05</td><td class="num">1.127</td><td><span class="selo estimado">estimado</span></td></tr><tr><td class="txt"><a href="games/processo/">PROCESSO</a></td><td class="txt">Lucca Pinto</td><td class="txt">claude-opus-5</td><td class="txt">Claude Code</td><td class="num">44,0 k</td><td class="num">0</td><td class="num destaque">US$ 0,66</td><td class="num">835</td><td><span class="selo estimado">estimado</span></td></tr><tr><td class="txt"><a href="games/cripta/">CRIPTA</a></td><td class="txt">Lucca Pinto</td><td class="txt">claude-opus-5</td><td class="txt">Claude Code</td><td class="num">86,0 k</td><td class="num">0</td><td class="num destaque">US$ 1,30</td><td class="num">1.044</td><td><span class="selo estimado">estimado</span></td></tr><tr><td class="txt"><a href="games/ceia/">A CEIA</a></td><td class="txt">Lucca Pinto</td><td class="txt">claude-opus-5</td><td class="txt">Claude Code</td><td class="num">31,0 k</td><td class="num">0</td><td class="num destaque">US$ 0,47</td><td class="num">696</td><td><span class="selo estimado">estimado</span></td></tr><tr><td class="txt"><a href="games/antena/">ANTENA</a></td><td class="txt">Lucca Pinto</td><td class="txt">claude-opus-5</td><td class="txt">Claude Code</td><td class="num">165,0 k</td><td class="num">0</td><td class="num destaque">US$ 2,48</td><td class="num">1.733</td><td><span class="selo estimado">estimado</span></td></tr><tr><td class="txt"><a href="games/attention-is-all-you-kill/">ATTENTION IS ALL YOU KILL</a></td><td class="txt">Lucca Pinto</td><td class="txt">deepseek-flash</td><td class="txt">Hermes Agent (Talos)</td><td class="num">1,9 M</td><td class="num">159,1 M</td><td class="num destaque">US$ 1,03</td><td class="num">10.709</td><td><span class="selo medido">medido</span></td></tr></tbody></table></div>
+  <div class="jogo-topo">
+    <div class="midia"><img src="../games/subsolo/capa.jpg" alt="captura de SUBSOLO" loading="eager"></div>
+    <div class="jogo-acoes">
+      <a class="jogar" href="../games/subsolo/">JOGAR</a>
+      <a class="secundario" href="https://github.com/luccapinto/ai-games/blob/main/games/subsolo/README.md">como foi feito</a>
+      
+    </div>
+  </div>
 
-  <h2 class="secao">Por modelo</h2>
-  <div class="rolagem"><table><thead><tr><th>Modelo</th><th class="num">Jogos</th><th class="num">Tokens novos</th><th class="num">Cache</th><th class="num">Custo</th><th class="num">Linhas</th><th class="num">Tokens/linha</th><th class="num">Linhas/US$</th></tr></thead><tbody><tr><td class="txt">claude-opus-5</td><td class="num">6</td><td class="num">501,0 k</td><td class="num">0</td><td class="num destaque">US$ 7,54</td><td class="num">10.249</td><td class="num">48,9</td><td class="num">1.359</td></tr><tr><td class="txt">deepseek-flash</td><td class="num">1</td><td class="num">1,9 M</td><td class="num">159,1 M</td><td class="num destaque">US$ 1,03</td><td class="num">10.709</td><td class="num">176,9</td><td class="num">10.397</td></tr></tbody></table></div>
+  <div class="colunas">
+    <div>
+      <p class="sub" style="max-width:none">Uma mina de manganês reaberta como depósito, nove níveis para baixo, e as bombas do fundo pararam. A lanterna vê longe, gasta pilha e entrega você: o que mora lá embaixo caça por som, e um deles é cego. Quatro armas, cinco bichos e um capataz que só abre a guarda quando arma o golpe.</p>
+      <h2 class="secao">O que tem dentro</h2>
+      <ul class="destaques"><li>Nove fases provadas jogando: um robô joga as nove com a mesma física, as mesmas armas e a mesma IA do navegador, e a prova exige que ele saia vivo — hoje ele termina com 96 de 130 de vida</li><li>Ruído é mecânica e se propaga pela mesma topologia do corpo: Dijkstra na grade, com pedágio de 4 células em porta fechada, e a audição de cada bicho é um raio em células de caminhada, não de linha reta</li><li>O robô achou o defeito que nenhuma partida minha achou: a espingarda estava atrás de uma parede falsa, e quem não achasse o segredo carregava cartucho o jogo inteiro sem ter arma — ele empatou 400 segundos com o chefe por isso</li><li>O capataz feria a cada quadro durante a investida: 0,55 s de encosto valiam 33 golpes e 726 de dano. Só apareceu porque o relatório do robô separa o dano por tipo de inimigo</li><li>Raycaster escrito pixel por pixel em ImageData, e a conta de luz é uma só: o inimigo consulta o mesmo mapa de luz que tinge o pixel, então ele nunca vê você num escuro que a tela mostra iluminado</li><li>Zero arquivo de imagem e de áudio: textura, bicho, arma, item e som saem de canvas fora de tela e de WebAudio</li></ul>
+      <h2 class="secao">Por onde começar a ler</h2>
+      <ul class="arquivos"><li><code>js/jogo.js</code><span>O jogo inteiro sem uma linha de DOM: é o que permite provar jogando</span></li><li><code>js/mapa.js</code><span>Grade, colisão, A*, propagação de ruído e as provas de fechamento de cada fase</span></li><li><code>js/inimigos.js</code><span>Os cinco bichos: visão, audição em células de ruído e a guarda do capataz</span></li><li><code>js/robo.js</code><span>O robô que joga as nove fases — a prova principal do jogo</span></li><li><code>js/render.js</code><span>O raycaster: parede, piso, sprite e partícula na mesma conta de luz</span></li><li><code>js/fases.js</code><span>As nove plantas ASCII, com paleta e dica de cada nível</span></li><li><code>provas.mjs</code><span>As 25 provas e as duas tabelas de balanceamento</span></li></ul>
+    </div>
+    <div>
+      <h2 class="secao" style="margin-top:0">A ficha</h2>
+      <dl class="ficha"><div><dt>Escreveu</dt><dd>claude-opus-5</dd></div><div><dt>Agente</dt><dd>Oh My Pi</dd></div><div><dt>Tokens novos</dt><dd class="destaque">105,0 k</dd></div><div><dt>Tokens de cache</dt><dd>0</dd></div><div><dt>Custo de API</dt><dd class="destaque">US$ 1,58</dd></div><div><dt>Linhas próprias</dt><dd>4.814</dd></div><div><dt>Licença</dt><dd>MIT</dd></div><div><dt>Estado</dt><dd>jogavel</dd></div></dl>
+      <div class="chips"><span class="chip">JavaScript (ES modules nativos)</span><span class="chip">Canvas 2D (ImageData, pixel por pixel)</span><span class="chip">Web Áudio API</span></div>
+      <p class="nota">O total (105 mil tokens novos) é a diferença do contador da sessão e é a parte confiável. A divisão entre entrada e saída é estimativa minha, e é a parte fraca. O cache está zerado porque não foi medido, não porque não houve: a ferramenta certamente usou cache numa sessão longa, então o custo real de fatura é menor que o estimado aqui.</p>
+    </div>
+  </div>
 
-  <h2 class="secao">Por agente</h2>
-  <div class="rolagem"><table><thead><tr><th>Agente</th><th class="num">Jogos</th><th class="num">Tokens novos</th><th class="num">Cache</th><th class="num">Custo</th><th class="num">Linhas</th><th class="num">Tokens/linha</th><th class="num">Linhas/US$</th></tr></thead><tbody><tr><td class="txt">Claude Code</td><td class="num">5</td><td class="num">396,0 k</td><td class="num">0</td><td class="num destaque">US$ 5,96</td><td class="num">5.435</td><td class="num">72,9</td><td class="num">911</td></tr><tr><td class="txt">Hermes Agent (Talos)</td><td class="num">1</td><td class="num">1,9 M</td><td class="num">159,1 M</td><td class="num destaque">US$ 1,03</td><td class="num">10.709</td><td class="num">176,9</td><td class="num">10.397</td></tr><tr><td class="txt">Oh My Pi</td><td class="num">1</td><td class="num">105,0 k</td><td class="num">0</td><td class="num destaque">US$ 1,58</td><td class="num">4.814</td><td class="num">21,8</td><td class="num">3.046</td></tr></tbody></table></div>
-  <p class="nota">A mesma tarefa muda de preço conforme a ferramenta que dirige o modelo: quanto
-    contexto ela reenvia, quanto ela acerta de cache, quantas chamadas ela gasta para aplicar uma
-    edição. Por isso agente é uma coluna do benchmark, não um detalhe.</p>
-
-  <h2 class="secao">Por provider</h2>
-  <div class="rolagem"><table><thead><tr><th>Provider</th><th class="num">Jogos</th><th class="num">Tokens novos</th><th class="num">Cache</th><th class="num">Custo</th><th class="num">Linhas</th><th class="num">Tokens/linha</th><th class="num">Linhas/US$</th></tr></thead><tbody><tr><td class="txt">Anthropic</td><td class="num">6</td><td class="num">501,0 k</td><td class="num">0</td><td class="num destaque">US$ 7,54</td><td class="num">10.249</td><td class="num">48,9</td><td class="num">1.359</td></tr><tr><td class="txt">DeepSeek</td><td class="num">1</td><td class="num">1,9 M</td><td class="num">159,1 M</td><td class="num destaque">US$ 1,03</td><td class="num">10.709</td><td class="num">176,9</td><td class="num">10.397</td></tr></tbody></table></div>
-
-  <h2 class="secao">Como ler isto</h2>
-  <p class="nota"><strong>Tokens novos</strong> é entrada mais saída. <strong>Cache</strong> fica
-    à parte porque depende da ferramenta, não do trabalho: numa sessão longa cada turno reenvia o
-    contexto acumulado, e quanto disso vira leitura barata de cache é decisão do agente. Somar os
-    dois num número só compara agentes, não jogos.</p>
-  <p class="nota"><strong>Linhas por dólar</strong> é uma medida de escala, não de qualidade. Um
-    modelo que escreve um jogo enxuto e bom perde nessa coluna para um que despeja código. Leia
-    junto com o jogo: ele está a um clique, e ou é divertido, ou não é.</p>
-  <p class="nota"><strong>Medição</strong> diz de onde veio o número: <em>medido</em> saiu da
-    contabilidade da própria ferramenta, <em>estimado</em> foi reconstruído por quem fez,
-    <em>parcial</em> cobre só parte das sessões. Ninguém audita a declaração de ninguém — o que
-    o repositório garante é que ela está escrita, datada e versionada ao lado do código.</p>
-  <p class="nota">Isto <strong>não</strong> é um benchmark controlado: jogos diferentes, pessoas
-    diferentes, ambições diferentes. O que ele mostra é a ordem de grandeza real de construir algo
-    que funciona conversando com um modelo — o número que nenhum eval de tarefa curta dá.</p>
-
+  <nav class="navegacao" style="margin-top:44px">
+    <a href="../index.html">VOLTAR AO HUB</a>
+    <a href="../benchmark.html">VER O BENCHMARK</a>
+  </nav>
+  <script>
+  (function () {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { return; }
+    var alvos = document.querySelectorAll('[data-previa]');
+    if (!alvos.length || !('IntersectionObserver' in window)) { return; }
+    var observador = new IntersectionObserver(function (entradas) {
+      entradas.forEach(function (entrada) {
+        var el = entrada.target;
+        if (entrada.isIntersecting) {
+          if (el.tagName === 'VIDEO') {
+            if (!el.getAttribute('src')) { el.setAttribute('src', el.dataset.previa); }
+            var tocando = el.play();
+            if (tocando && tocando.catch) { tocando.catch(function () {}); }
+          } else if (el.dataset.previa) {
+            el.src = el.dataset.previa;
+            observador.unobserve(el);
+          }
+        } else if (el.tagName === 'VIDEO') {
+          el.pause();
+        }
+      });
+    }, { rootMargin: '150px' });
+    alvos.forEach(function (el) { observador.observe(el); });
+  })();
+  </script>
   <footer class="rodape">
     Repositório coletivo. O índice, esta página e os arquivos de <code>dados/</code> são gerados
     por <code>tools/build.py</code> a partir dos <code>meta.json</code> de cada jogo.
