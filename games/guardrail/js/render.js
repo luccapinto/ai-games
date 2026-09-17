@@ -108,19 +108,46 @@ export class Render {
         g.restore();
       }
 
-      // entrada
+      // entrada. A marca precisa ser clampeada: a rota leste do CRUZAMENTO
+      // comeca em x=24, fora da tela, e sem isto a segunda entrada do mapa
+      // simplesmente nao aparecia.
       const [ex, ey] = rota.cels[0];
-      const epx = Math.max(CELULA * 0.5, (ex + 0.5) * CELULA);
-      const epy = (ey + 0.5) * CELULA;
-      g.strokeStyle = 'rgba(255,120,90,.55)';
+      const epx = Math.min(LARGURA_PX - 22, Math.max(22, (ex + 0.5) * CELULA));
+      const epy = Math.min(ALTURA_PX - 22, Math.max(22, (ey + 0.5) * CELULA));
+      g.strokeStyle = 'rgba(255,120,90,.65)';
       g.lineWidth = 3;
       g.beginPath();
       g.arc(epx, epy, 15, 0, TAU);
       g.stroke();
-      g.fillStyle = 'rgba(255,120,90,.8)';
+      g.fillStyle = 'rgba(255,140,110,.9)';
       g.font = '700 9px ui-monospace, monospace';
       g.textAlign = 'center';
-      g.fillText('ENTRADA', epx + 6, epy - 22);
+      g.fillText('ENTRADA', epx, epy - 22);
+    }
+
+    // corredor de voo: onde o INFERENCIA NA BORDA vai passar, ignorando a
+    // trilha. Desenhado fraco mas sempre visivel, porque decidir onde por
+    // antiaereo depende de enxergar esta linha.
+    for (const l of mapa.linhasVoo) {
+      g.strokeStyle = 'rgba(126,226,255,.11)';
+      g.lineWidth = CELULA * 0.34;
+      g.setLineDash([3, 16]);
+      g.beginPath();
+      g.moveTo(Math.max(6, l.de.x * CELULA), l.de.y * CELULA);
+      g.lineTo(l.para.x * CELULA, l.para.y * CELULA);
+      g.stroke();
+      g.setLineDash([]);
+      g.fillStyle = 'rgba(126,226,255,.42)';
+      g.font = '700 8px ui-monospace, monospace';
+      g.textAlign = 'center';
+      const mx = (Math.max(0, l.de.x) + l.para.x) / 2 * CELULA;
+      const my = (l.de.y + l.para.y) / 2 * CELULA;
+      const ang = Math.atan2(l.para.y - l.de.y, l.para.x - l.de.x);
+      g.save();
+      g.translate(mx, my);
+      g.rotate(ang);
+      g.fillText('CORREDOR DE VOO', 0, -11);
+      g.restore();
     }
 
     this.fundo = c;
@@ -699,6 +726,19 @@ function forma(ctx, nome, r, cor, fase) {
       ctx.strokeStyle = 'rgba(0,0,0,.6)';
       for (let i = -1; i <= 1; i++) {
         ctx.beginPath(); ctx.moveTo(-r * 1.1, i * r * 0.85); ctx.lineTo(r * 1.1, i * r * 0.85); ctx.stroke();
+      }
+      break;
+    case 'chip':
+      ctx.fillRect(-r * 0.72, -r * 0.72, r * 1.44, r * 1.44);
+      ctx.strokeRect(-r * 0.72, -r * 0.72, r * 1.44, r * 1.44);
+      ctx.fillStyle = 'rgba(24,8,22,.8)';
+      ctx.fillRect(-r * 0.32, -r * 0.32, r * 0.64, r * 0.64);
+      ctx.fillStyle = cor;
+      for (let i = -1; i <= 1; i++) {
+        ctx.fillRect(i * r * 0.4 - 1, -r * 1.12, 2.2, r * 0.4);
+        ctx.fillRect(i * r * 0.4 - 1, r * 0.72, 2.2, r * 0.4);
+        ctx.fillRect(-r * 1.12, i * r * 0.4 - 1, r * 0.4, 2.2);
+        ctx.fillRect(r * 0.72, i * r * 0.4 - 1, r * 0.4, 2.2);
       }
       break;
     default:

@@ -94,19 +94,20 @@ const DEFINICOES = [
     id: 'cruzamento',
     nome: 'CRUZAMENTO',
     apelido: 'Dois pipelines, um cluster',
-    dica: 'Duas entradas que se cruzam duas vezes. As celulas das cruzes valem por duas torres — e o cluster aqui e apertado, entao quantizar deixa de ser opcional.',
-    vram: 20,
-    dinheiro: 400,
-    vidas: 18,
+    dica: 'Duas entradas, dois pipelines, um cluster so — e eles se cruzam tres vezes. As celulas das cruzes valem por duas torres, e o cluster aqui e apertado: quantizar deixa de ser opcional.',
+    vram: 22,
+    dinheiro: 440,
+    vidas: 20,
     piso: '#191823',
     rotas: [
-      { entrada: 'oeste', cantos: [[-1, 2], [16, 2], [16, 8], [6, 8], [6, 12], [12, 12]] },
-      { entrada: 'leste', cantos: [[24, 4], [8, 4], [8, 10], [18, 10], [18, 12], [12, 12]] },
+      { entrada: 'oeste', cantos: [[-1, 2], [20, 2], [20, 6], [4, 6], [4, 9], [16, 9], [16, 12], [12, 12]] },
+      { entrada: 'leste', cantos: [[24, 4], [8, 4], [8, 7], [18, 7], [18, 10], [2, 10], [2, 12], [12, 12]] },
     ],
     lajes: [
-      [0, 0, 23, 1], [0, 3, 23, 3], [0, 5, 1, 7], [6, 5, 9, 7], [14, 5, 17, 7],
-      [22, 5, 23, 7], [0, 6, 23, 7], [0, 9, 23, 9], [0, 11, 2, 11], [5, 11, 10, 11],
-      [13, 11, 18, 11], [21, 11, 23, 11], [0, 13, 23, 14],
+      [0, 0, 23, 1], [0, 3, 23, 3], [0, 5, 23, 5], [0, 8, 23, 8],
+      // O canto sudeste fica a mais de 5,4 celulas de qualquer trilha: laje
+      // que nao alcanca nada e armadilha, nao decisao. Ela para em x=21.
+      [0, 11, 23, 11], [0, 13, 21, 14],
     ],
   },
   {
@@ -114,8 +115,8 @@ const DEFINICOES = [
     nome: 'ILHA CENTRAL',
     apelido: 'Espiral em volta do lago de dados',
     dica: 'Quase tudo aqui e lago: so as duas ilhas do meio aceitam torre. Em compensacao a espiral passa tres vezes por perto delas. Alcance vale mais que cadencia.',
-    vram: 17,
-    dinheiro: 460,
+    vram: 14,
+    dinheiro: 420,
     vidas: 16,
     piso: '#101a22',
     rotas: [
@@ -139,20 +140,37 @@ function montar(def) {
   for (const r of rotas) {
     for (const [x, y] of r.cels) {
       if (x >= 0 && x < LARGURA && y >= 0 && y < ALTURA) naRota.add(y * LARGURA + x);
-      // A borda da rota tambem nao aceita torre: torre colada na trilha
-      // atravessando a curva ficava com meia celula em cima do caminho.
     }
   }
   const construivel = laje(def.lajes);
   for (const k of naRota) construivel.delete(k);
 
   const fim = rotas[0].cels[rotas[0].cels.length - 1];
+  const base = { x: fim[0], y: fim[1] };
+
+  // O corredor de voo: quem voa ignora a trilha e corta reto da entrada ate o
+  // cluster. Isso precisa estar no mapa, e nao so na cabeca de quem programou:
+  // sem desenhar a linha, a onda 11 pune quem construiu exatamente onde o jogo
+  // mandou construir. O robo tambem pontua laje por cobertura deste corredor.
+  const linhasVoo = rotas.map(r => {
+    const [ax, ay] = r.cels[0];
+    const de = { x: ax + 0.5, y: ay + 0.5 };
+    const para = { x: base.x + 0.5, y: base.y + 0.5 };
+    const n = Math.max(2, Math.round(Math.hypot(para.x - de.x, para.y - de.y)));
+    const pontos = [];
+    for (let i = 0; i <= n; i++) {
+      pontos.push({ x: de.x + (para.x - de.x) * (i / n), y: de.y + (para.y - de.y) * (i / n) });
+    }
+    return { de, para, pontos };
+  });
+
   return {
     ...def,
     rotas,
     naRota,
     construivel,
-    base: { x: fim[0], y: fim[1] },
+    base,
+    linhasVoo,
     comprimento: rotas.map(r => r.cels.length - 1),
   };
 }

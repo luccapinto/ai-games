@@ -126,7 +126,7 @@ export const TORRES = [
         niveis: [
           { custo: 50, texto: 'Duas replicas: cadencia 3,2 para 4,6 tiros/s, +1 VRAM', efeito: { cadenciaMult: 1.45, vram: 1 } },
           { custo: 125, texto: 'Oito replicas: cadencia para 7,4 tiros/s, +2 VRAM', efeito: { cadenciaMult: 1.6, vram: 2 } },
-          { custo: 290, texto: 'Cluster de borda: cadencia para 12,6 tiros/s, alcance +0,8, +3 VRAM', efeito: { cadenciaMult: 1.7, alcance: 0.8, vram: 3 } },
+          { custo: 290, texto: 'Cluster de borda: cadencia para 12,6 tiros/s, alcance +0,8, +3 VRAM, e o dano vira RUIDO — deixa lento e marca o alvo', efeito: { cadenciaMult: 1.7, alcance: 0.8, vram: 3, tipoDano: 'ruido', lentidao: 0.2, marca: 0.18 } },
         ],
       },
     ],
@@ -208,8 +208,8 @@ export const TORRES = [
         nome: 'MULTIMODAL',
         desc: 'Ve imagem, video e o que finge nao estar ali. Ganha deteccao e tiro antiaereo.',
         niveis: [
-          { custo: 110, texto: 'Visao: passa a enxergar camuflado', efeito: { deteccao: true } },
-          { custo: 230, texto: 'Video: acerta voador, +8 de dano', efeito: { antiaereo: true, dano: 8 } },
+          { custo: 110, texto: 'Visao: passa a enxergar camuflado E a acertar voador', efeito: { deteccao: true, antiaereo: true } },
+          { custo: 230, texto: 'Video: +16 de dano e alcance +0,6', efeito: { dano: 16, alcance: 0.6 } },
           { custo: 500, texto: 'Audio e video ao vivo: +24 de dano, cadencia +30% e revela camuflado num raio de 3 celulas para todas as torres', efeito: { dano: 24, cadenciaMult: 1.3, revela: 3, vram: 2 } },
         ],
       },
@@ -232,8 +232,9 @@ export const TORRES = [
     tipoDano: 'filtro',
     dot: 9,
     deteccao: true,
+    antiaereo: true,
     moe: true,
-    frase: 'Le placa, print, meme e o que o usuario jurou que nao mandou. Ja vem com deteccao.',
+    frase: 'Le placa, print, meme, o que o usuario jurou que nao mandou e o que passa voando. Ja vem com deteccao e antiaereo.',
     real: {
       preco: 'US$ 0,45 / M tokens', bench: 'MMLU-Pro 68', tps: '140 tok/s',
       ctx: '256 mil tokens', ttft: '0,50 s', aluc: '6,4%', peso: 'MoE 235B, 22B ativos',
@@ -252,7 +253,7 @@ export const TORRES = [
         nome: 'OCR DE PLACA',
         desc: 'Ve tudo que passa, inclusive o que voa e o que esta em realidade aumentada.',
         niveis: [
-          { custo: 100, texto: 'Acerta voador, alcance +0,7', efeito: { antiaereo: true, alcance: 0.7 } },
+          { custo: 100, texto: '+7 de dano e alcance de 3,6 para 4,3 celulas', efeito: { dano: 7, alcance: 0.7 } },
           { custo: 215, texto: 'Revela camuflado num raio de 3,5 celulas para todas as torres', efeito: { revela: 3.5 } },
           { custo: 460, texto: 'Revela num raio de 5,5, +18 de dano e ignora recusa (o alinhado ao lado volta a atirar)', efeito: { revela: 2, dano: 18, auraIgnoraRecusa: 3 } },
         ],
@@ -359,6 +360,7 @@ export const TORRES = [
     erro: 0.028,
     tipoDano: 'token',
     perfura: 2,
+    antiaereo: true,
     moe: true,
     frase: 'O topo do quadro. Cobra por isso e atravessa dois inimigos por tiro.',
     real: {
@@ -402,6 +404,7 @@ export const TORRES = [
     erro: 0.014,
     tipoDano: 'semantico',
     area: 1.2,
+    antiaereo: true,
     frase: 'Quinze dolares por milhao de tokens. Se voce chegou aqui, e porque nada mais resolveu.',
     real: {
       preco: 'US$ 15,00 / M tokens', bench: 'MMLU-Pro 89', tps: '68 tok/s',
@@ -461,7 +464,7 @@ export const TORRES = [
         nome: 'AUDITORIA',
         desc: 'Vira sala de log: as torres em volta enxergam camuflado e param de errar.',
         niveis: [
-          { custo: 160, texto: 'Torres no raio ganham deteccao', efeito: { auraDeteccao: true, auraRaio: 0.5 } },
+          { custo: 160, texto: 'Sala de log: as torres no raio passam a enxergar camuflado E a acertar voador', efeito: { auraDeteccao: true, auraAntiaereo: true, auraRaio: 0.5 } },
           { custo: 350, texto: 'Torres no raio erram 70% menos e batem 15% mais forte', efeito: { auraErro: 0.7, auraDano: 0.15 } },
           { custo: 760, texto: 'Raio 5,4, +28% de dano, e as torres no raio nao podem ser corrompidas por prompt injection', efeito: { alcance: 2.4, auraDano: 0.13, auraImune: true } },
         ],
@@ -571,9 +574,10 @@ export const PRAGAS = {
     regra: 'Vem as dezenas e morre de qualquer jeito. O problema nao e matar: cada bot vivo come 0,14 de VRAM do seu cluster.',
   },
   golpe: {
-    nome: 'GOLPE', forma: 'losango', cor: '#ff7a5c', hp: 48, vel: 1.5, premio: 12, dano: 1,
+    nome: 'GOLPE', forma: 'losango', cor: '#ff7a5c', hp: 52, vel: 1.5, premio: 12, dano: 1,
     roubo: 3,
-    regra: 'Nos ultimos 25% da rota ele encosta no caixa e leva US$ 3 por segundo. Matar longe da base e matar de graca.',
+    resist: { token: 1, semantico: 0.45, vetor: 0.55, filtro: 0.45, ruido: 0.6 },
+    regra: 'Nos ultimos 25% da rota ele encosta no caixa e leva US$ 3 por segundo. E burro demais para o modelo sofisticado levar a serio: o classificador grande passa batido e so o TOKEN cru entra inteiro. Matar longe da base e matar de graca.',
   },
   injection: {
     nome: 'PROMPT INJECTION', forma: 'seta', cor: '#ff5ca8', hp: 62, vel: 1.1, premio: 14, dano: 1,
@@ -601,9 +605,9 @@ export const PRAGAS = {
     regra: 'A cada segundo vivo ganha 9% de HP maximo e 3,5% de velocidade, ate quadruplicar. Deixar para depois e o unico jeito de perder para ele.',
   },
   voador: {
-    nome: 'INFERENCIA NA BORDA', forma: 'asa', cor: '#7ee2ff', hp: 130, vel: 1.15, premio: 26, dano: 1,
+    nome: 'INFERENCIA NA BORDA', forma: 'asa', cor: '#7ee2ff', hp: 155, vel: 0.85, premio: 30, dano: 1,
     voa: true,
-    regra: 'Ignora a trilha e vai reto ate o cluster. So torre com antiaereo acerta — e sao poucas.',
+    regra: 'Ignora a trilha e corta o mapa reto ate o cluster. So torre com antiaereo acerta: QUEM-3 VL, JOTA-5 e OPUS 4.6 ja vem com ele, GEMINADO FLASH compra no MULTIMODAL.',
   },
   escudo: {
     nome: 'ESCUDO SEMANTICO', forma: 'escudo', cor: '#a8b6ff', hp: 240, vel: 0.85, premio: 28, dano: 1,
@@ -611,9 +615,15 @@ export const PRAGAS = {
     regra: 'Entende o que voce esta tentando fazer e desvia. So dano SEMANTICO entra inteiro; TOKEN entra a 10%.',
   },
   deepfake: {
-    nome: 'DEEPFAKE', forma: 'mascara', cor: '#e0d6c0', hp: 115, vel: 1.0, premio: 22, dano: 2,
+    nome: 'DEEPFAKE', forma: 'mascara', cor: '#e0d6c0', hp: 118, vel: 1.0, premio: 22, dano: 2,
     disfarce: 0.5,
-    regra: 'Entra parecendo usuario legitimo: modelo alinhado se recusa a atirar nele. Na metade da rota ele se revela e fica 80% mais rapido.',
+    resist: { ruido: 1, token: 0.5, semantico: 0.6, vetor: 0.5, filtro: 0.7 },
+    regra: 'Entra parecendo usuario legitimo: modelo alinhado se recusa a atirar nele. Na metade da rota ele se revela e fica 80% mais rapido. Analisar o conteudo nao adianta, porque o conteudo e perfeito: o que quebra o gerador e RUIDO adversarial na entrada.',
+  },
+  oom: {
+    nome: 'OOM KILLER', forma: 'chip', cor: '#ff6fd8', hp: 260, vel: 0.8, premio: 34, dano: 2,
+    capturaVram: 2.2,
+    regra: 'Enquanto esta vivo ele ocupa 2,2 do teto do seu cluster — nao do consumo, do teto. Seis deles na tela derrubam 13 de capacidade e estrangulam tudo que voce construiu. Ou voce quantiza no meio da onda, ou mata rapido.',
   },
   rlhf: {
     nome: 'CURADOR RLHF', forma: 'cruz', cor: '#9ce89c', hp: 175, vel: 0.8, premio: 25, dano: 1,

@@ -81,7 +81,9 @@ export function criarJogo(opcoes = {}) {
     tiros: [],
     proxId: 1,
     contagem: {},             // quantas torres de cada tipo ja foram compradas
+    capacidadeBase: mapa.vram,
     capacidadeVram: mapa.vram,
+    vramCapturada: 0,
     usoVramTorres: 0,
     usoVram: 0,
     estrangulamento: 1,
@@ -100,7 +102,7 @@ export function criarJogo(opcoes = {}) {
     feed: [],
     estat: {
       mortas: 0, vazadas: 0, gasto: 0, ganho: 0, roubado: 0,
-      tiros: 0, errados: 0, danoPorTipo: {}, ondasLimpas: 0,
+      tiros: 0, errados: 0, danoPorTipo: {}, ondasLimpas: 0, vazouPorTipo: {},
     },
     aviso: null,
   };
@@ -313,7 +315,7 @@ function zerado(def) {
     antiaereo: !!def.antiaereo,
     recusa: !!def.recusa,
     naoAtira: !!def.naoAtira,
-    auraDeteccao: false, auraImune: false, auraSemMira: false,
+    auraDeteccao: false, auraAntiaereo: false, auraImune: false, auraSemMira: false,
     crescimentoFixo: false,
     roteador: null,
   };
@@ -330,6 +332,7 @@ function aplicarEfeito(a, e) {
   if (e.antiaereo) a.antiaereo = true;
   if (e.semRecusa) a.recusa = false;
   if (e.auraDeteccao) a.auraDeteccao = true;
+  if (e.auraAntiaereo) a.auraAntiaereo = true;
   if (e.auraImune) a.auraImune = true;
   if (e.auraSemMira) a.auraSemMira = true;
   if (e.crescimentoFixo) a.crescimentoFixo = true;
@@ -372,6 +375,7 @@ export function recalcular(jogo) {
       if (o.st.auraErro) a.erro *= 1 - Math.min(0.95, o.st.auraErro);
       if (o.st.auraAlcance) a.alcance += o.st.auraAlcance;
       if (o.st.auraDeteccao) a.deteccao = true;
+      if (o.st.auraAntiaereo) a.antiaereo = true;
       if (o.st.auraImune) a.imuneInjection = true;
       if (o.st.auraSemMira) a.mira = 0;
       if (o.st.auraFuraResist) a.furaResist = Math.max(a.furaResist, o.st.auraFuraResist);
@@ -385,7 +389,10 @@ export function recalcular(jogo) {
     amortece = Math.max(amortece, t.st.amorteceEstrangulamento);
     uso += t.st.vram;
   }
-  jogo.capacidadeVram = Math.round(capacidade * 10) / 10;
+  // `capacidadeBase` e o teto que voce comprou; `capacidadeVram` e o teto que
+  // voce tem agora, ja descontado o que o OOM KILLER sequestrou neste quadro.
+  jogo.capacidadeBase = Math.round(capacidade * 10) / 10;
+  jogo.capacidadeVram = Math.round((capacidade - (jogo.vramCapturada || 0)) * 10) / 10;
   jogo.usoVramTorres = Math.round(uso * 10) / 10;
   jogo.amortece = amortece;
 }
@@ -519,6 +526,15 @@ function nascer(jogo, tipo, rotaIdx, hpMult, opcoes = {}) {
     p.vooPara = { x: alvo.x + 0.5, y: alvo.y + 0.5 };
     p.vooTotal = Math.hypot(p.vooPara.x - p.vooDe.x, p.vooPara.y - p.vooDe.y);
   }
+  // O primeiro uso do poder respeita o intervalo anunciado. Com tProx em zero
+  // o chefe soltava o muro, o veiculo, o tiro de volta e o pitch no quadro em
+  // que nascia — antes de o jogador ver que ele chegou, e antes de a ficha
+  // dele poder ser lida.
+  if (def.pitch) p.tProx = def.pitch.intervalo;
+  else if (def.muro) p.tProx = def.muro.intervalo;
+  else if (def.despeja) p.tProx = def.despeja.intervalo;
+  else if (def.atiraDeVolta) p.tProx = def.atiraDeVolta.intervalo;
+  else if (def.piscaAR) p.tProx = def.piscaAR.visivel;
   if (p.estrutura) { p.x = p.cx; p.y = p.cy; }
   else posicionar(jogo, p);
   jogo.pragas.push(p);
@@ -553,11 +569,20 @@ function visivel(p) {
 
 // ----------------------------------------------------------------------- dano
 
+// Uma regra so para tudo: `fura` levanta qualquer piso de resistencia, inclusive
+// imunidade decorada e o vies. Sem isso o jogo tem estado invencivel — um VIES
+// sorteado em RUIDO contra quem nao tem torre de RUIDO nunca morre, e um
+// OVERFITTING que decorou tudo tambem nao. Quem quiser resposta universal paga
+// por ela: JOTA-5 no RACIOCINIO ALTO, a aura do ORQUESTRADOR e o RELEASE DE
+// EMERGENCIA sao as unicas fontes de `fura`.
 function resistencia(p, tipo, fura) {
-  if (p.imunes.has(tipo)) return 0;
-  if (p.viesTipo) return tipo === p.viesTipo ? 1 : 0;
-  const r = p.def.resist;
-  let v = r && tipo in r ? r[tipo] : 1;
+  let v;
+  if (p.imunes.has(tipo)) v = 0;
+  else if (p.viesTipo) v = tipo === p.viesTipo ? 1 : 0;
+  else {
+    const r = p.def.resist;
+    v = r && tipo in r ? r[tipo] : 1;
+  }
   if (fura > 0) v = v + (1 - v) * fura;
   return v;
 }
@@ -592,7 +617,9 @@ export function aplicarDano(jogo, p, valor, tipo, opcoes = {}) {
 
   if (p.def.decora) {
     p.acumulado[tipo] = (p.acumulado[tipo] || 0) + v;
-    if (p.acumulado[tipo] >= p.def.decora && !p.imunes.has(tipo)) {
+    // Teto de tres tipos decorados: com cinco ele viraria imortal, e um
+    // inimigo imortal nao e dificuldade, e defeito.
+    if (p.acumulado[tipo] >= p.def.decora && !p.imunes.has(tipo) && p.imunes.size < 3) {
       p.imunes.add(tipo);
       evento(jogo, 'decorou', { x: p.x, y: p.y, dano: tipo });
     }
@@ -605,6 +632,12 @@ export function aplicarDano(jogo, p, valor, tipo, opcoes = {}) {
 function matar(jogo, p, torre) {
   if (p.def.renasce && p.renascimentos < p.def.renasce) {
     p.renascimentos++;
+    // Renascer e voltar ao inicio da rota: treinaram ele de novo, do zero, no
+    // proprio lixo que ele gerou. Renascendo no lugar onde morreu, com 35% mais
+    // velocidade e pouco caminho pela frente, ele chegava no cluster em todas
+    // as partidas — nao era chefe, era pedagio.
+    p.d = 0;
+    p.tempoVivo = 0;
     p.hpMax = Math.max(1, p.hpMax * 0.6);
     p.hp = p.hpMax;
     p.velBase *= 1.35;
@@ -656,7 +689,12 @@ function matar(jogo, p, torre) {
     evento(jogo, 'dividiu', { x: p.x, y: p.y });
   }
 
-  if (p.def.chefe) noticia(jogo, 'chefeMorreu', { nome: p.def.nome });
+  if (p.def.chefe) {
+    noticia(jogo, 'chefeMorreu', { nome: p.def.nome });
+    // O muro cai junto com quem o ergueu. Sem isso, no modo sem fim eles
+    // empilham para sempre e o mapa fecha.
+    for (const o of jogo.pragas) if (o.dono === p.uid && !o.morta) remover(jogo, o, false);
+  }
   evento(jogo, 'morreu', { x: p.x, y: p.y, chefe: !!p.def.chefe, elite: !!p.def.elite, cor: p.def.cor });
   remover(jogo, p, false);
 }
@@ -667,6 +705,7 @@ function remover(jogo, p, vazou) {
   if (vazou) {
     jogo.vidas -= p.dano;
     jogo.estat.vazadas++;
+    jogo.estat.vazouPorTipo[p.tipo] = (jogo.estat.vazouPorTipo[p.tipo] || 0) + 1;
     noticia(jogo, 'vazou', { praga: p.def.nome, dano: p.dano });
     evento(jogo, 'vazou', { dano: p.dano });
     if (jogo.vidas <= 0) {
@@ -762,11 +801,17 @@ export function passo(jogo, dt = DT) {
     h.pronta = h.recarga <= 0;
   }
 
-  // --- VRAM: torres + a carga de inferencia que as pragas vivas geram
+  // --- VRAM. Tres forcas: o que as torres pedem, a carga de inferencia que as
+  // pragas vivas geram, e o teto que o OOM KILLER sequestra enquanto vive.
   let cargaPragas = 0;
+  let capturado = 0;
   for (const p of jogo.pragas) {
-    if (!p.morta && p.def.cargaVram) cargaPragas += p.def.cargaVram;
+    if (p.morta) continue;
+    if (p.def.cargaVram) cargaPragas += p.def.cargaVram;
+    if (p.def.capturaVram) capturado += p.def.capturaVram;
   }
+  jogo.capacidadeVram = Math.round(Math.max(1, jogo.capacidadeBase - capturado) * 10) / 10;
+  jogo.vramCapturada = Math.round(capturado * 10) / 10;
   jogo.usoVram = Math.round((jogo.usoVramTorres + cargaPragas) * 10) / 10;
   const excesso = Math.max(0, jogo.usoVram - jogo.capacidadeVram) / Math.max(1, jogo.capacidadeVram);
   const penal = Math.min(0.75, excesso * 1.5) * (1 - jogo.amortece);
@@ -934,11 +979,10 @@ function moverPragas(jogo, dt) {
         p.tProx = p.def.despeja.intervalo;
         const livre = lajeLivre(jogo);
         if (livre) {
-          nascer(jogo, 'botfarm', 0, 1, {
+          const d = nascer(jogo, 'botfarm', 0, 1, {
             estrutura: true, cx: livre.x + 0.5, cy: livre.y + 0.5,
             hp: p.def.despeja.hp, raio: 0.45, escala: 1.1, premioMult: 0,
           });
-          const d = jogo.pragas[jogo.pragas.length - 1];
           d.def = { ...PRAGAS.botfarm, nome: 'DESTROCO', cor: '#c8c8d4', cargaVram: 0 };
           d.tipo = 'destroco';
           d.premio = 0;
@@ -1012,6 +1056,7 @@ function ergerMuro(jogo, chefe) {
   p.def = { ...PRAGAS.botfarm, nome: 'MURO', cor: '#ff9d3c', cargaVram: 0 };
   p.tipo = 'muro';
   p.premio = 0;
+  p.dono = chefe.uid;
   p.escala = 1;
   noticia(jogo, 'trombeta', {});
   evento(jogo, 'muro', { x, y: y0 });
@@ -1389,6 +1434,8 @@ export function estadoVram(jogo) {
   return {
     uso: jogo.usoVram,
     capacidade: jogo.capacidadeVram,
+    capacidadeBase: jogo.capacidadeBase,
+    capturada: jogo.vramCapturada || 0,
     estourado: jogo.usoVram > jogo.capacidadeVram,
     estrangulamento: jogo.estrangulamento,
     perda: Math.round((1 - jogo.estrangulamento) * 100),

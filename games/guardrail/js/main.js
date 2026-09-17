@@ -460,7 +460,9 @@ function pintarTopo() {
 
   const v = estadoVram(jogo);
   $('#vram-num').textContent = `${n1(v.uso)} / ${n1(v.capacidade)}`;
-  $('#vram-aviso').textContent = v.estourado ? `ESTOURADO: -${v.perda}% de cadencia` : '';
+  $('#vram-aviso').textContent = v.estourado
+    ? `ESTOURADO: -${v.perda}% de cadencia`
+    : v.capturada > 0 ? `OOM KILLER levou ${n1(v.capturada)} do teto` : '';
   const barra = $('.vram-barra');
   barra.classList.toggle('estourado', v.estourado);
   const teto = Math.max(v.capacidade, v.uso);
