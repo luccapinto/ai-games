@@ -1,23 +1,39 @@
 #!/usr/bin/env node
 // As provas do SUBSOLO. Rode com: node provas.mjs
 //
-// O jogo inteiro roda aqui dentro, sem navegador: `js/jogo.js` e os modulos que
-// ele usa nao tocam em DOM, canvas nem window. E isso que permite provar coisa
-// que olhar a tela nao prova — que as nove fases terminam, que a municao fecha,
-// que o ruido se propaga como a mecanica promete — e provar isso no jogo de
-// verdade, nao numa maquete dele.
+// Sobrevivencia por rodadas e o genero em que "parece bom" mente mais: uma
+// rodada que nunca fecha parece dificil, um mapa sem volta parece apertado, uma
+// arma que domina todos os eixos parece boa, e um zumbi preso na quina parece
+// ausente. Aqui o mapa, as rodadas, as armas, a economia e um robo que joga
+// rodam sem navegador — e e por isso que da para medir em vez de achar.
 //
-// A prova mais importante e a ultima: um robo joga as nove fases usando a mesma
-// fisica, a mesma arma e o mesmo inimigo do navegador, e precisa sair vivo.
+// A prova principal e o robo: ele le o mesmo estado que a tela mostra, manda os
+// mesmos comandos que o teclado manda, e nao ve atraves de parede. Se ele
+// atravessa cinco rodadas nos dois mapas, com portas abertas e forca ligada, o
+// jogo e jogavel — e se ele morre parado com pontos no bolso, o defeito esta na
+// economia.
 
-import { FASES, LEGENDA, PAREDES } from './js/fases.js';
-import * as M from './js/mapa.js';
-import { ARMAS, tracar } from './js/armas.js';
-import { TIPOS, criarInimigo } from './js/inimigos.js';
-import { criarJogo, passo, entradaNula, DT, CONFIG } from './js/jogo.js';
-import { robo } from './js/robo.js';
-
-// ---------------------------------------------------------------- arranjo
+import { PLANTAS } from './js/planta.js';
+import {
+  carregar, maiorVolta, janelasSemCaminho, maquinasSemCaminho, celulasAbertas,
+  custoParaAbrirTudo, solido, solidoParaTiro, luzDaCelula, T, tile, zonaEm,
+  criarFluxo, refazerFluxo, distanciaDoFluxo,
+} from './js/mapa.js';
+import { CONFIG } from './js/regras.js';
+import {
+  quantidadeDaRodada, vidaDaRodada, velocidadeDaRodada, intervaloDeNascimento,
+  composicaoDaRodada, RODADA_DO_CHEFE, RODADA_DOS_RASTEJANTES, TIPOS,
+} from './js/rodadas.js';
+import {
+  ARMAS, equipar, forjar, danoPorSegundo, danoPorSegundoNaCabeca, danoNaDistancia,
+  paredeNaLinha, tracar, custoDaMunicao,
+} from './js/armas.js';
+import {
+  criarJogo, passo, armaNaMao, alvoDeUso, textoDoAlvo, zumbisVivos,
+  janelasAtivas, tabuasDeTodasAsJanelas, resumo,
+} from './js/jogo.js';
+import { criarZumbi, ferir } from './js/zumbis.js';
+import { jogarAte } from './js/robo.js';
 
 let feitas = 0;
 const falhas = [];
@@ -33,417 +49,620 @@ function prova(nome, fn) {
   }
 }
 
-function ok(condicao, mensagem) {
-  if (!condicao) throw new Error(mensagem);
+const ok = (c, m) => { if (!c) throw new Error(m); };
+const igual = (a, b, m) => { if (a !== b) throw new Error(`${m}: esperava ${b}, veio ${a}`); };
+function entre(v, min, max, m) {
+  if (!(v >= min && v <= max)) throw new Error(`${m}: ${Number(v).toFixed(3)} fora de [${min}, ${max}]`);
 }
 
-function igual(a, b, mensagem) {
-  if (a !== b) throw new Error(`${mensagem}: esperava ${b}, veio ${a}`);
-}
+const mapas = PLANTAS.map(carregar);
+const DT = 1 / 60;
 
-function entre(valor, min, max, mensagem) {
-  if (!(valor >= min && valor <= max)) {
-    throw new Error(`${mensagem}: ${typeof valor === 'number' ? valor.toFixed(3) : valor} fora de [${min}, ${max}]`);
-  }
-}
+// ------------------------------------------------------- 1. os mapas
 
-// ------------------------------------------------- 1. as fases sao bem formadas
-
-prova('a legenda cobre todo caractere usado nas fases', () => {
-  const conhecidos = new Set(Object.keys(LEGENDA));
-  for (const fase of FASES) {
-    for (const [y, linha] of fase.planta.entries()) {
+prova('a planta e retangular e a legenda e conhecida', () => {
+  const legenda = new Set('#=%.~oJ@1234SNCGXFVRTAL'.split(''));
+  for (const planta of PLANTAS) {
+    const larguras = new Set(planta.planta.map(l => l.length));
+    igual(larguras.size, 1, `${planta.nome}: linhas de larguras diferentes`);
+    for (const [y, linha] of planta.planta.entries()) {
       for (const [x, ch] of [...linha].entries()) {
-        ok(conhecidos.has(ch), `${fase.nome} (${x},${y}): caractere "${ch}" fora da legenda`);
+        ok(legenda.has(ch), `${planta.nome}: caractere '${ch}' desconhecido em ${x},${y}`);
       }
     }
+    igual(planta.planta.filter(l => l.includes('@')).length, 1,
+      `${planta.nome}: precisa de exatamente uma linha com inicio`);
   }
 });
 
-prova('toda planta e retangular', () => {
-  for (const fase of FASES) {
-    const largura = fase.planta[0].length;
-    for (const [y, linha] of fase.planta.entries()) {
-      igual(linha.length, largura, `${fase.nome}: linha ${y} com largura diferente`);
+prova('cada mapa tem quatro zonas e quatro vaos comprados', () => {
+  for (const m of mapas) {
+    igual(m.zonas.length, 4, `${m.nome}: zonas`);
+    const marcas = new Set([...m.portas.values()].map(p => p.marca));
+    igual(marcas.size, 4, `${m.nome}: vaos de porta distintos`);
+    ok(m.zonas[m.zonaInicial].aberta, `${m.nome}: a zona do inicio nao comecou aberta`);
+    igual(m.zonas.filter(z => z.aberta).length, 1, `${m.nome}: zonas abertas no comeco`);
+  }
+});
+
+prova('porta liga duas zonas diferentes', () => {
+  // Porta que liga a mesma zona dos dois lados e porta decorativa: o jogador
+  // pagaria por nada, e a prova nao deixa isso entrar no mapa.
+  for (const m of mapas) {
+    for (const porta of m.portas.values()) {
+      ok(porta.zonas.length >= 2,
+        `${m.nome}: porta ${porta.marca} em ${porta.x},${porta.y} liga ${porta.zonas.length} zona(s)`);
     }
   }
 });
 
-prova('toda fase tem um inicio e pelo menos um elevador', () => {
-  for (const fase of FASES) {
-    const texto = fase.planta.join('');
-    igual((texto.match(/@/g) || []).length, 1, `${fase.nome}: inicios`);
-    ok((texto.match(/E/g) || []).length >= 1, `${fase.nome}: nenhum elevador`);
+prova('toda janela tem lado de dentro e alcanca o jogador', () => {
+  for (const m of mapas) {
+    ok(m.janelas.length >= 8, `${m.nome}: so ${m.janelas.length} janelas`);
+    for (const janela of m.janelas) {
+      ok(janela.dentro, `${m.nome}: janela em ${janela.x},${janela.y} sem lado de dentro`);
+      ok(janela.fora, `${m.nome}: janela em ${janela.x},${janela.y} sem lado de fora`);
+    }
+    const ruins = janelasSemCaminho(m);
+    igual(ruins.length, 0,
+      `${m.nome}: ${ruins.length} janela(s) sem caminho ate o jogador`);
   }
 });
 
-prova('a borda de toda fase e solida', () => {
-  // Sem isso o jogador anda para fora da grade, onde nao ha tile nenhum e
-  // portanto nao ha parede — foi assim que a ANTENA deixou a sonda cair no vazio.
-  for (const fase of FASES) {
-    const m = M.carregar(fase);
-    for (let x = 0; x < m.largura; x++) {
-      ok(M.solido(m, x, 0), `${fase.nome}: (${x},0) aberto`);
-      ok(M.solido(m, x, m.altura - 1), `${fase.nome}: (${x},${m.altura - 1}) aberto`);
+prova('toda maquina e alcancavel, e cada tipo existe', () => {
+  for (const m of mapas) {
+    igual(maquinasSemCaminho(m).length, 0, `${m.nome}: maquina inalcancavel`);
+    const tipos = new Set(m.maquinas.map(q => (q.tipo === 'perk' ? `perk:${q.perk}` : q.tipo)));
+    for (const exigido of ['forca', 'caixa', 'forja', 'perk:caldo', 'perk:graxa',
+      'perk:gatilho', 'perk:talisma']) {
+      ok(tipos.has(exigido), `${m.nome}: falta ${exigido}`);
     }
+    ok(m.maquinas.filter(q => q.tipo === 'arma').length >= 3,
+      `${m.nome}: menos de tres armas de parede`);
+  }
+});
+
+prova('existe volta, e ela cruza o mapa', () => {
+  // A volta e o que faz arrastar horda ser tatica em vez de sorte. Sem ciclo, a
+  // rodada 12 mata todo mundo no mesmo canto, sempre.
+  for (const m of mapas) {
+    const volta = maiorVolta(m);
+    ok(volta.tamanho >= 120,
+      `${m.nome}: a maior volta tem ${volta.tamanho} celulas`);
+    ok(volta.zonas >= 3,
+      `${m.nome}: a volta passa por ${volta.zonas} zona(s), e o anel precisa de tres`);
+  }
+});
+
+prova('o mapa cabe no bolso de uma partida', () => {
+  for (const m of mapas) {
+    entre(custoParaAbrirTudo(m), 2000, 8000, `${m.nome}: custo de abrir tudo`);
+    entre(celulasAbertas(m), 300, 900, `${m.nome}: celulas de piso`);
+  }
+});
+
+prova('janela e parede para o corpo e vao para a bala', () => {
+  // E a diferenca entre poder segurar uma janela e nao poder, e ela vale uma
+  // prova porque o codigo tem dois predicados que poderiam divergir.
+  for (const m of mapas) {
+    const janela = m.janelas[0];
+    ok(solido(m, janela.x + 0.5, janela.y + 0.5),
+      `${m.nome}: a janela deixou o corpo passar`);
+    ok(!solidoParaTiro(m, janela.x + 0.5, janela.y + 0.5),
+      `${m.nome}: a janela bloqueou a bala`);
+    igual(tile(m, janela.x, janela.y), T.JANELA, `${m.nome}: tipo da celula da janela`);
+  }
+});
+
+prova('as lampadas acendem parte do mapa, e nao tudo', () => {
+  for (const m of mapas) {
+    let acesas = 0;
+    let piso = 0;
     for (let y = 0; y < m.altura; y++) {
-      ok(M.solido(m, 0, y), `${fase.nome}: (0,${y}) aberto`);
-      ok(M.solido(m, m.largura - 1, y), `${fase.nome}: (${m.largura - 1},${y}) aberto`);
-    }
-  }
-});
-
-prova('nenhum inimigo ou item nasce dentro de parede', () => {
-  for (const fase of FASES) {
-    const m = M.carregar(fase);
-    for (const e of m.inimigos) {
-      ok(!M.solido(m, Math.floor(e.x), Math.floor(e.y)),
-        `${fase.nome}: ${e.tipo} dentro de parede em (${e.x},${e.y})`);
-    }
-    for (const i of m.itens) {
-      ok(!M.solido(m, Math.floor(i.x), Math.floor(i.y)),
-        `${fase.nome}: item ${i.tipo} dentro de parede em (${i.x},${i.y})`);
-    }
-  }
-});
-
-prova('cada fase tem inimigo e um segredo', () => {
-  for (const fase of FASES) {
-    const m = M.carregar(fase);
-    ok(m.inimigos.length >= 4, `${fase.nome}: so ${m.inimigos.length} inimigos`);
-    const segredos = fase.planta.join('').split('*').length - 1;
-    ok(segredos >= 1, `${fase.nome}: nenhuma parede falsa`);
-  }
-});
-
-// --------------------------------------- 2. as fases terminam, na ordem certa
-
-prova('toda fase e completavel respeitando a ordem dos crachas', () => {
-  // Fechamento: ande ate onde da, pegue o cracha que alcancou, destranque a
-  // porta que ele abre, repita. Porta travada por cracha que so existe atras
-  // dela e a maneira classica de um nivel parecer bem e estar morto.
-  for (const fase of FASES) {
-    const m = M.carregar(fase);
-    const veredito = M.completavel(m);
-    ok(veredito.ok, `${fase.nome}: ${veredito.motivo}`);
-  }
-});
-
-prova('todo item declarado e alcancavel', () => {
-  for (const fase of FASES) {
-    const m = M.carregar(fase);
-    const inalcancaveis = M.itensInalcancaveis(m);
-    igual(inalcancaveis.length, 0,
-      `${fase.nome}: item fora de alcance ${JSON.stringify(inalcancaveis)}`);
-  }
-});
-
-prova('toda parede falsa esconde algo e da para alcancar', () => {
-  for (const fase of FASES) {
-    const m = M.carregar(fase);
-    for (const s of M.segredos(m)) {
-      ok(s.alcancavel, `${fase.nome}: segredo em (${s.x},${s.y}) inalcancavel`);
-      ok(s.premio > 0, `${fase.nome}: segredo em (${s.x},${s.y}) nao esconde nada`);
-    }
-  }
-});
-
-// ------------------------------------------------ 3. a economia de recurso fecha
-
-prova('o dano disponivel em cada fase fica na faixa de projeto', () => {
-  // Picareta e infinita, entao nunca ha travamento por falta de municao: o que
-  // se prova aqui e tensao, nao possibilidade. Abaixo de 0,8 a fase forca
-  // corpo-a-corpo contra bicho que mata em dois golpes; acima de 2,5 a
-  // municao deixa de ser decisao.
-  for (const fase of FASES) {
-    const m = M.carregar(fase);
-    const vida = m.inimigos.reduce((s, e) => s + TIPOS[e.tipo].vida, 0);
-    const dano = M.danoDisponivel(m);
-    entre(dano / vida, 0.8, 2.5, `${fase.nome}: dano/vida`);
-  }
-});
-
-prova('a pilha cobre a travessia, e nao cobre a fase inteira acesa', () => {
-  // A lanterna e a decisao central do jogo: ver custa pilha e entrega voce.
-  // Pilha de sobra apaga a decisao; pilha curta demais cega o jogador. As duas
-  // pontas sao medidas contra coisas diferentes de proposito — o caminho minimo
-  // de saida, e a varredura da fase celula por celula.
-  for (const fase of FASES) {
-    const m = M.carregar(fase);
-    const segundos = M.bateriaDisponivel(m) / CONFIG.gastoLanterna;
-    const travessia = M.distanciaMinimaDeTravessia(m) / CONFIG.velAndar;
-    const varredura = M.celulasAndaveis(m) / CONFIG.velAndar;
-    ok(segundos >= travessia * 0.8,
-      `${fase.nome}: ${segundos.toFixed(0)} s de pilha nao cobrem os `
-      + `${travessia.toFixed(0)} s do caminho de saida`);
-    ok(segundos <= varredura * 0.75,
-      `${fase.nome}: ${segundos.toFixed(0)} s de pilha dao para varrer a fase `
-      + `(${varredura.toFixed(0)} s) com a lanterna acesa`);
-  }
-});
-
-// ------------------------------------------------------ 4. busca de caminho
-
-prova('o caminho do A* e continuo, andavel e do tamanho da busca em largura', () => {
-  for (const fase of FASES) {
-    const m = M.carregar(fase);
-    const de = { x: Math.floor(m.inicio.x), y: Math.floor(m.inicio.y) };
-    const alvo = m.inimigos[m.inimigos.length - 1];
-    const para = { x: Math.floor(alvo.x), y: Math.floor(alvo.y) };
-    const caminho = M.caminho(m, de, para, { crachas: new Set(['A', 'B', 'C']) });
-    ok(caminho, `${fase.nome}: A* nao achou caminho ate o ultimo inimigo`);
-    for (const [i, no] of caminho.entries()) {
-      ok(!M.solido(m, no.x, no.y, new Set(['A', 'B', 'C'])),
-        `${fase.nome}: passo ${i} do caminho atravessa parede`);
-      if (i > 0) {
-        const d = Math.abs(no.x - caminho[i - 1].x) + Math.abs(no.y - caminho[i - 1].y);
-        igual(d, 1, `${fase.nome}: passo ${i} do caminho pula celula`);
+      for (let x = 0; x < m.largura; x++) {
+        if (solido(m, x + 0.5, y + 0.5)) continue;
+        piso++;
+        if (luzDaCelula(m, x, y) > 0.12) acesas++;
       }
     }
-    const distancia = M.distancias(m, de, new Set(['A', 'B', 'C'])).get(`${para.x},${para.y}`);
-    igual(caminho.length - 1, distancia, `${fase.nome}: A* mais longo que a busca em largura`);
+    const fracao = acesas / piso;
+    entre(fracao, 0.1, 0.75, `${m.nome}: fracao de piso iluminado`);
   }
 });
 
-// ----------------------------------------------------------------- 5. ruido
+// -------------------------------------------------- 2. a escada de rodadas
 
-prova('o ruido cai com a distancia e nunca sobe', () => {
-  const m = M.carregar(FASES[0]);
-  const origem = { x: Math.floor(m.inicio.x), y: Math.floor(m.inicio.y) };
-  const campo = M.alcanceRuido(m, origem, 20);
-  igual(campo.get(`${origem.x},${origem.y}`), 20, 'a origem do ruido guarda a forca cheia');
-  for (const [chave, valor] of campo) {
-    const [x, y] = chave.split(',').map(Number);
-    ok(valor > 0, `celula (${x},${y}) com ruido nao positivo`);
-    ok(valor <= 20, `celula (${x},${y}) mais alta que a origem`);
+prova('quantidade, vida e velocidade so crescem', () => {
+  for (let r = 2; r <= 40; r++) {
+    ok(quantidadeDaRodada(r) >= quantidadeDaRodada(r - 1),
+      `rodada ${r}: quantidade caiu`);
+    ok(vidaDaRodada(r) > vidaDaRodada(r - 1), `rodada ${r}: vida caiu`);
+    ok(velocidadeDaRodada(r) >= velocidadeDaRodada(r - 1), `rodada ${r}: velocidade caiu`);
+    ok(intervaloDeNascimento(r) <= intervaloDeNascimento(r - 1),
+      `rodada ${r}: intervalo de nascimento subiu`);
+  }
+  entre(quantidadeDaRodada(1), 4, 8, 'zumbis da primeira rodada');
+  entre(vidaDaRodada(1), 100, 200, 'vida da primeira rodada');
+  entre(quantidadeDaRodada(40), 25, 40, 'zumbis da rodada 40');
+});
+
+prova('a rodada 15 anda mais rapido que o jogador andando', () => {
+  // E o degrau que faz correr deixar de ser opcional. Se o zumbi nunca passa da
+  // velocidade de caminhada, arrastar horda vira automatico.
+  ok(velocidadeDaRodada(15) > CONFIG.velocidadeAndando * 0.9,
+    `rodada 15 corre a ${velocidadeDaRodada(15)} e o jogador anda a ${CONFIG.velocidadeAndando}`);
+  ok(velocidadeDaRodada(40) < CONFIG.velocidadeCorrendo,
+    'o zumbi da rodada 40 corre mais que o jogador correndo: nao ha fuga');
+});
+
+prova('a composicao soma o total, e o chefe aparece na hora', () => {
+  for (let r = 1; r <= 30; r++) {
+    const c = composicaoDaRodada(r);
+    igual(c.comum + c.rastejante + c.chefe, c.total, `rodada ${r}: composicao nao soma`);
+    ok(c.total > 0, `rodada ${r}: rodada vazia`);
+    if (r % RODADA_DO_CHEFE === 0) ok(c.chefe >= 1, `rodada ${r} devia ter chefe`);
+    else igual(c.chefe, 0, `rodada ${r} nao devia ter chefe`);
+    if (r % RODADA_DOS_RASTEJANTES === 0) ok(c.rastejante >= 1, `rodada ${r} devia ter rastejante`);
   }
 });
 
-prova('porta fechada abafa o ruido', () => {
-  const fase = FASES.find(f => f.planta.join('').includes('/'));
-  const m = M.carregar(fase);
-  const porta = m.portasLista[0];
-  const vizinha = M.vizinhaLivre(m, porta.x, porta.y);
-  const fechada = M.alcanceRuido(m, vizinha, 24);
-  M.abrir(m, porta.x, porta.y);
-  const aberta = M.alcanceRuido(m, vizinha, 24);
-  let maiorFechada = 0;
-  let maiorAberta = 0;
-  for (const [, v] of fechada) maiorFechada += v;
-  for (const [, v] of aberta) maiorAberta += v;
-  ok(maiorAberta > maiorFechada,
-    `ruido nao muda ao abrir a porta (${maiorFechada} contra ${maiorAberta})`);
+prova('o chefe e outro bicho, e nao um zumbi com mais vida', () => {
+  ok(TIPOS.chefe.blindagem > 0.3, 'o chefe nao tem blindagem');
+  ok(TIPOS.chefe.velocidade < TIPOS.comum.velocidade, 'o chefe nao e mais lento');
+  ok(TIPOS.chefe.dano > TIPOS.comum.dano * 1.5, 'o chefe nao bate mais forte');
+  const chefe = criarZumbi('chefe', 10, mapas[0].janelas[0]);
+  const noCorpo = ferir({ ...chefe }, 1000, false, 0.5);
+  const naCabeca = ferir({ ...chefe }, 1000, true, 1);
+  ok(naCabeca.aplicado > noCorpo.aplicado * 1.6,
+    `blindagem nao muda nada: corpo ${noCorpo.aplicado} contra cabeca ${naCabeca.aplicado}`);
 });
 
-prova('o ruido e simetrico entre duas celulas', () => {
-  const m = M.carregar(FASES[2]);
-  const a = { x: Math.floor(m.inicio.x), y: Math.floor(m.inicio.y) };
-  const alvo = m.inimigos[0];
-  const b = { x: Math.floor(alvo.x), y: Math.floor(alvo.y) };
-  const ida = M.alcanceRuido(m, a, 40).get(`${b.x},${b.y}`) || 0;
-  const volta = M.alcanceRuido(m, b, 40).get(`${a.x},${a.y}`) || 0;
-  igual(ida, volta, 'ruido de ida e volta');
-});
+// ------------------------------------------------------------ 3. as armas
 
-// ------------------------------------------------------------- 6. movimento
-
-prova('o jogador nao atravessa parede correndo contra ela', () => {
-  for (const fase of FASES) {
-    const jogo = criarJogo(FASES.indexOf(fase));
-    for (const angulo of [0, Math.PI / 2, Math.PI, -Math.PI / 2, 0.7, 2.4]) {
-      const j = criarJogo(FASES.indexOf(fase));
-      j.jogador.ang = angulo;
-      for (let i = 0; i < 240; i++) {
-        passo(j, { ...entradaNula(), frente: 1, correndo: true }, DT);
-      }
-      const dentro = !M.solido(j.mapa, Math.floor(j.jogador.x), Math.floor(j.jogador.y));
-      ok(dentro, `${fase.nome}: angulo ${angulo.toFixed(2)} terminou dentro de parede`);
-      ok(j.jogador.x > 0 && j.jogador.y > 0
-        && j.jogador.x < j.mapa.largura && j.jogador.y < j.mapa.altura,
-        `${fase.nome}: angulo ${angulo.toFixed(2)} saiu da grade`);
+prova('nenhuma arma ganha em todos os eixos', () => {
+  // Se uma arma dominar perto, longe, pente e preco, a escolha morre — e o jogo
+  // passa a ser "junte pontos e compre a melhor".
+  const chaves = Object.keys(ARMAS).filter(k => ARMAS[k].tipo !== 'corpo');
+  for (const a of chaves) {
+    for (const b of chaves) {
+      if (a === b) continue;
+      const A = ARMAS[a];
+      const B = ARMAS[b];
+      // Quatro eixos, e o de cabeca a distancia entra porque e nele que a
+      // carabina existe: comparar so dano de corpo dizia que a pineira
+      // dominava tudo.
+      const domina = danoPorSegundo(A, 2) > danoPorSegundo(B, 2)
+        && danoPorSegundoNaCabeca(A, 18) > danoPorSegundoNaCabeca(B, 18)
+        && A.pente >= B.pente
+        && A.custo <= B.custo;
+      ok(!domina, `${A.nome} domina ${B.nome} em todos os eixos`);
     }
-    ok(jogo.estado === 'jogando', `${fase.nome}: o jogo nao comeca jogando`);
   }
 });
 
-prova('correr faz mais ruido que andar, e agachado nao faz nenhum', () => {
-  const jogo = criarJogo(0);
-  const medir = (entrada) => {
-    const j = criarJogo(0);
-    let maior = 0;
-    for (let i = 0; i < 120; i++) {
-      passo(j, { ...entradaNula(), ...entrada }, DT);
-      for (const r of j.ruidos) maior = Math.max(maior, r.forca);
-    }
-    return maior;
-  };
-  const agachado = medir({ frente: 1, agachado: true });
-  const andando = medir({ frente: 1 });
-  const correndo = medir({ frente: 1, correndo: true });
-  igual(agachado, 0, 'agachado faz ruido');
-  ok(andando > 0, 'andar nao faz ruido nenhum');
-  ok(correndo > andando, `correr (${correndo}) nao e mais alto que andar (${andando})`);
-  ok(jogo.jogador.vida === CONFIG.vidaMax, 'o jogador nao comeca com vida cheia');
+prova('cada arma tem o eixo dela', () => {
+  const perto = (k) => danoPorSegundo(ARMAS[k], 2);
+  const longe = (k) => danoPorSegundo(ARMAS[k], 20);
+  // A espingarda tem de ser a maior de perto entre TODAS, e nao so maior que
+  // uma: e esse o eixo dela, e comparar com uma arma so deixava a tabela passar
+  // com a espingarda em segundo lugar.
+  const maiorDePerto = Object.keys(ARMAS)
+    .filter(k => ARMAS[k].tipo !== 'corpo')
+    .sort((a, b) => perto(b) - perto(a))[0];
+  igual(maiorDePerto, 'espingarda',
+    `de perto quem ganha e ${ARMAS[maiorDePerto].nome}`);
+  ok(longe('espingarda') === 0, 'a espingarda alcanca 20 m');
+  const cabecaLonge = (k) => danoPorSegundoNaCabeca(ARMAS[k], 18);
+  ok(cabecaLonge('carabina') > cabecaLonge('pineira') * 1.3,
+    'a carabina nao ganha de longe mirando na cabeca');
+  // O eixo do macarico nao e dano num zumbi: e dano em QUATRO. Ele atravessa
+  // (penetracao 3) e a chama nao escolhe alvo, entao a conta que vale e dano
+  // por segundo vezes quantos ele pega junto.
+  const emCerco = (k) => perto(k) * (1 + ARMAS[k].penetracao);
+  const maiorEmCerco = Object.keys(ARMAS)
+    .filter(k => ARMAS[k].tipo !== 'corpo')
+    .sort((a, b) => emCerco(b) - emCerco(a))[0];
+  igual(maiorEmCerco, 'macarico', `em cerco quem ganha e ${ARMAS[maiorEmCerco].nome}`);
+  ok(ARMAS.macarico.alcance < 7, 'o macarico alcanca longe demais');
+  ok(ARMAS.pineira.pente > ARMAS.carabina.pente * 3, 'a pineira nao sustenta fluxo');
 });
 
-// -------------------------------------------------------------- 7. balistica
-
-prova('parede bloqueia tiro', () => {
-  const m = M.carregar(FASES[0]);
-  const parede = M.primeiraParedeDepoisDoInicio(m);
-  const acerto = tracar(m, parede.origem, parede.dir, 30, []);
-  ok(acerto && acerto.tipo === 'parede', 'o traco nao parou na parede');
-  entre(acerto.distancia, 0.2, parede.distancia + 0.6, 'distancia do acerto na parede');
-});
-
-prova('inimigo atras de parede nao toma tiro; na frente, toma', () => {
-  const m = M.carregar(FASES[0]);
-  const p = M.primeiraParedeDepoisDoInicio(m);
-  const atras = criarInimigo('larva',
-    p.origem.x + p.dir.x * (p.distancia + 2), p.origem.y + p.dir.y * (p.distancia + 2));
-  const frente = criarInimigo('larva',
-    p.origem.x + p.dir.x * (p.distancia * 0.5), p.origem.y + p.dir.y * (p.distancia * 0.5));
-  const so_atras = tracar(m, p.origem, p.dir, 30, [atras]);
-  igual(so_atras.tipo, 'parede', 'tiro acertou inimigo atraves da parede');
-  const com_frente = tracar(m, p.origem, p.dir, 30, [atras, frente]);
-  igual(com_frente.tipo, 'inimigo', 'tiro nao acertou o inimigo na linha de visao');
-  igual(com_frente.alvo, frente, 'tiro acertou o inimigo errado');
-});
-
-prova('a espingarda espalha e a pineira nao', () => {
-  ok(ARMAS.espingarda.pelotas > 1, 'espingarda com uma pelota');
-  ok(ARMAS.espingarda.espalhamento > ARMAS.pineira.espalhamento,
-    'espingarda nao espalha mais que a pineira');
-  ok(ARMAS.picareta.ruido < ARMAS.pineira.ruido,
-    'picareta nao e mais silenciosa que a pineira');
-  ok(ARMAS.picareta.municao === null, 'picareta gasta municao');
-  for (const [nome, arma] of Object.entries(ARMAS)) {
-    ok(arma.dano > 0, `${nome} sem dano`);
-    ok(arma.cadencia > 0, `${nome} sem cadencia`);
-    ok(arma.alcance > 0, `${nome} sem alcance`);
+prova('cabeca paga, distancia cobra, alcance corta', () => {
+  for (const chave of Object.keys(ARMAS)) {
+    const arma = ARMAS[chave];
+    ok(arma.cabeca > 1, `${arma.nome}: cabeca nao paga`);
+    igual(danoNaDistancia(arma, arma.alcance + 0.1), 0, `${arma.nome}: passou do alcance`);
+    const cheio = danoNaDistancia(arma, arma.alcance * 0.3);
+    const longe = danoNaDistancia(arma, arma.alcance * 0.95);
+    ok(longe < cheio, `${arma.nome}: dano nao cai com a distancia`);
+    ok(longe > 0, `${arma.nome}: dano zerou antes do alcance`);
   }
 });
 
-// ------------------------------------------------------------- 8. inimigos
+prova('parede para a bala, e a penetracao tem limite', () => {
+  const solidoFalso = (x) => x > 4 && x < 6;
+  ok(paredeNaLinha(solidoFalso, { x: 0, y: 0 }, { x: 10, y: 0 }), 'a bala atravessou a parede');
+  ok(!paredeNaLinha(solidoFalso, { x: 0, y: 0 }, { x: 4, y: 0 }), 'a bala parou sem parede');
 
-prova('o cego nao acorda com luz, acorda com ruido', () => {
-  const jogo = criarJogo(0);
-  const inimigo = criarInimigo('cego', jogo.jogador.x + 4, jogo.jogador.y);
-  jogo.inimigos = [inimigo];
-  jogo.jogador.lanterna = true;
-  jogo.jogador.bateria = 999;
-  for (let i = 0; i < 120; i++) passo(jogo, { ...entradaNula(), agachado: true }, DT);
-  igual(inimigo.estado, 'dormindo', 'o cego viu a lanterna');
-
-  for (let i = 0; i < 60; i++) passo(jogo, { ...entradaNula(), frente: 1, correndo: true }, DT);
-  ok(inimigo.estado !== 'dormindo', 'o cego nao ouviu a corrida');
+  const semParede = () => false;
+  const fila = [];
+  for (let i = 0; i < 6; i++) {
+    fila.push({ id: i + 1, x: 2 + i * 1.5, y: 0, raio: 0.5, altura: 1.8 });
+  }
+  const arma = { ...ARMAS.carabina, espalhamento: 0, pelotas: 1 };
+  const acertos = tracar(semParede, { x: 0, y: 0, z: 1 }, { x: 1, y: 0, z: 0 }, arma, fila, () => 0.5);
+  igual(acertos.length, 1 + arma.penetracao, 'penetracao nao respeitou o limite');
+  const alvosAtingidos = acertos.map(a => a.alvo.id);
+  igual(alvosAtingidos[0], 1, 'a bala nao atingiu o mais perto primeiro');
 });
 
-prova('o rastejo alcanca e machuca o jogador parado num corredor limpo', () => {
-  const jogo = criarJogo(0);
-  const alvo = M.celulaLongeDoInicio(jogo.mapa, 8);
-  jogo.inimigos = [criarInimigo('rastejo', alvo.x + 0.5, alvo.y + 0.5)];
-  jogo.inimigos[0].estado = 'cacando';
-  jogo.inimigos[0].alvo = { x: jogo.jogador.x, y: jogo.jogador.y };
-  let menorDistancia = Infinity;
+prova('a espingarda espalha e a carabina nao', () => {
+  const semParede = () => false;
+  const alvo = [{ id: 1, x: 8, y: 0, raio: 0.5, altura: 1.8 }];
+  let acertosEspingarda = 0;
+  let acertosCarabina = 0;
+  for (let i = 0; i < 40; i++) {
+    const sorteio = () => (i % 7) / 7;
+    acertosEspingarda += tracar(semParede, { x: 0, y: 0, z: 1.6 }, { x: 1, y: 0, z: -0.09 },
+      equipar('espingarda'), alvo, sorteio).length;
+    acertosCarabina += tracar(semParede, { x: 0, y: 0, z: 1.6 }, { x: 1, y: 0, z: -0.09 },
+      equipar('carabina'), alvo, sorteio).length;
+  }
+  ok(acertosEspingarda > acertosCarabina,
+    `espingarda ${acertosEspingarda} contra carabina ${acertosCarabina} pelotas no alvo`);
+});
+
+prova('a forja muda a arma de verdade', () => {
+  for (const chave of Object.keys(ARMAS)) {
+    const forjada = forjar(chave);
+    if (ARMAS[chave].tipo === 'corpo') { igual(forjada, null, 'a picareta forjou'); continue; }
+    ok(forjada.dano > ARMAS[chave].dano * 2, `${chave}: a forja nao dobrou o dano`);
+    ok(forjada.pente > ARMAS[chave].pente, `${chave}: a forja nao aumentou o pente`);
+    ok(forjada.nome !== ARMAS[chave].nome, `${chave}: a forja nao mudou o nome`);
+  }
+});
+
+prova('a arma da rodada 25 existe', () => {
+  // Sem isso o jogo tem teto invisivel: chega uma rodada em que nada mata, e o
+  // jogador perde sem entender por que.
+  const vida = vidaDaRodada(25);
+  const forjada = forjar('carabina');
+  const tirosNaCabeca = Math.ceil(vida / (forjada.dano * forjada.cabeca));
+  ok(tirosNaCabeca <= forjada.pente,
+    `a rodada 25 (vida ${vida}) pede ${tirosNaCabeca} tiros de cabeca e o pente tem ${forjada.pente}`);
+  ok(tirosNaCabeca <= 4,
+    `a rodada 25 (vida ${vida}) pede ${tirosNaCabeca} tiros de cabeca da carabina forjada`);
+  const dps = danoPorSegundoNaCabeca(forjada, 8);
+  ok(dps > vida / 2,
+    `a carabina forjada faz ${dps.toFixed(0)} de dano de cabeca por segundo contra ${vida} de vida`);
+});
+
+prova('municao de parede custa menos que a arma', () => {
+  for (const chave of Object.keys(ARMAS)) {
+    const arma = ARMAS[chave];
+    if (!arma.custo) continue;
+    ok(custoDaMunicao(arma) < arma.custo, `${arma.nome}: municao nao e mais barata`);
+  }
+});
+
+// ------------------------------------------------------------- 4. o jogo
+
+prova('zumbi nasce so em zona aberta', () => {
+  const jogo = criarJogo(0, { semente: 3, semPreparo: true });
+  igual(janelasAtivas(jogo).length,
+    jogo.mapa.janelas.filter(w => zonaEm(jogo.mapa, w.dentro.x, w.dentro.y) === jogo.mapa.zonaInicial).length,
+    'janelas ativas nao sao as da zona inicial');
+  for (let i = 0; i < 60 * 40; i++) passo(jogo, {}, DT);
+  for (const z of zumbisVivos(jogo)) {
+    const zona = zonaEm(jogo.mapa, z.janela.dentro.x, z.janela.dentro.y);
+    ok(jogo.mapa.zonas[zona].aberta, 'nasceu zumbi em zona fechada');
+  }
+});
+
+prova('zumbi arranca tabua, jogador repoe, e o ponto sai', () => {
+  const jogo = criarJogo(0, { semente: 3, semPreparo: true });
+  const total = tabuasDeTodasAsJanelas(jogo);
+  igual(total, jogo.mapa.janelas.length * CONFIG.tabuasPorJanela, 'tabuas no comeco');
+  let arrancadas = 0;
   for (let i = 0; i < 60 * 30; i++) {
-    passo(jogo, entradaNula(), DT);
-    const d = Math.hypot(jogo.inimigos[0].x - jogo.jogador.x, jogo.inimigos[0].y - jogo.jogador.y);
-    menorDistancia = Math.min(menorDistancia, d);
-    if (jogo.jogador.vida < CONFIG.vidaMax) break;
+    for (const e of passo(jogo, {}, DT)) if (e.tipo === 'tabua-arrancada') arrancadas++;
   }
-  ok(menorDistancia < 1.2,
-    `o rastejo nao chegou em 30 s de corredor livre (parou a ${menorDistancia.toFixed(2)})`);
-  ok(jogo.jogador.vida < CONFIG.vidaMax, 'o rastejo chegou e nao machucou');
+  ok(arrancadas > 0, 'ninguem arrancou tabua em 30 s');
+  ok(tabuasDeTodasAsJanelas(jogo) < total, 'as tabuas nao cairam');
+
+  // repor: o jogador anda ate a janela mais furada e repoe
+  const janela = jogo.mapa.janelas.slice().sort((a, b) => a.tabuas - b.tabuas)[0];
+  jogo.jogador.x = janela.dentro.x + 0.5;
+  jogo.jogador.y = janela.dentro.y + 0.5;
+  const antes = janela.tabuas;
+  const pontosAntes = jogo.jogador.pontos;
+  passo(jogo, { usar: true }, DT);
+  igual(janela.tabuas, antes + 1, 'repor tabua nao repos');
+  igual(jogo.jogador.pontos, pontosAntes + CONFIG.pontosPorTabuaReposta, 'repor tabua nao pagou');
 });
 
-prova('inimigo morto para de agir e conta ponto', () => {
-  const jogo = criarJogo(0);
-  const inimigo = criarInimigo('larva', jogo.jogador.x + 1, jogo.jogador.y);
-  jogo.inimigos = [inimigo];
+prova('uso tem travamento, e compra nao acontece sessenta vezes por segundo', () => {
+  // Defeito que o robo achou: sem travamento ele comprava municao em todo
+  // quadro, gastava tudo que ganhava e morria com o mapa fechado.
+  const jogo = criarJogo(0, { semente: 3, semPreparo: true, pontos: 20000 });
+  const parede = jogo.mapa.maquinas.find(q => q.tipo === 'arma');
+  jogo.jogador.x = parede.x;
+  jogo.jogador.y = parede.y;
+  const antes = jogo.jogador.pontos;
+  let compras = 0;
+  for (let i = 0; i < 30; i++) {
+    for (const e of passo(jogo, { usar: true }, DT)) {
+      if (e.tipo === 'comprou' || e.tipo === 'municao') compras++;
+    }
+  }
+  igual(compras, 1, 'meio segundo de tecla apertada comprou mais de uma vez');
+  igual(jogo.jogador.pontos, antes - ARMAS[parede.arma].custo,
+    'o preco cobrado nao e o da arma da parede');
+});
+
+prova('porta cobra uma vez e abre o vao inteiro', () => {
+  const jogo = criarJogo(0, { semente: 3, semPreparo: true, pontos: 9000 });
+  const porta = [...jogo.mapa.portas.values()][0];
+  const mesmaMarca = [...jogo.mapa.portas.values()].filter(p => p.marca === porta.marca);
+  ok(mesmaMarca.length >= 3, 'o vao da porta tem menos de tres celulas');
+  jogo.jogador.x = porta.x + 0.5;
+  jogo.jogador.y = porta.y + 1.6;
+  jogo.jogador.ang = -Math.PI / 2;
+  const antes = jogo.jogador.pontos;
+  passo(jogo, { usar: true }, DT);
+  igual(jogo.jogador.pontos, antes - porta.custo, 'a porta nao cobrou o preco certo');
+  for (const celula of mesmaMarca) ok(celula.aberta, 'o vao nao abriu inteiro');
+  for (const zona of porta.zonas) {
+    ok(jogo.mapa.zonas[zona].aberta, 'abrir a porta nao abriu as zonas que ela liga');
+  }
+});
+
+prova('perk e forja exigem forca; caixa nao', () => {
+  const jogo = criarJogo(0, { semente: 3, semPreparo: true, pontos: 30000 });
+  const perk = jogo.mapa.maquinas.find(q => q.tipo === 'perk');
+  jogo.jogador.x = perk.x;
+  jogo.jogador.y = perk.y;
+  let negado = false;
+  for (const e of passo(jogo, { usar: true }, DT)) if (e.tipo === 'negado') negado = true;
+  ok(negado, 'comprou perk sem forca');
+  igual(jogo.jogador.perks.size, 0, 'o perk entrou mesmo negado');
+
+  jogo.forcaLigada = true;
+  jogo.relogioDeUso = 0;
+  let comprou = false;
+  for (const e of passo(jogo, { usar: true }, DT)) if (e.tipo === 'perk') comprou = true;
+  ok(comprou, 'nao comprou perk com forca ligada');
+  ok(jogo.jogador.perks.size === 1, 'o perk nao entrou');
+});
+
+prova('o caldo dobra a vida e o talisma levanta uma vez', () => {
+  const jogo = criarJogo(0, { semente: 3, semPreparo: true, pontos: 30000 });
+  jogo.forcaLigada = true;
+  const caldo = jogo.mapa.maquinas.find(q => q.tipo === 'perk' && q.perk === 'caldo');
+  jogo.jogador.x = caldo.x;
+  jogo.jogador.y = caldo.y;
+  passo(jogo, { usar: true }, DT);
+  igual(jogo.jogador.vidaMaxima, CONFIG.vidaMaxima * CONFIG.multiplicadorDeVidaDoCaldo,
+    'o caldo nao dobrou a vida');
+
+  const outro = criarJogo(0, { semente: 3, semPreparo: true });
+  outro.jogador.perks.add('talisma');
+  outro.jogador.vida = 1;
+  const zumbi = criarZumbi('comum', 1, outro.mapa.janelas[0]);
+  zumbi.estado = 'cacando';
+  zumbi.x = outro.jogador.x + 0.3;
+  zumbi.y = outro.jogador.y;
+  outro.vivos.push(zumbi);
+  let levantou = false;
+  for (let i = 0; i < 60 * 3 && !levantou; i++) {
+    for (const e of passo(outro, {}, DT)) if (e.tipo === 'levantou') levantou = true;
+  }
+  ok(levantou, 'o talisma nao levantou ninguem');
+  ok(!outro.jogador.baixado, 'ficou baixado mesmo com talisma');
+  ok(!outro.jogador.perks.has('talisma'), 'o talisma nao foi gasto');
+});
+
+prova('mordida derruba, e sangrar mata', () => {
+  const jogo = criarJogo(0, { semente: 3, semPreparo: true });
+  let baixou = false;
+  let morreu = false;
+  for (let i = 0; i < 60 * 120 && !morreu; i++) {
+    for (const e of passo(jogo, {}, DT)) {
+      if (e.tipo === 'baixado') baixou = true;
+      if (e.tipo === 'fim') morreu = true;
+    }
+  }
+  ok(baixou, 'o jogador parado nunca foi derrubado');
+  ok(morreu, 'o jogador sangrou e nunca morreu');
+  igual(jogo.estado, 'morto', 'estado final');
+});
+
+prova('ponto por acerto, por morte e por cabeca, na tabela', () => {
+  const jogo = criarJogo(0, { semente: 3, semPreparo: true });
+  const zumbi = criarZumbi('comum', 1, jogo.mapa.janelas[0]);
+  zumbi.estado = 'cacando';
+  zumbi.vida = 10000;
+  zumbi.x = jogo.jogador.x + 3;
+  zumbi.y = jogo.jogador.y;
+  jogo.vivos.push(zumbi);
   jogo.jogador.ang = 0;
-  inimigo.x = jogo.jogador.x + Math.cos(0) * 0.9;
-  inimigo.y = jogo.jogador.y + Math.sin(0) * 0.9;
-  let voltas = 0;
-  while (inimigo.vida > 0 && voltas++ < 600) {
-    passo(jogo, { ...entradaNula(), atirar: true }, DT);
-  }
-  ok(inimigo.vida <= 0, 'a picareta nao mata uma larva a queima-roupa');
-  igual(inimigo.estado, 'morto', 'inimigo sem vida continua ativo');
-  igual(jogo.abatidos, 1, 'o abate nao foi contado');
+  jogo.jogador.inclinacao = 0;
+  jogo.jogador.armas[1] = equipar('pistola');
+  jogo.jogador.naMao = 1;
+  const antes = jogo.jogador.pontos;
+  passo(jogo, { atirar: true }, DT);
+  igual(jogo.jogador.pontos - antes, CONFIG.pontosPorAcerto, 'ponto por acerto');
+
+  // morte na cabeca
+  zumbi.vida = 1;
+  jogo.jogador.inclinacao = (zumbi.altura * 0.85 - CONFIG.alturaDoOlho) / 3;
+  jogo.jogador.armas[1].esfriando = 0;
+  const antesDaMorte = jogo.jogador.pontos;
+  passo(jogo, { atirar: true }, DT);
+  const ganho = jogo.jogador.pontos - antesDaMorte;
+  ok(ganho === CONFIG.pontosPorAcerto + CONFIG.pontosPorCabeca
+    || ganho === CONFIG.pontosPorAcerto + CONFIG.pontosPorMorte,
+    `morte pagou ${ganho}`);
+  igual(jogo.estatisticas.mortes, 1, 'a morte nao foi contada');
 });
 
-// ---------------------------------------------------------- 9. determinismo
+prova('a rodada fecha quando a fila esvazia', () => {
+  const jogo = criarJogo(0, { semente: 3, semPreparo: true });
+  const rodada = jogo.rodada;
+  // mata tudo que nascer, por decreto: o que esta sob prova e o fechamento da
+  // rodada, nao a mira
+  let fechou = false;
+  for (let i = 0; i < 60 * 300 && !fechou; i++) {
+    for (const z of jogo.vivos) if (z.estado === 'cacando') z.estado = 'morto';
+    for (const e of passo(jogo, {}, DT)) if (e.tipo === 'rodada-vencida') fechou = true;
+  }
+  ok(fechou, 'a rodada nunca fechou');
+  igual(jogo.rodada, rodada + 1, 'a rodada seguinte nao comecou');
+  ok(jogo.aNascer.length > 0, 'a rodada seguinte nasceu vazia');
+});
+
+prova('a dica de uso diz o preco certo', () => {
+  const jogo = criarJogo(0, { semente: 3, semPreparo: true });
+  const parede = jogo.mapa.maquinas.find(q => q.tipo === 'arma');
+  jogo.jogador.x = parede.x;
+  jogo.jogador.y = parede.y;
+  const alvo = alvoDeUso(jogo);
+  ok(alvo && alvo.tipo === 'maquina', 'a maquina embaixo da mao nao apareceu');
+  const texto = textoDoAlvo(jogo, alvo);
+  ok(texto.includes(String(ARMAS[parede.arma].custo)),
+    `a dica "${texto}" nao tem o preco da arma`);
+});
 
 prova('a mesma semente da a mesma partida', () => {
   const rodar = () => {
-    const j = criarJogo(3, { semente: 12345 });
-    const entradas = [];
-    let x = 7;
-    for (let i = 0; i < 900; i++) {
-      x = (x * 1103515245 + 12345) & 0x7fffffff;
-      entradas.push({
-        ...entradaNula(),
-        frente: ((x >> 5) % 3) - 1,
-        lado: ((x >> 9) % 3) - 1,
-        girar: (((x >> 13) % 100) - 50) / 900,
-        atirar: ((x >> 17) & 7) === 0,
-      });
-    }
-    for (const e of entradas) passo(j, e, DT);
-    return `${j.jogador.x.toFixed(6)}|${j.jogador.y.toFixed(6)}|${j.jogador.vida.toFixed(3)}|${j.abatidos}`;
+    const jogo = criarJogo(0, { semente: 99, semPreparo: true });
+    for (let i = 0; i < 60 * 30; i++) passo(jogo, { frente: i % 90 < 45, atirar: i % 7 === 0 }, DT);
+    const r = resumo(jogo);
+    return `${r.rodada}|${r.pontos}|${r.vivos}|${r.mortes}|${jogo.jogador.x.toFixed(4)}`;
   };
-  igual(rodar(), rodar(), 'duas partidas identicas divergiram');
+  igual(rodar(), rodar(), 'duas partidas com a mesma semente divergiram');
 });
 
-// ------------------------------------------------- 10. a prova que importa
+// -------------------------------------------------------- 5. o robo joga
 
-let corridaDoRobo = null;
-
-prova('um robo vence as nove fases com a fisica do jogo', () => {
-  corridaDoRobo = robo();
-  for (const linha of corridaDoRobo.fases) {
-    ok(linha.venceu, `${linha.nome}: o robo nao saiu (${linha.motivo})`);
-    entre(linha.segundos, 8, 420, `${linha.nome}: tempo do robo`);
+const partidas = [];
+for (const indice of [0, 1]) {
+  for (const semente of [11, 29, 47]) {
+    partidas.push(jogarAte(indice, 20, {
+      criarJogo, semente, limiteDeSegundos: 60 * 30,
+    }));
   }
-  igual(corridaDoRobo.fases.length, FASES.length, 'fases que o robo jogou');
-  ok(corridaDoRobo.vidaFinal > 0, 'o robo terminou morto');
-});
-
-// ---------------------------------------------------------------- resultado
-
-// A tabela sai antes do veredito, e sai mesmo quando alguma prova falha: quem
-// mexeu num numero precisa ver o estrago, e o estrago costuma estar aqui.
-console.log('\n\nfase                inimigos   vida   dano   dano/vida   bateria/travessia');
-for (const fase of FASES) {
-  const m = M.carregar(fase);
-  const vida = m.inimigos.reduce((s, e) => s + TIPOS[e.tipo].vida, 0);
-  const dano = M.danoDisponivel(m);
-  const bateria = (M.bateriaDisponivel(m) / CONFIG.gastoLanterna)
-    / (M.distanciaMinimaDeTravessia(m) / CONFIG.velAndar);
-  console.log(
-    `${fase.nome.padEnd(20)}${String(m.inimigos.length).padStart(5)}`
-    + `${String(vida).padStart(8)}${String(dano).padStart(7)}`
-    + `${(dano / vida).toFixed(2).padStart(11)}${bateria.toFixed(2).padStart(19)}`);
 }
 
-// E a corrida do robo, que e a prova que decide se o jogo e jogavel: em que
-// fase ele parou, quanto tempo levou, com quanta vida saiu e quem tirou dela.
-if (corridaDoRobo) {
-  console.log('\nfase                  robo   tempo   vida   abates   de onde veio o dano');
-  for (const l of corridaDoRobo.fases) {
-    const fonte = Object.entries(l.dano).sort((a, b) => b[1] - a[1])
-      .map(([k, v]) => `${k} ${v.toFixed(0)}`).join(', ') || '-';
-    console.log(
-      `${l.nome.padEnd(20)}${(l.venceu ? 'saiu' : 'FALHA').padStart(6)}`
-      + `${`${l.segundos.toFixed(0)} s`.padStart(8)}${l.vida.toFixed(0).padStart(7)}`
-      + `${`${l.abatidos}/${l.de}`.padStart(9)}   ${fonte}`);
+prova('o robo atravessa cinco rodadas nos dois mapas', () => {
+  for (const p of partidas) {
+    ok(p.chegouNaRodada >= 5,
+      `${p.mapa}: o robo parou na rodada ${p.chegouNaRodada} (${p.segundos.toFixed(0)} s)`);
   }
+  // Sete na melhor partida, e nao vinte: o robo tem erro de mira proporcional a
+  // distancia, nao guarda pontos para rodada de chefe e nao usa o anel de
+  // proposito — ele mede se o jogo e jogavel, nao se ele e bom. Gente chega mais
+  // longe, e e isso que o jogo tem de permitir.
+  const melhor = Math.max(...partidas.map(p => p.chegouNaRodada));
+  ok(melhor >= 7, `a melhor partida do robo parou na rodada ${melhor}`);
+  const media = partidas.reduce((s, p) => s + p.chegouNaRodada, 0) / partidas.length;
+  ok(media >= 5.5, `o robo alcanca a rodada ${media.toFixed(1)} em media`);
+});
+
+prova('o robo compra espaco e liga a forca', () => {
+  // Um robo que junta pontos e morre com o mapa fechado nao prova que o jogo e
+  // jogavel: prova que a economia esta errada. Foi o que aconteceu antes do
+  // travamento de uso existir.
+  for (const p of partidas) {
+    ok(p.estatisticas.portasAbertas >= 2,
+      `${p.mapa}: o robo abriu ${p.estatisticas.portasAbertas} porta(s)`);
+  }
+  ok(partidas.filter(p => p.forcaLigada).length >= partidas.length - 1,
+    'o robo quase nunca liga a forca');
+});
+
+prova('o robo mata com a cabeca', () => {
+  for (const p of partidas) {
+    const fracao = p.estatisticas.cabecas / Math.max(1, p.estatisticas.mortes);
+    ok(fracao > 0.35,
+      `${p.mapa}: so ${(fracao * 100).toFixed(0)}% das mortes foram na cabeca`);
+  }
+});
+
+prova('nenhum zumbi fica preso durante a partida do robo', () => {
+  // Zumbi que nao alcanca o jogador e rodada que nunca fecha. Foi assim que o
+  // vao de uma celula apareceu: o bicho vibrava na quina da porta para sempre.
+  const jogo = criarJogo(0, { semente: 5, semPreparo: true, pontos: 12000 });
+  for (const porta of jogo.mapa.portas.values()) porta.aberta = true;
+  for (const zona of jogo.mapa.zonas) zona.aberta = true;
+  const fluxo = criarFluxo(jogo.mapa);
+  let amostras = 0;
+  let presos = 0;
+  for (let i = 0; i < 60 * 90; i++) {
+    passo(jogo, { frente: i % 120 < 60, dir: i % 240 < 120 }, DT);
+    if (i % 30 !== 0) continue;
+    refazerFluxo(jogo.mapa, fluxo, jogo.jogador);
+    for (const z of zumbisVivos(jogo)) {
+      if (z.estado !== 'cacando' && z.estado !== 'mordendo') continue;
+      amostras++;
+      if (distanciaDoFluxo(jogo.mapa, fluxo, z.x, z.y) < 0) presos++;
+    }
+  }
+  ok(amostras > 50, `so ${amostras} amostras de zumbi cacando`);
+  ok(presos / amostras < 0.02,
+    `${presos} de ${amostras} amostras de zumbi sem caminho ate o jogador`);
+});
+
+// --------------------------------------------------------------- tabelas
+
+console.log('\n\nrodada  zumbis  vida  velocidade  nascimento  composicao');
+for (const r of [1, 3, 5, 7, 10, 15, 20, 25, 30]) {
+  const c = composicaoDaRodada(r);
+  console.log(
+    `${String(r).padStart(6)}${String(quantidadeDaRodada(r)).padStart(8)}`
+    + `${String(vidaDaRodada(r)).padStart(6)}`
+    + `${velocidadeDaRodada(r).toFixed(2).padStart(12)}`
+    + `${`${intervaloDeNascimento(r).toFixed(2)} s`.padStart(12)}`
+    + `   ${c.comum} comum${c.rastejante ? ` + ${c.rastejante} rastejante` : ''}`
+    + `${c.chefe ? ` + ${c.chefe} chefe` : ''}`);
+}
+
+console.log('\narma          custo   dps perto   dps 18 m   pente   alcance');
+for (const chave of Object.keys(ARMAS)) {
+  const a = ARMAS[chave];
+  console.log(
+    `${a.nome.padEnd(14)}${String(a.custo).padStart(5)}`
+    + `${danoPorSegundo(a, 2).toFixed(0).padStart(12)}`
+    + `${danoPorSegundo(a, 18).toFixed(0).padStart(11)}`
+    + `${String(Number.isFinite(a.pente) ? a.pente : '-').padStart(8)}`
+    + `${`${a.alcance} m`.padStart(10)}`);
+}
+
+console.log('\nmapa            zonas  janelas  maquinas  celulas  volta  custo');
+for (const m of mapas) {
+  const v = maiorVolta(m);
+  console.log(
+    `${m.nome.padEnd(16)}${String(m.zonas.length).padStart(5)}`
+    + `${String(m.janelas.length).padStart(9)}`
+    + `${String(m.maquinas.length).padStart(10)}`
+    + `${String(celulasAbertas(m)).padStart(9)}`
+    + `${String(v.tamanho).padStart(7)}`
+    + `${String(custoParaAbrirTudo(m)).padStart(7)}`);
+}
+
+console.log('\nrobo            mapa            rodada  tempo   mortes  cabecas  portas  forca');
+for (const p of partidas) {
+  console.log(
+    `${'partida'.padEnd(16)}${p.mapa.padEnd(16)}`
+    + `${String(p.chegouNaRodada).padStart(6)}`
+    + `${`${p.segundos.toFixed(0)} s`.padStart(8)}`
+    + `${String(p.estatisticas.mortes).padStart(9)}`
+    + `${String(p.estatisticas.cabecas).padStart(9)}`
+    + `${String(p.estatisticas.portasAbertas).padStart(8)}`
+    + `${(p.forcaLigada ? '  sim' : '  nao').padStart(7)}`);
 }
 
 console.log(`\n${feitas} provas passaram, ${falhas.length} falharam.`);
-for (const f of falhas) {
-  console.log(`\n  FALHOU  ${f.nome}\n          ${f.erro.message}`);
-}
+for (const f of falhas) console.log(`\n  FALHOU  ${f.nome}\n          ${f.erro.message}`);
 console.log('');
 if (falhas.length) process.exit(1);

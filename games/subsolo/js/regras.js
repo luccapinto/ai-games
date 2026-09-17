@@ -1,86 +1,106 @@
-// Todo numero que o jogo usa para decidir algo mora aqui.
+// Todo numero que decide algo no jogo mora aqui.
 //
-// Esta separado de `jogo.js` por um motivo pratico: `mapa.js` precisa dos mesmos
-// numeros para provar que a municao e a pilha de uma fase fecham, e `jogo.js`
-// precisa do mapa. Constante num terceiro arquivo desfaz o ciclo.
+// Esta separado de `jogo.js` por um motivo pratico: as provas precisam dos
+// numeros para dizer se uma rodada fecha, se o jogador consegue pagar a porta
+// que a rodada seguinte exige, e se a vida do zumbi da rodada 20 cabe no pente
+// de alguma arma. Constante espalhada em tres arquivos desfaz esse ciclo.
+//
+// A escala do mundo: uma celula da planta tem 2,2 m e o teto tem 3 m. Nao e
+// gosto — e o que faz um corredor de mina caber duas pessoas de ombro e uma
+// galeria de tres celulas parecer galeria, e e a mesma escala que o render usa
+// para nao mentir sobre distancia.
+
+export const CELULA = 2.2;
+export const ALTURA_DO_TETO = 3;
 
 export const CONFIG = {
-  vidaMax: 130,
+  // --- jogador ---------------------------------------------------------
+  vidaMaxima: 100,
+  // Vida volta sozinha depois de alguns segundos sem tomar dano. Sem
+  // regeneracao, um arranhao na rodada 3 condena a rodada 12; com regeneracao
+  // rapida demais, encostar em zumbi deixa de custar. Cinco segundos e o tempo
+  // de sair de um cerco e respirar.
+  esperaParaRegenerar: 5,
+  regeneracaoPorSegundo: 22,
+  velocidadeAndando: 3.4,
+  velocidadeCorrendo: 5.6,
+  // Correr tem limite: sem ele, a tatica unica do jogo e correr em circulo para
+  // sempre, e o mapa deixa de importar.
+  vigorMaximo: 4.2,
+  vigorPorSegundo: 1.6,
+  alturaDoOlho: 1.62,
+  raioDoJogador: 0.42,
 
-  // Velocidade em celulas por segundo. Agachado e a metade de andar, e e a
-  // unica maneira de se mover sem fazer ruido nenhum.
-  velAndar: 2.6,
-  velCorrer: 4.3,
-  velAgachar: 1.3,
-  aceleracao: 26,
-  atrito: 14,
-  raioJogador: 0.28,
-  alturaOlho: 0.5,
+  // --- baixado e sangramento -------------------------------------------
+  // Zumbis derrubam em vez de matar. Sangrando o jogador rasteja devagar e
+  // atira com uma pistola de reserva — a chance de voltar existe, e e curta.
+  tempoDeSangramento: 32,
+  velocidadeSangrando: 1.1,
+  // O perk de auto-revive gasta a carga e levanta com metade da vida.
+  vidaAoLevantar: 50,
 
-  // Girar com teclado. O mouse entrega delta e nao passa por aqui.
-  velGiro: 2.9,
+  // --- lanterna --------------------------------------------------------
+  // A mina e escura de verdade: sem lanterna da para andar, nao para mirar.
+  // Pilha nao acaba (nao e jogo de gerenciar pilha), mas a lanterna entrega
+  // voce: zumbi na luz acelera.
+  alcanceDaLanterna: 13,
+  aberturaDaLanterna: 0.42,
 
-  // Lanterna: ve longe, gasta pilha, e o inimigo que tem olho ve voce de longe
-  // tambem. E a decisao central do jogo, entao os numeros sao apertados de
-  // proposito — provas.mjs cobra a razao entre pilha disponivel e travessia.
-  //
-  // `alcanceEscuro` e o quanto se ve com a lanterna apagada. Ele comecou em
-  // 2,6 e a captura de tela mostrou o estrago: com a pilha vazia a tela virava
-  // um retangulo preto, e um jogo cego nao e um jogo tenso. Em 4,2 da para
-  // andar no escuro e continua valendo a pena acender.
-  bateriaMax: 100,
-  bateriaEntrada: 100,
-  gastoLanterna: 2.6,
-  alcanceLanterna: 9.5,
-  alcanceEscuro: 4.2,
+  // --- economia --------------------------------------------------------
+  pontosPorAcerto: 10,
+  pontosPorMorte: 60,
+  pontosPorCabeca: 100,
+  pontosPorTabuaReposta: 10,
+  // Recompra de municao na parede custa menos que a arma: e o que mantem uma
+  // arma boa viva na rodada 15 sem o jogador precisar trocar de arma.
+  fracaoDoCustoDaMunicao: 0.45,
+  pontosIniciais: 500,
 
-  // Ruido. A unidade e celula: forca 12 e ouvida a 12 celulas de caminhada,
-  // nao de linha reta, e porta fechada cobra pedagio (ver `custoPorta`).
-  ruidoAndar: 6,
-  ruidoCorrer: 13,
-  ruidoAgachar: 0,
-  ruidoAgua: 5,
-  passoRuido: 1.1,
-  custoPorta: 4,
+  // --- interacao -------------------------------------------------------
+  alcanceDeUso: 2.6,
+  tempoDeReporTabua: 0.55,
 
-  // Municao com que se entra numa fase. Vale como reserva na prova de economia:
-  // a picareta e infinita, entao nunca ha travamento — o que se prova e tensao.
-  municaoInicial: { pinos: 32, cartuchos: 0, gas: 0 },
-  municaoMax: { pinos: 140, cartuchos: 32, gas: 120 },
+  // --- perks (os quatro, com o nome que a mina daria) ------------------
+  perks: {
+    caldo: { nome: 'CALDO', custo: 2500, descricao: 'dobra a vida' },
+    graxa: { nome: 'GRAXA', custo: 3000, descricao: 'recarrega no dobro' },
+    gatilho: { nome: 'GATILHO', custo: 2000, descricao: 'cadencia em dobro' },
+    talisma: { nome: 'TALISMA', custo: 1500, descricao: 'levanta sozinho uma vez' },
+  },
+  multiplicadorDeVidaDoCaldo: 2,
+  multiplicadorDeRecargaDaGraxa: 2,
+  multiplicadorDeCadenciaDoGatilho: 1.85,
 
-  // Quanto tempo o corpo do bicho fica no chao antes de sumir (so visual).
-  tempoCadaver: 22,
+  // --- caixa e forja ---------------------------------------------------
+  custoDaCaixa: 950,
+  custoDaForja: 5000,
+  // A forja multiplica dano e pente, e o multiplicador e alto de proposito: e
+  // ele que decide se a rodada 25 e possivel.
+  danoDaForja: 2.6,
+  penteDaForja: 1.6,
 
-  // Dano que o jogador toma cai pela metade agachado atras de quina? Nao:
-  // agachar e sobre ruido, nao sobre defesa. Nenhum modificador aqui.
-  empurraoMorte: 0.6,
-
-  // Piso de vida ao descer de fase. Ver o comentario de `herdar` em jogo.js:
-  // saiu de uma fase com 20, entra na seguinte com este numero.
-  pisoDeVidaAoDescer: 80,
+  // --- zumbis ----------------------------------------------------------
+  // Dano por mordida e o tempo entre mordidas. Tres zumbis em cima derrubam em
+  // pouco mais de tres segundos, e e isso que faz cerco ser cerco.
+  danoDoZumbi: 28,
+  intervaloDaMordida: 1.1,
+  alcanceDaMordida: 1.35,
+  raioDoZumbi: 0.45,
+  // Tabuas por janela. Zumbi arranca uma por vez, e o jogador repoe uma por vez.
+  tabuasPorJanela: 6,
+  tempoParaArrancarTabua: 1.9,
+  // Quantos zumbis podem existir ao mesmo tempo. Nao e limite de desempenho: e
+  // o que garante que a rodada 30 seja um fluxo constante e nao uma parede de
+  // sessenta corpos que ninguem atravessa.
+  zumbisSimultaneos: 24,
 };
 
-// O que cada item da planta entrega ao ser pisado.
-export const ITENS = {
-  P: { tipo: 'pinos', qtd: 22, rotulo: 'PINOS' },
-  T: { tipo: 'cartuchos', qtd: 4, rotulo: 'CARTUCHOS' },
-  G: { tipo: 'gas', qtd: 40, rotulo: 'GAS' },
-  V: { tipo: 'pilha', qtd: 45, rotulo: 'PILHA' },
-  K: { tipo: 'kit', qtd: 45, rotulo: 'KIT' },
-  A: { tipo: 'cracha', cracha: 'A', rotulo: 'CRACHA A' },
-  B: { tipo: 'cracha', cracha: 'B', rotulo: 'CRACHA B' },
-  C: { tipo: 'cracha', cracha: 'C', rotulo: 'CRACHA C' },
-  S: { tipo: 'arma', arma: 'espingarda', rotulo: 'ESPINGARDA' },
-  M: { tipo: 'arma', arma: 'macarico', rotulo: 'MACARICO' },
+// Nomes proprios da mina, para o HUD e para as mensagens.
+export const TEXTOS = {
+  forcaDesligada: 'A FORCA ESTA DESLIGADA',
+  forcaLigada: 'FORCA LIGADA',
+  semPontos: 'PONTOS INSUFICIENTES',
+  precisaDeForca: 'PRECISA DE FORCA',
+  penteCheio: 'PENTE CHEIO',
+  semArma: 'MAO VAZIA',
 };
-
-// Gerador congruente linear com semente. O jogo sorteia pouca coisa — o
-// espalhamento da espingarda e o tremor do bicho — mas sorteio sem semente
-// impede provar que duas partidas iguais dao no mesmo.
-export function criarSorteio(semente = 1) {
-  let estado = (semente | 0) || 1;
-  return () => {
-    estado = (estado * 1103515245 + 12345) & 0x7fffffff;
-    return estado / 0x7fffffff;
-  };
-}

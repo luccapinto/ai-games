@@ -4,11 +4,11 @@
     "jogos": 9,
     "autores": 1,
     "modelos": 2,
-    "linhas": 29167,
-    "usd": 15.42,
-    "tokens_novos": 2851978,
+    "linhas": 30921,
+    "usd": 22.14,
+    "tokens_novos": 3299978,
     "tokens_cache": 159076224,
-    "chamadas": 1208
+    "chamadas": 1514
   },
   "jogos": [
     {
@@ -63,7 +63,7 @@
     {
       "slug": "subsolo",
       "titulo": "SUBSOLO",
-      "genero": "FPS",
+      "genero": "FPS de rodadas",
       "criado": "2026-09-17",
       "estado": "jogavel",
       "licenca": "MIT",
@@ -79,32 +79,32 @@
           "modelo": "claude-opus-5",
           "provider": "Anthropic",
           "agente": "Oh My Pi",
-          "papel": "o jogo inteiro: plantas, física, IA, raycaster, som e o arranjo de provas",
-          "chamadas_api": 96,
+          "papel": "o jogo inteiro: geometria dos mapas, rodadas, armas e balistica, IA dos zumbis, economia, render 3D em WebGL2 e o robo que joga; audio e casca/HUD feitos por subagentes do mesmo modelo",
+          "chamadas_api": 402,
           "tokens": {
-            "entrada": 77000,
-            "saida": 28000,
+            "entrada": 402000,
+            "saida": 151000,
             "cache_leitura": 0,
             "cache_escrita": 0
           },
-          "usd_estimado": 1.58
+          "usd_estimado": 8.3
         }
       ],
       "medicao": {
         "metodo": "diferença do contador de tokens da sessão do agente entre o início e o fim deste jogo; custo pela mesma taxa cega de US$ 15 por milhão de tokens novos usada nos outros jogos claude-opus-5 deste repositório",
         "confianca": "estimado",
         "medido_em": "2026-09-17",
-        "nota": "O total (105 mil tokens novos) é a diferença do contador da sessão e é a parte confiável. A divisão entre entrada e saída é estimativa minha, e é a parte fraca. O cache está zerado porque não foi medido, não porque não houve: a ferramenta certamente usou cache numa sessão longa, então o custo real de fatura é menor que o estimado aqui."
+        "nota": "O total (553 mil tokens novos) inclui a versao de raycasting anterior e a reconstrucao em 3D com sobrevivencia por rodadas, e e a diferenca do contador da sessao: essa e a parte confiavel. A divisao entre entrada e saida e estimativa minha. Dois subagentes do mesmo modelo escreveram o audio e a casca/HUD, e o custo deles esta nesse total. A maior parte foi afinacao medida, nao digitacao: o robo que joga achou seis defeitos de regra que estariam no jogo sem ele."
       },
       "totais": {
-        "tokens_entrada": 77000,
-        "tokens_saida": 28000,
-        "tokens_novos": 105000,
+        "tokens_entrada": 402000,
+        "tokens_saida": 151000,
+        "tokens_novos": 553000,
         "tokens_cache": 0,
-        "tokens_totais": 105000,
-        "usd": 1.58,
-        "chamadas_api": 96,
-        "linhas": 4814,
+        "tokens_totais": 553000,
+        "usd": 8.3,
+        "chamadas_api": 402,
+        "linhas": 6568,
         "tem_custo": true
       },
       "url": "games/subsolo/"
@@ -467,13 +467,13 @@
         "travessia"
       ],
       "n_jogos": 8,
-      "tokens_novos": 958000,
+      "tokens_novos": 1406000,
       "tokens_cache": 0,
-      "chamadas_api": 552,
-      "usd": 14.39,
-      "linhas": 18458,
-      "tokens_por_linha": 51.9,
-      "linhas_por_dolar": 1282.7
+      "chamadas_api": 858,
+      "usd": 21.11,
+      "linhas": 20212,
+      "tokens_por_linha": 69.56,
+      "linhas_por_dolar": 957.46
     },
     {
       "nome": "deepseek-flash",
@@ -517,13 +517,13 @@
         "travessia"
       ],
       "n_jogos": 3,
-      "tokens_novos": 562000,
+      "tokens_novos": 1010000,
       "tokens_cache": 0,
-      "chamadas_api": 416,
-      "usd": 8.43,
-      "linhas": 13023,
-      "tokens_por_linha": 43.15,
-      "linhas_por_dolar": 1544.84
+      "chamadas_api": 722,
+      "usd": 15.15,
+      "linhas": 14777,
+      "tokens_por_linha": 68.35,
+      "linhas_por_dolar": 975.38
     },
     {
       "nome": "Hermes Agent (Talos)",
@@ -554,13 +554,13 @@
         "travessia"
       ],
       "n_jogos": 8,
-      "tokens_novos": 958000,
+      "tokens_novos": 1406000,
       "tokens_cache": 0,
-      "chamadas_api": 552,
-      "usd": 14.39,
-      "linhas": 18458,
-      "tokens_por_linha": 51.9,
-      "linhas_por_dolar": 1282.7
+      "chamadas_api": 858,
+      "usd": 21.11,
+      "linhas": 20212,
+      "tokens_por_linha": 69.56,
+      "linhas_por_dolar": 957.46
     },
     {
       "nome": "DeepSeek",

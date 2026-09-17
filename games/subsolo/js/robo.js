@@ -1,348 +1,381 @@
-// O robo que joga o jogo — a prova principal do SUBSOLO.
+// O robo que joga o SUBSOLO. E a prova principal do jogo.
 //
-// Ele nao tem nada de especial: usa `criarJogo`/`passo`, a mesma fisica, as
-// mesmas armas e os mesmos bichos do navegador. O que ele tem e o mapa na mao:
-// pede caminho para `mapa.caminho`, decide alvo pelo mesmo fechamento de cracha
-// que `mapa.completavel` usa, e atira no que aparece na linha de visao.
+// Ele nao tem nada de especial: le o mesmo estado que a tela mostra, manda os
+// mesmos comandos que o teclado manda, e nao ve nada atraves de parede. Se ele
+// chega na rodada dez, a rodada dez e jogavel; se ele morre na tres com pontos
+// no bolso, o defeito esta na economia e nao nele.
 //
-// Se as nove fases nao terminam para ele, nao terminam para ninguem — e se
-// terminam num tempo absurdo, a fase esta desenhada errada. provas.mjs cobra as
-// duas coisas.
+// Tres taticas, e as tres sao as que um jogador humano usa no genero:
+//
+// 1. **Arrastar.** Anda para a celula da vizinhanca que fica mais LONGE da
+//    horda, calculado por uma busca em largura a partir de todos os zumbis. E
+//    isso que transforma o anel do mapa em ferramenta: quem arrasta pelo anel
+//    nunca fica cercado.
+// 2. **Mirar na cabeca.** Cabeca paga 100 pontos e mata mais rapido. A mira do
+//    robo tem erro proporcional a distancia, senao ele viraria um jogador
+//    perfeito e a prova nao diria nada sobre o jogo de gente.
+// 3. **Comprar na ordem.** Arma de parede primeiro, porta depois, forca e perk
+//    quando sobra. A ordem importa: comprar porta antes de arma abre janela
+//    para a horda entrar sem ter com que atirar.
 
-import { FASES } from './fases.js';
-import * as M from './mapa.js';
-import { ARMAS, linhaLivre } from './armas.js';
-import { TIPOS } from './inimigos.js';
-import { criarJogo, passo, entradaNula, herdar, DT, CONFIG } from './jogo.js';
+import { CONFIG } from './regras.js';
+import {
+  passo, armaNaMao, alvoDeUso, zumbisVivos, janelasAtivas,
+} from './jogo.js';
+import { solidoParaTiro, refazerFluxo, criarFluxo, tile, T, chave } from './mapa.js';
+import { danoPorSegundo } from './armas.js';
 
-const LIMITE_SEGUNDOS = 400;
+const VIZINHOS = [[1, 0], [-1, 0], [0, 1], [0, -1]];
 
-export function robo(opcoes = {}) {
-  let herdado = null;
-  const fases = [];
-  let vidaFinal = CONFIG.vidaMax;
-  const de = opcoes.de ?? 0;
-  const ate = opcoes.ate ?? FASES.length - 1;
-
-  for (let i = de; i <= ate; i++) {
-    const linha = jogarFase(i, herdado, opcoes);
-    fases.push(linha);
-    vidaFinal = linha.vida;
-    if (!linha.venceu) break;
-    herdado = linha.herdado;
+// Campo de distancia da horda: quantas celulas de caminho ate o zumbi mais
+// perto. O robo sobe esse gradiente quando esta apertado.
+function campoDaHorda(jogo) {
+  const m = jogo.mapa;
+  const distancia = new Int32Array(m.largura * m.altura).fill(-1);
+  const fila = [];
+  for (const z of zumbisVivos(jogo)) {
+    const cx = Math.floor(z.x);
+    const cy = Math.floor(z.y);
+    if (cx < 0 || cy < 0 || cx >= m.largura || cy >= m.altura) continue;
+    const i = cy * m.largura + cx;
+    if (distancia[i] === -1) { distancia[i] = 0; fila.push(i); }
   }
-  return { fases, vidaFinal };
+  let cabeca = 0;
+  while (cabeca < fila.length) {
+    const i = fila[cabeca++];
+    const x = i % m.largura;
+    const y = (i - x) / m.largura;
+    for (const [dx, dy] of VIZINHOS) {
+      const nx = x + dx;
+      const ny = y + dy;
+      if (nx < 0 || ny < 0 || nx >= m.largura || ny >= m.altura) continue;
+      const j = ny * m.largura + nx;
+      if (distancia[j] !== -1) continue;
+      const t = tile(m, nx, ny);
+      if (t >= T.ROCHA && t !== T.PORTA) continue;
+      if (t === T.PORTA) {
+        const porta = m.portas.get(chave(nx, ny));
+        if (!porta || !porta.aberta) continue;
+      }
+      distancia[j] = distancia[i] + 1;
+      fila.push(j);
+    }
+  }
+  return distancia;
 }
 
-export function jogarFase(indice, herdado, opcoes = {}) {
-  const jogo = criarJogo(indice, { herdado, semente: opcoes.semente || 777 });
-  const limite = Math.round((opcoes.limite || LIMITE_SEGUNDOS) / DT);
-  let paradoEm = { x: jogo.jogador.x, y: jogo.jogador.y, t: 0 };
-  let caminho = null;
-  let alvoCelula = null;
-  let cutucao = 0;
-  let recuoRestante = 1.6;
-  // Quem tirou quanto de vida. So o relatorio usa isto, mas sem ele "o robo
-  // morreu" e uma informacao que nao diz onde mexer.
-  const dano = {};
+function distanciaNaCelula(m, campo, x, y) {
+  const cx = Math.floor(x);
+  const cy = Math.floor(y);
+  if (cx < 0 || cy < 0 || cx >= m.largura || cy >= m.altura) return -1;
+  return campo[cy * m.largura + cx];
+}
 
-  for (let quadro = 0; quadro < limite && jogo.estado === 'jogando'; quadro++) {
-    const j = jogo.jogador;
-    const entrada = entradaNula();
-
-    // --- para onde ir ---------------------------------------------------
-    const destino = escolherDestino(jogo);
-    const celula = destino ? `${Math.floor(destino.x)},${Math.floor(destino.y)}` : null;
-    if (!caminho || celula !== alvoCelula || quadro % 45 === 0) {
-      alvoCelula = celula;
-      caminho = destino ? M.caminho(jogo.mapa, j, destino, { crachas: j.crachas }) : null;
-    }
-
-    // Gancho de observacao: e por aqui que se descobre que o robo nao morreu,
-    // so ficou indo e voltando entre dois objetivos.
-    if (opcoes.espiar && quadro % 30 === 0) opcoes.espiar(jogo, destino);
-
-    // --- em quem atirar -------------------------------------------------
-    // Atira no que esta no caminho; passa correndo pelo que nao esta. Sem esta
-    // distincao o robo limpava a fase inteira e chegava no elevador sem vida —
-    // o cego, que e lento e surdo a luz, so precisa ser contornado.
-    const proximo = proximoNo(caminho, j);
-    const chefe = jogo.inimigos.find(e => TIPOS[e.tipo].chefe && e.vida > 0);
-    const dChefe = chefe ? Math.hypot(chefe.x - j.x, chefe.y - j.y) : Infinity;
-
-    // O capataz tem prioridade enquanto estiver a vista e nada mais estiver
-    // colado: e ele que libera o elevador, e a janela sem blindagem e curta.
-    // Mas prioridade cega custou uma corrida inteira — o robo dancava com o
-    // chefe levando 185 de dano de larva, cego e cuspe pelas costas.
-    const perto = ameacaMaisProxima(jogo);
-    const duelo = chefe && dChefe < 10 && (!perto || perto.distancia > 4)
-      && linhaLivre(jogo.mapa, j, chefe);
-    const ameaca = duelo ? { inimigo: chefe, distancia: dChefe } : perto;
-    let mira = null;
-    if (ameaca) {
-      const noCaminho = proximo && produtoEscalar(j, ameaca.inimigo, proximo) > 0.78;
-      // Sem "so o que esta perto ou no caminho", o robo parava para brigar com
-      // todo bicho que acordou — inclusive o cego, que anda a 2,0 contra os 4,3
-      // de quem corre. Bastava seguir andando.
-      const atacar = ameaca.inimigo === chefe || ameaca.distancia < 3.6
-        || (noCaminho && ameaca.distancia < 9);
-      if (atacar) {
-        const arma = melhorArma(jogo, ameaca.distancia);
-        if (arma !== j.arma) entrada.trocar = ARMAS[arma].chave;
-        mira = { x: ameaca.inimigo.x, y: ameaca.inimigo.y };
-        if (ameaca.distancia <= ARMAS[arma].alcance) {
-          const erro = Math.abs(diferencaAngular(j.ang, anguloAte(j, mira)));
-          // A tolerancia acompanha o espalhamento da arma: exigir 0,06 rad da
-          // espingarda, que espalha 0,12, e exigir pontaria que a arma nao tem
-          // — e o robo deixava de atirar enquanto andava de lado.
-          const tolerancia = ARMAS[arma].tipo === 'corpo' ? 0.35
-            : Math.max(0.05, ARMAS[arma].espalhamento * 0.8);
-          if (erro < tolerancia) entrada.atirar = true;
-        }
-      }
-    }
-
-    // --- volante --------------------------------------------------------
-    // Mirar sempre no no seguinte ao no mais proximo: seguir "o primeiro no
-    // longe o bastante" faz o robo voltar para um no que ele acabou de passar,
-    // e ele gasta a fase inteira balancando no mesmo corredor.
-    const paraOnde = mira && ameaca.distancia < 8 ? mira : (proximo || mira);
-
-    // Recuar e um lance, nao um estado: tres bichos cacando a menos de cinco
-    // celulas, ou um so com a vida baixa. Sem o limite de 1,6 s o robo de vida
-    // baixa recuava para sempre e estourava o tempo da fase.
-    const cercado = jogo.inimigos.filter(e => e.vida > 0 && e.estado === 'cacando'
-      && Math.hypot(e.x - j.x, e.y - j.y) < 5).length;
-    const querRecuar = cercado >= 3 || (j.vida < CONFIG.vidaMax * 0.42 && cercado >= 1);
-    if (querRecuar && recuoRestante > 0) recuoRestante -= DT;
-    else if (!querRecuar) recuoRestante = Math.min(1.6, recuoRestante + DT * 0.6);
-    const recuar = ameaca && querRecuar && recuoRestante > 0;
-
-    if (paraOnde) {
-      const erro = diferencaAngular(j.ang, anguloAte(j, paraOnde));
-      entrada.girar = Math.max(-0.14, Math.min(0.14, erro * 0.4));
-      if (recuar) {
-        entrada.frente = -0.9;
-        entrada.lado = ameaca.distancia < 2.2 ? 0.7 : 0;
-      } else if (proximo) {
-        const alinhado = Math.abs(diferencaAngular(j.ang, anguloAte(j, proximo)));
-        entrada.frente = alinhado < 0.9 ? 1 : 0.35;
-        // Corre quando nao ha nada perto: menos exposicao, mais ruido. E a
-        // mesma troca que o jogador faz.
-        entrada.correndo = !ameaca || ameaca.distancia > 6;
-      }
-    }
-
-    // Andar para tras atirando. Bicho de corpo-a-corpo perde a briga contra
-    // quem recua: o alcance dele e 1,2 e o da pineira e 26. Sem isto o robo
-    // ficava parado no meio de dois cegos, que batem 16 a cada 1,8 s.
-    if (ameaca && !TIPOS[ameaca.inimigo.tipo].projetil && !TIPOS[ameaca.inimigo.tipo].chefe
-      && ameaca.distancia < 2.8 && temTiro(j)) {
-      entrada.frente = -0.7;
-      entrada.lado = 0.35;
-    }
-
-    // Desviar do cuspe: escorregar de lado enquanto o projetil voa. Se isto
-    // nao funcionasse, o cuspidor seria dano garantido e nao uma ameaca que se
-    // le na tela.
-    const cuspeProximo = jogo.projeteis.find(p => Math.hypot(p.x - j.x, p.y - j.y) < 5.5);
-    if (cuspeProximo) {
-      entrada.lado = diferencaAngular(j.ang, anguloAte(j, cuspeProximo)) > 0 ? -1 : 1;
-      entrada.frente = Math.min(entrada.frente, 0.3);
-      entrada.correndo = true;
-    }
-
-    // A danca do capataz. Duas regras, as mesmas que um jogador descobre em
-    // duas mortes: nao encostar nele, porque de perto o golpe comum acerta
-    // sempre, e sair da linha quando ele armar — a investida cobre quatro
-    // celulas em meio segundo e recuo nenhum escapa dela.
-    //
-    // Fora da janela de golpe o desvio do cuspe tem preferencia: projetil no ar
-    // e a ameaca mais certa das duas.
-    if (chefe && dChefe < 8 && (chefe.fase === 'arma' || !cuspeProximo)) {
-      entrada.correndo = true;
-      const fuga = diferencaAngular(j.ang, anguloAte(j, chefe)) > 0 ? -1 : 1;
-      if (chefe.fase === 'arma') {
-        entrada.lado = fuga;
-        entrada.frente = 0;
-      } else {
-        // Ficar na faixa de 4,5 a 6 celulas, que e onde ele se arma: longe
-        // demais ele nunca abre a blindagem, e o duelo virava um cerco de cinco
-        // minutos raspando 35% do dano. Sem municao de longe, a unica saida e o
-        // contrario: colar entre um golpe e outro e bater de picareta.
-        const semMunicao = !temTiro(j);
-        entrada.lado = fuga * 0.7;
-        entrada.frente = semMunicao
-          ? (dChefe > 1.2 ? 0.9 : 0)
-          : (dChefe < 4.5 ? -0.9 : (dChefe > 6 ? 0.6 : 0.1));
-      }
-    }
-
-    // --- destravar ------------------------------------------------------
-    if (cutucao > 0) {
-      cutucao -= DT;
-      entrada.girar = 0.09;
-      entrada.frente = 0.8;
-      entrada.lado = 0.6;
-    }
-    paradoEm.t += DT;
-    if (paradoEm.t > 1.5) {
-      if (Math.hypot(j.x - paradoEm.x, j.y - paradoEm.y) < 0.5) {
-        cutucao = 0.5;
-        caminho = null;
-        entrada.usar = true;
-      }
-      paradoEm = { x: j.x, y: j.y, t: 0 };
-    }
-
-    for (const evento of passo(jogo, entrada, DT)) {
-      if (evento.tipo !== 'dano') continue;
-      const quem = evento.origem && evento.origem.tipo ? evento.origem.tipo : 'cuspe (projetil)';
-      dano[quem] = (dano[quem] || 0) + evento.dano;
-    }
-  }
-
-  const venceu = jogo.estado === 'saiu';
+export function criarRobo(opcoes = {}) {
   return {
-    nome: jogo.nome,
-    venceu,
-    motivo: venceu ? 'saiu'
-      : jogo.estado === 'morto' ? `morreu em ${jogo.tempo.toFixed(1)} s`
-        : `estourou o limite de ${(limite * DT).toFixed(0)} s`,
-    segundos: jogo.tempo,
-    vida: Math.max(0, jogo.jogador.vida),
-    abatidos: jogo.abatidos,
-    de: jogo.inimigos.length,
-    dano,
-    herdado: herdar(jogo),
+    // Erro de mira em radianos por metro de distancia: a 10 m, 0,012 rad/m da
+    // 7 graus de erro, o que erra cabeca de vez em quando.
+    erroDeMira: opcoes.erroDeMira ?? 0.012,
+    // Distancia em que ele decide arrastar em vez de ficar parado atirando.
+    apertoEm: opcoes.apertoEm ?? 4.5,
+    compras: [],
+    alvoDeCompra: null,
+    relogioDeCompra: 0,
+    ultimoDestino: null,
   };
 }
 
-// O destino segue o mesmo fechamento de `mapa.completavel`: cracha alcancavel
-// primeiro, elevador quando ele estiver alcancavel — e capataz antes do
-// elevador, na fase em que o elevador so libera com ele no chao.
-function escolherDestino(jogo) {
+// Prioridade de compra. Devolve o que o robo quer agora, com o custo.
+function proximaCompra(jogo, robo) {
   const j = jogo.jogador;
-  const mapa = jogo.mapa;
+  const naMao = armaNaMao(jogo);
+  const aberta = (celula) => {
+    const z = jogo.mapa.zonaDaCelula[celula.y * jogo.mapa.largura + celula.x];
+    return z >= 0 && jogo.mapa.zonas[z].aberta;
+  };
+  const maquinasAbertas = jogo.mapa.maquinas.filter(q => aberta(q.celula));
+  const portasAbertaveis = [...jogo.mapa.portas.values()].filter(porta => !porta.aberta
+    && (porta.zonas || []).some(z => jogo.mapa.zonas[z].aberta));
+  const comoAlvoDePorta = porta => ({
+    maquina: {
+      x: porta.x + 0.5, y: porta.y + 0.5, tipo: 'porta', celula: { x: porta.x, y: porta.y },
+    },
+    custo: porta.custo,
+  });
 
-  // Um item que o jogo recusa entregar — kit com a vida cheia, cartucho com a
-  // bolsa cheia — fica no chao, e isso esta certo. O que estava errado era o
-  // robo escolher esse item de destino: ele chegava, nao pegava, o destino nao
-  // mudava, e a fase estourava o tempo com o robo de pe em cima do cartucho.
-  const querPegar = (i) => {
-    if (i.tipo === 'kit') return j.vida < CONFIG.vidaMax;
-    if (i.tipo === 'pinos' || i.tipo === 'cartuchos') {
-      return j.municao[i.tipo] < CONFIG.municaoMax[i.tipo];
-    }
-    return true;
+  // A ordem e a tatica, e ela foi medida: a versao anterior varria as maquinas
+  // primeiro e voltava na primeira que servisse, entao municao barata sempre
+  // ganhava e o robo morria na rodada 5 com 7.820 pontos e o mapa fechado.
+  // Aqui a lista e explicita, e porta vem antes de perk — espaco antes de
+  // conforto.
+  const naOrdem = [
+    // 1. Forca: e de graca e liga tudo.
+    () => maquinasAbertas.find(q => q.tipo === 'forca' && !jogo.forcaLigada),
+    // 2. Municao quando esta acabando de verdade.
+    // 45% e nao 20%: com 20% o robo so voltava para a parede quando a arma ja
+    // estava seca, e chegava na rodada 5 de picareta na mao. Municao e o
+    // recurso que o jogo cobra em pontos — economizar pontos e ficar sem arma.
+    () => maquinasAbertas.find((q) => {
+      if (q.tipo !== 'arma') return false;
+      const arma = j.armas.find(x => x.chave.startsWith(q.arma));
+      return arma && arma.naReserva < arma.reserva * 0.45;
+    }),
+    // 3. Arma melhor, enquanto a da mao nao da conta da rodada.
+    () => (danoPorSegundo(naMao) < 400
+      ? maquinasAbertas.find(q => q.tipo === 'arma'
+        && !j.armas.some(a => a.chave.startsWith(q.arma)))
+      : null),
+    // 4. CALDO antes da porta: vida dobrada e o que decide se existe rodada 10.
+    // Com o perk depois da porta, o robo gastava tudo em espaco e morria com
+    // cem de vida na rodada 7 — medido em quatro partidas.
+    () => (jogo.forcaLigada
+      ? maquinasAbertas.find(q => q.tipo === 'perk' && q.perk === 'caldo'
+        && !j.perks.has('caldo') && j.pontos > CONFIG.perks.caldo.custo)
+      : null),
+    // 5. TALISMA: e o perk mais barato e e uma vida extra. Comprar vida antes
+    // de espaco foi medido melhor que o contrario.
+    () => (jogo.forcaLigada
+      ? maquinasAbertas.find(q => q.tipo === 'perk' && q.perk === 'talisma'
+        && !j.perks.has('talisma') && j.pontos > CONFIG.perks.talisma.custo + 400)
+      : null),
+    // 6. Porta, e cedo.
+    () => (portasAbertaveis.find(porta => j.pontos > porta.custo + 300)
+      ? comoAlvoDePorta(portasAbertaveis.find(porta => j.pontos > porta.custo + 300))
+      : null),
+    // 7. Forja, quando ha folga.
+    () => (jogo.forcaLigada && !naMao.forjada && naMao.tipo !== 'corpo'
+      && j.pontos > CONFIG.custoDaForja + 1200
+      ? maquinasAbertas.find(q => q.tipo === 'forja')
+      : null),
+    // 8. Os outros perks.
+    () => (jogo.forcaLigada && j.perks.size < 4
+      ? maquinasAbertas.find(q => q.tipo === 'perk' && !j.perks.has(q.perk)
+        && j.pontos > CONFIG.perks[q.perk].custo + 600)
+      : null),
+  ];
+
+  for (const tentar of naOrdem) {
+    const achado = tentar();
+    if (!achado) continue;
+    return achado.maquina ? achado : { maquina: achado, custo: 0 };
+  }
+  return null;
+}
+
+// Exposta so para diagnostico: as provas nao dependem dela.
+export function __proximaCompra(jogo, robo) { return proximaCompra(jogo, robo); }
+
+// Um passo do robo: devolve os comandos que ele mandaria.
+export function passoDoRobo(jogo, robo, dt) {
+  const j = jogo.jogador;
+  const vivos = zumbisVivos(jogo);
+  const comandos = {
+    frente: false, tras: false, esq: false, dir: false, correr: false,
+    atirar: false, recarregar: false, usar: false, trocar: false, girar: 0, inclinar: 0,
   };
 
-  if (j.vida < CONFIG.vidaMax * 0.7) {
-    const kit = itemMaisProximo(jogo, i => i.tipo === 'kit' && querPegar(i),
-      j.vida < 35 ? Infinity : 20);
-    if (kit) return kit;
-  }
-  if (j.municao.pinos < 12) {
-    const municao = itemMaisProximo(jogo,
-      i => (i.tipo === 'pinos' || i.tipo === 'cartuchos') && querPegar(i), 16);
-    if (municao) return municao;
-  }
-
-  if (mapa.exigeCapataz) {
-    const chefe = jogo.inimigos.find(e => TIPOS[e.tipo].chefe && e.vida > 0);
-    if (chefe) return { x: chefe.x, y: chefe.y };
-  }
-
-  const alcance = M.distancias(mapa, j, j.crachas);
-  if (mapa.elevador && alcance.has(M.chave(mapa.elevador.x, mapa.elevador.y))) {
-    return { x: mapa.elevador.x + 0.5, y: mapa.elevador.y + 0.5 };
-  }
-  const cracha = itemMaisProximo(jogo, i => i.cracha && !j.crachas.has(i.cracha), Infinity, alcance);
-  return cracha || (mapa.elevador
-    ? { x: mapa.elevador.x + 0.5, y: mapa.elevador.y + 0.5 }
-    : null);
-}
-
-function itemMaisProximo(jogo, filtro, maximo, alcance = null) {
-  const j = jogo.jogador;
-  const d = alcance || M.distancias(jogo.mapa, j, j.crachas);
-  let melhor = null;
-  for (const item of jogo.itens) {
-    if (item.pego || !filtro(item)) continue;
-    const dist = d.get(M.chave(Math.floor(item.x), Math.floor(item.y)));
-    if (dist === undefined || dist > maximo) continue;
-    if (!melhor || dist < melhor.dist) melhor = { dist, x: item.x, y: item.y };
-  }
-  return melhor;
-}
-
-function ameacaMaisProxima(jogo) {
-  const j = jogo.jogador;
-  let melhor = null;
-  for (const e of jogo.inimigos) {
-    // O chefe sai desta conta: ele tem tratamento proprio, e deixa-lo entrar
-    // aqui fazia o robo trata-lo como bicho comum e colar nele.
-    if (e.vida <= 0 || TIPOS[e.tipo].chefe) continue;
-    const distancia = Math.hypot(e.x - j.x, e.y - j.y);
-    // Bicho longe e dormindo nao e ameaca: atirar nele so gasta municao,
-    // acorda a vizinhanca e faz o robo limpar a fase em vez de atravessar.
-    if (distancia > (e.estado === 'cacando' ? 13 : 7)) continue;
-    if (!melhor || distancia < melhor.distancia) {
-      if (!linhaLivre(jogo.mapa, j, e)) continue;
-      melhor = { inimigo: e, distancia };
-    }
-  }
-  return melhor;
-}
-
-// Municao que este jogador consegue disparar agora. Cartucho sem espingarda
-// nao conta — foi o que travou o duelo do capataz por 400 s: o robo tinha 32
-// cartuchos, nenhuma arma que os usasse, e por isso "tinha municao".
-function temTiro(j) {
-  return j.municao.pinos >= 1
-    || (j.armas.espingarda && j.municao.cartuchos >= 1)
-    || (j.armas.macarico && j.municao.gas > 4);
-}
-
-function melhorArma(jogo, distancia) {
-  const j = jogo.jogador;
-  const temCartucho = j.armas.espingarda && j.municao.cartuchos > 0;
-  if (temCartucho && (distancia < 6.5 || j.municao.pinos < 1)
-    && distancia < ARMAS.espingarda.alcance) return 'espingarda';
-  if (j.municao.pinos >= 1 && distancia < ARMAS.pineira.alcance) return 'pineira';
-  if (j.armas.macarico && j.municao.gas > 4 && distancia < 3) return 'macarico';
-  return 'picareta';
-}
-
-function proximoNo(caminho, j) {
-  if (!caminho || !caminho.length) return null;
-  let indice = 0;
+  // --- escolher alvo ---------------------------------------------------
+  let alvo = null;
   let menor = Infinity;
-  for (const [i, no] of caminho.entries()) {
-    const d = Math.hypot(no.x + 0.5 - j.x, no.y + 0.5 - j.y);
-    if (d < menor) { menor = d; indice = i; }
+  for (const z of vivos) {
+    const d = Math.hypot(z.x - j.x, z.y - j.y);
+    if (d > 26) continue;
+    const meio = { x: (z.x + j.x) / 2, y: (z.y + j.y) / 2 };
+    if (d > 2 && solidoParaTiro(jogo.mapa, meio.x, meio.y)) continue;
+    if (d < menor) { menor = d; alvo = z; }
   }
-  const alvo = caminho[Math.min(indice + 1, caminho.length - 1)];
-  return { x: alvo.x + 0.5, y: alvo.y + 0.5 };
+
+  const arma = armaNaMao(jogo);
+  if (alvo) {
+    const desejado = Math.atan2(alvo.y - j.y, alvo.x - j.x);
+    let erro = desejado - j.ang;
+    while (erro > Math.PI) erro -= Math.PI * 2;
+    while (erro < -Math.PI) erro += Math.PI * 2;
+    // Gira no maximo 6 rad/s: robo com giro instantaneo mediria um jogo que
+    // ninguem joga.
+    comandos.girar = Math.max(-6 * dt, Math.min(6 * dt, erro));
+    // Mira na cabeca: a inclinacao que poe a bala na faixa alta do corpo.
+    const alturaDaCabeca = alvo.altura * 0.85;
+    const alvoInclinacao = (alturaDaCabeca - CONFIG.alturaDoOlho) / Math.max(1, menor);
+    comandos.inclinar = (alvoInclinacao - j.inclinacao) * Math.min(1, dt * 9)
+      + (Math.random() - 0.5) * robo.erroDeMira * menor * dt;
+    const mirado = Math.abs(erro) < 0.09 + robo.erroDeMira * menor;
+    const noAlcance = menor <= arma.alcance * 0.95;
+    if (mirado && noAlcance && arma.recarregando <= 0) comandos.atirar = true;
+  }
+
+  // --- recarregar quando da -------------------------------------------
+  if (arma.tipo !== 'corpo') {
+    const apertado = menor < 6;
+    if (arma.noPente <= 0) comandos.recarregar = true;
+    else if (!apertado && arma.noPente < arma.pente * 0.35) comandos.recarregar = true;
+    if (arma.noPente <= 0 && arma.naReserva <= 0) {
+      // Sem municao: troca para a outra arma se ela tiver bala. A picareta e o
+      // ultimo recurso, nao o primeiro — trocar para ela com a pistola cheia no
+      // outro slot era como o robo morria na rodada 5.
+      const outra = j.armas[(j.naMao + 1) % j.armas.length];
+      if (outra && (outra.tipo === 'corpo' || outra.noPente > 0 || outra.naReserva > 0)) {
+        comandos.trocar = true;
+      }
+    }
+  }
+
+  // --- arrastar ou repor tabua ----------------------------------------
+  // Cercado = zumbi perto em mais de um rumo. A versao anterior fugia sempre
+  // que oito zumbis estavam vivos, o que na rodada 5 e sempre: ela nunca
+  // atirava, a rodada nao fechava, e o robo acabava encurralado de qualquer
+  // jeito. Fugir e resposta a cerco, nao a contagem.
+  let cercado = 0;
+  for (const z of vivos) {
+    const d = Math.hypot(z.x - j.x, z.y - j.y);
+    if (d > 6) continue;
+    const rumo = Math.atan2(z.y - j.y, z.x - j.x);
+    cercado += Math.abs(Math.atan2(Math.sin(rumo - j.ang), Math.cos(rumo - j.ang))) > 1.2 ? 2 : 1;
+  }
+  const apertado = menor < robo.apertoEm || cercado >= 5;
+  if (apertado && vivos.length) {
+    const campo = campoDaHorda(jogo);
+    let melhor = null;
+    let melhorValor = distanciaNaCelula(jogo.mapa, campo, j.x, j.y);
+    for (const [dx, dy] of VIZINHOS) {
+      const nx = j.x + dx * 1.05;
+      const ny = j.y + dy * 1.05;
+      if (solidoParaTiro(jogo.mapa, nx, ny)) continue;
+      const valor = distanciaNaCelula(jogo.mapa, campo, nx, ny);
+      if (valor > melhorValor) { melhorValor = valor; melhor = { x: nx, y: ny }; }
+    }
+    if (melhor) {
+      andarPara(jogo, comandos, melhor, true);
+      // Atira andando, como um jogador faz. Cortar o tiro durante a fuga fazia
+      // o robo passar a rodada inteira correndo sem matar ninguem.
+      if (alvo && menor < arma.alcance * 0.85 && arma.recarregando <= 0) {
+        comandos.atirar = true;
+      }
+    }
+  } else {
+    // Sem aperto: comprar, repor tabua, ou ficar de frente para a janela ativa.
+    const compra = proximaCompra(jogo, robo);
+    const perto = alvoDeUso(jogo);
+    if (perto && perto.tipo === 'janela') {
+      comandos.usar = true;
+    } else if (compra) {
+      const chegou = Math.hypot(compra.maquina.x - j.x, compra.maquina.y - j.y) < CONFIG.alcanceDeUso * 0.8;
+      if (chegou) {
+        olharPara(jogo, comandos, compra.maquina);
+        // Aperta uma vez a cada meio segundo: o jogo trava o uso, e apertar em
+        // todo quadro so enche o registro de evento negado.
+        robo.relogioDeCompra -= 1 / 60;
+        if (robo.relogioDeCompra <= 0) {
+          comandos.usar = true;
+          robo.relogioDeCompra = 0.5;
+        }
+      } else {
+        andarPara(jogo, comandos, compra.maquina, false);
+      }
+    } else if (!vivos.length) {
+      const janela = janelasAtivas(jogo)
+        .map(w => ({ w, d: Math.hypot(w.dentro.x + 0.5 - j.x, w.dentro.y + 0.5 - j.y) }))
+        .filter(x => x.w.tabuas < CONFIG.tabuasPorJanela)
+        .sort((a, b) => a.d - b.d)[0];
+      if (janela) andarPara(jogo, comandos, { x: janela.w.dentro.x + 0.5, y: janela.w.dentro.y + 0.5 }, false);
+    }
+  }
+
+  return comandos;
 }
 
-// Quanto dois rumos concordam: 1 e "na mesma direcao", 0 e "de lado". Serve
-// para decidir se o bicho esta no caminho ou so por perto.
-function produtoEscalar(de, a, b) {
-  const ax = a.x - de.x;
-  const ay = a.y - de.y;
-  const bx = b.x - de.x;
-  const by = b.y - de.y;
-  const na = Math.hypot(ax, ay) || 1;
-  const nb = Math.hypot(bx, by) || 1;
-  return (ax / na) * (bx / nb) + (ay / na) * (by / nb);
+// Anda na direcao do destino usando o campo de fluxo do proprio mapa quando o
+// destino esta longe: em corredor, andar reto bate na parede.
+function andarPara(jogo, comandos, destino, fugindo) {
+  const j = jogo.jogador;
+  let dx = destino.x - j.x;
+  let dy = destino.y - j.y;
+  const d = Math.hypot(dx, dy);
+  if (d > 2.5) {
+    const fluxo = refazerFluxo(jogo.mapa, jogo.roboFluxo || (jogo.roboFluxo = criarFluxo(jogo.mapa)), destino);
+    const cx = Math.floor(j.x);
+    const cy = Math.floor(j.y);
+    const i = cy * jogo.mapa.largura + cx;
+    const prox = fluxo.proximo[i];
+    if (prox >= 0) {
+      const px = prox % jogo.mapa.largura;
+      const py = (prox - px) / jogo.mapa.largura;
+      dx = px + 0.5 - j.x;
+      dy = py + 0.5 - j.y;
+    }
+  }
+  const ang = Math.atan2(dy, dx);
+  let erro = ang - j.ang;
+  while (erro > Math.PI) erro -= Math.PI * 2;
+  while (erro < -Math.PI) erro += Math.PI * 2;
+  // Fugindo, ele NAO gira o corpo para o destino: anda de lado e de re para
+  // continuar de frente para a horda. E o que um jogador faz.
+  if (fugindo) {
+    const cos = Math.cos(erro);
+    const sen = Math.sin(erro);
+    comandos.frente = cos > 0.35;
+    comandos.tras = cos < -0.35;
+    comandos.dir = sen > 0.35;
+    comandos.esq = sen < -0.35;
+    comandos.correr = cos > 0.6;
+  } else {
+    comandos.girar = Math.max(-6 * (1 / 60), Math.min(6 * (1 / 60), erro));
+    comandos.frente = Math.abs(erro) < 0.8;
+    comandos.correr = Math.abs(erro) < 0.3;
+  }
 }
 
-const anguloAte = (de, para) => Math.atan2(para.y - de.y, para.x - de.x);
+function olharPara(jogo, comandos, destino) {
+  const j = jogo.jogador;
+  const ang = Math.atan2(destino.y - j.y, destino.x - j.x);
+  let erro = ang - j.ang;
+  while (erro > Math.PI) erro -= Math.PI * 2;
+  while (erro < -Math.PI) erro += Math.PI * 2;
+  comandos.girar = Math.max(-0.2, Math.min(0.2, erro));
+}
 
-function diferencaAngular(de, para) {
-  let d = para - de;
-  while (d > Math.PI) d -= Math.PI * 2;
-  while (d < -Math.PI) d += Math.PI * 2;
-  return d;
+// Roda o robo por N rodadas (ou ate morrer) e devolve o relatorio. E esta
+// funcao que as provas chamam.
+export function jogarAte(indiceMapa, rodadaAlvo, opcoes = {}) {
+  const criar = opcoes.criarJogo;
+  const jogo = criar(indiceMapa, { semente: opcoes.semente || 11, semPreparo: true });
+  const robo = criarRobo(opcoes);
+  const DT = 1 / 60;
+  const limite = Math.round((opcoes.limiteDeSegundos || 60 * 22) / DT);
+  const porRodada = [];
+  let rodadaAnterior = jogo.rodada;
+  let quadros = 0;
+  let mordidas = 0;
+
+  while (quadros < limite && jogo.estado !== 'morto' && jogo.rodada <= rodadaAlvo) {
+    const comandos = passoDoRobo(jogo, robo, DT);
+    for (const evento of passo(jogo, comandos, DT)) {
+      if (evento.tipo === 'dano') mordidas++;
+    }
+    if (jogo.rodada !== rodadaAnterior) {
+      porRodada.push({
+        rodada: rodadaAnterior,
+        pontos: jogo.jogador.pontos,
+        vida: Math.round(jogo.jogador.vida),
+        arma: armaNaMao(jogo).nome,
+        perks: [...jogo.jogador.perks],
+        segundos: Math.round(jogo.tempo),
+      });
+      rodadaAnterior = jogo.rodada;
+    }
+    quadros++;
+  }
+
+  return {
+    mapa: jogo.mapa.nome,
+    chegouNaRodada: jogo.rodada,
+    morreu: jogo.estado === 'morto',
+    segundos: jogo.tempo,
+    mordidas,
+    porRodada,
+    estatisticas: { ...jogo.estatisticas },
+    forcaLigada: jogo.forcaLigada,
+    perks: [...jogo.jogador.perks],
+    arma: armaNaMao(jogo).nome,
+  };
 }

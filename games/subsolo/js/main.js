@@ -1,152 +1,222 @@
-// A casca: laco de passo fixo, maquina de telas, HUD e minimapa.
+// A casca do SUBSOLO: laco de passo fixo, mira no mouse, HUD e telas.
 //
-// Este arquivo e o unico que conhece DOM e o unico que nao e testado por
-// provas.mjs. Tudo que decide algo mora em jogo.js; aqui so se traduz entrada
-// para o jogo e estado do jogo para pixel.
+// Unico arquivo que conhece DOM. Tudo que decide algo — mapa, rodada, zumbi,
+// arma, economia — mora nos modulos que `provas.mjs` importa e roda sem
+// navegador. Quando o HUD escreve "ABRIR POR 750", o numero vem da mesma
+// funcao que a prova da porta usa.
 
-import { FASES } from './fases.js';
+import { PLANTAS } from './planta.js';
 import { CONFIG } from './regras.js';
-import * as M from './mapa.js';
-import { ARMAS, ORDEM } from './armas.js';
-import { TIPOS } from './inimigos.js';
-import { criarJogo, passo, herdar, DT } from './jogo.js';
+import {
+  criarJogo, passo, armaNaMao, alvoDeUso, textoDoAlvo, zumbisVivos,
+} from './jogo.js';
+import { quantidadeDaRodada } from './rodadas.js';
 import { criarRender } from './render.js';
-import { criarEntrada } from './entrada.js';
-import { tocar, ambiente, alternarSom, somLigado } from './som.js';
-
-const palco = document.getElementById('palco');
-const tela = document.getElementById('tela');
-const mapaTela = document.getElementById('mapa');
-const mapaCtx = mapaTela.getContext('2d');
+import {
+  ligarAmbiente, pararAmbiente, atualizarAmbiente, tocar, alternarSom, somLigado,
+} from './som.js';
 
 const el = (id) => document.getElementById(id);
-const hud = {
-  vida: el('hud-vida'), vidaBarra: el('hud-vida-barra'),
-  bateria: el('hud-bateria'), bateriaBarra: el('hud-bateria-barra'),
-  arma: el('hud-arma'), municao: el('hud-municao'),
-  crachas: el('hud-crachas'), fase: el('hud-fase'),
-  abates: el('hud-abates'), tempo: el('hud-tempo'),
-};
-const cortinas = {
-  menu: el('menu'), pausa: el('pausa'), morto: el('morto'),
-  entre: el('entre'), fim: el('fim'),
-};
-const aviso = el('aviso');
-const dica = el('dica');
-
+const palco = el('palco');
+const tela = el('tela');
 const render = criarRender(tela);
-const entrada = criarEntrada(tela, palco);
 
-const CHAVE = 'subsolo.progresso.v1';
-const progresso = carregarProgresso();
+const DT = 1 / 60;
+// Sensibilidade do mouse em radianos por pixel. Baixa de proposito: mira de FPS
+// com sensibilidade alta vira loteria, e este jogo cobra cabeca.
+const SENSIBILIDADE = 0.0022;
+
+const SOM_DA_ARMA = {
+  pistola: 'tiro-pistola',
+  pineira: 'tiro-smg',
+  espingarda: 'tiro-espingarda',
+  carabina: 'tiro-rifle',
+  macarico: 'tiro-smg',
+  picareta: 'impacto-pedra',
+};
+
+const SIGLA_DO_PERK = { caldo: 'CAL', graxa: 'GRX', gatilho: 'GAT', talisma: 'TAL' };
 
 let jogo = null;
-
-// `?depurar` na URL expoe o estado da partida em window.__jogo. Serve para
-// inspecionar e para posicionar a camera numa captura de tela; sem o parametro
-// o jogo nao cria nada global.
-const depurar = new URLSearchParams(location.search).has('depurar');
 let estado = 'menu';
-let acumulado = 0;
+let mapaEscolhido = 0;
 let ultimo = performance.now();
-let tempoCorrida = 0;
-let heranca = null;
-let herancaDaFase = null;
-let revelado = null;
-let avisoAte = 0;
+let acumulado = 0;
+let marcaAte = 0;
+let bannerAte = 0;
+let sangueAte = 0;
+let recordes = carregarRecordes();
 
-function carregarProgresso() {
+const teclas = new Set();
+const toque = {};
+let mouseApertado = false;
+let giroPendente = 0;
+let inclinacaoPendente = 0;
+const pulsos = { usar: false, recarregar: false, trocar: false, lanterna: false, pausa: false };
+
+function carregarRecordes() {
   try {
-    const bruto = JSON.parse(localStorage.getItem(CHAVE));
-    if (bruto && typeof bruto.faseMax === 'number') return bruto;
-  } catch { /* sem progresso salvo, comeca do zero */ }
-  return { faseMax: 0, melhor: null };
+    return JSON.parse(localStorage.getItem('subsolo.recordes.v2') || '{}');
+  } catch {
+    return {};
+  }
 }
 
-function salvarProgresso() {
-  try {
-    localStorage.setItem(CHAVE, JSON.stringify(progresso));
-  } catch { /* navegador sem armazenamento: o jogo continua, so nao lembra */ }
+function salvarRecorde(mapa, rodada) {
+  if (!recordes[mapa] || rodada > recordes[mapa]) {
+    recordes[mapa] = rodada;
+    try { localStorage.setItem('subsolo.recordes.v2', JSON.stringify(recordes)); } catch { /* sem armazenamento */ }
+  }
 }
 
-// ------------------------------------------------------------------- telas
+// ------------------------------------------------------------- entrada
+
+window.addEventListener('keydown', (ev) => {
+  if (ev.repeat) return;
+  teclas.add(ev.code);
+  if (ev.code === 'KeyE') pulsos.usar = true;
+  if (ev.code === 'KeyR') pulsos.recarregar = true;
+  if (ev.code === 'KeyQ' || ev.code === 'Digit1' || ev.code === 'Digit2') pulsos.trocar = true;
+  if (ev.code === 'KeyF') pulsos.lanterna = true;
+  if (ev.code === 'Escape') pulsos.pausa = true;
+  if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(ev.code)) {
+    ev.preventDefault();
+  }
+});
+window.addEventListener('keyup', ev => teclas.delete(ev.code));
+window.addEventListener('blur', () => { teclas.clear(); mouseApertado = false; });
+
+tela.addEventListener('mousedown', (ev) => {
+  if (estado !== 'jogando') return;
+  if (document.pointerLockElement !== tela) {
+    tela.requestPointerLock();
+    return;
+  }
+  if (ev.button === 0) mouseApertado = true;
+});
+window.addEventListener('mouseup', () => { mouseApertado = false; });
+window.addEventListener('mousemove', (ev) => {
+  if (document.pointerLockElement !== tela) return;
+  giroPendente += ev.movementX * SENSIBILIDADE;
+  inclinacaoPendente -= ev.movementY * SENSIBILIDADE * 0.8;
+});
+document.addEventListener('pointerlockchange', () => {
+  if (estado === 'jogando' && document.pointerLockElement !== tela) mostrar('pausa');
+});
+
+for (const botao of palco.querySelectorAll('[data-controle]')) {
+  const qual = botao.dataset.controle;
+  const liga = (ev) => { ev.preventDefault(); toque[qual] = true; if (qual === 'usar') pulsos.usar = true; if (qual === 'recarregar') pulsos.recarregar = true; };
+  const desliga = (ev) => { ev.preventDefault(); toque[qual] = false; };
+  botao.addEventListener('touchstart', liga, { passive: false });
+  botao.addEventListener('touchend', desliga, { passive: false });
+  botao.addEventListener('touchcancel', desliga, { passive: false });
+  botao.addEventListener('mousedown', liga);
+  botao.addEventListener('mouseup', desliga);
+  botao.addEventListener('mouseleave', desliga);
+}
+
+// No celular, arrastar na tela olha em volta: o unico jeito de mirar sem mouse.
+let dedoDeOlhar = null;
+tela.addEventListener('touchstart', (ev) => {
+  const dedo = ev.changedTouches[0];
+  dedoDeOlhar = { id: dedo.identifier, x: dedo.clientX, y: dedo.clientY };
+}, { passive: true });
+tela.addEventListener('touchmove', (ev) => {
+  if (!dedoDeOlhar) return;
+  for (const dedo of ev.changedTouches) {
+    if (dedo.identifier !== dedoDeOlhar.id) continue;
+    giroPendente += (dedo.clientX - dedoDeOlhar.x) * SENSIBILIDADE * 2.2;
+    inclinacaoPendente -= (dedo.clientY - dedoDeOlhar.y) * SENSIBILIDADE * 1.6;
+    dedoDeOlhar.x = dedo.clientX;
+    dedoDeOlhar.y = dedo.clientY;
+  }
+}, { passive: true });
+tela.addEventListener('touchend', () => { dedoDeOlhar = null; }, { passive: true });
+
+function lerComandos() {
+  const tem = (...codigos) => codigos.some(c => teclas.has(c));
+  const comandos = {
+    frente: tem('KeyW', 'ArrowUp') || !!toque.frente,
+    tras: tem('KeyS', 'ArrowDown') || !!toque.tras,
+    esq: tem('KeyA', 'ArrowLeft') || !!toque.esq,
+    dir: tem('KeyD', 'ArrowRight') || !!toque.dir,
+    correr: tem('ShiftLeft', 'ShiftRight') || !!toque.correr,
+    atirar: mouseApertado || tem('Space') || !!toque.atirar,
+    recarregar: pulsos.recarregar,
+    usar: pulsos.usar,
+    trocar: pulsos.trocar,
+    girar: giroPendente,
+    inclinar: inclinacaoPendente,
+  };
+  pulsos.recarregar = false;
+  pulsos.usar = false;
+  pulsos.trocar = false;
+  giroPendente = 0;
+  inclinacaoPendente = 0;
+  return comandos;
+}
+
+// --------------------------------------------------------------- telas
 
 function mostrar(nome) {
   estado = nome;
-  for (const [chave, no] of Object.entries(cortinas)) {
-    no.classList.toggle('oculto', chave !== nome);
+  for (const id of ['menu', 'pausa', 'fim']) el(id).classList.toggle('oculto', id !== nome);
+  palco.classList.toggle('jogando', nome === 'jogando');
+  if (nome !== 'jogando') {
+    pararAmbiente();
+    if (document.pointerLockElement === tela) document.exitPointerLock();
+  } else {
+    ligarAmbiente();
   }
-  const jogando = nome === 'jogando';
-  palco.classList.toggle('jogando', jogando);
-  if (jogando) entrada.travar();
-  else entrada.destravar();
 }
 
-function montarSeletor() {
-  const caixa = el('fases');
+function montarMenu() {
+  const caixa = el('mapas');
   caixa.innerHTML = '';
-  for (const [i, fase] of FASES.entries()) {
+  for (const [i, planta] of PLANTAS.entries()) {
     const botao = document.createElement('button');
-    botao.className = 'fase';
-    botao.disabled = i > progresso.faseMax;
-    botao.innerHTML = `<b>${String(i + 1).padStart(2, '0')}</b> ${fase.nome}`;
-    botao.addEventListener('click', () => comecar(i));
+    botao.className = `mapa${i === mapaEscolhido ? ' escolhido' : ''}`;
+    const recorde = recordes[planta.nome];
+    botao.innerHTML = `<b>${planta.nome}</b>`
+      + `<small>${planta.dica}${recorde ? ` · recorde: rodada ${recorde}` : ''}</small>`;
+    botao.addEventListener('click', () => {
+      mapaEscolhido = i;
+      montarMenu();
+    });
     caixa.appendChild(botao);
   }
-  el('melhor').textContent = progresso.melhor
-    ? `melhor travessia completa: ${formatarTempo(progresso.melhor)}`
-    : 'nenhuma travessia completa ainda';
 }
 
-function comecar(indice) {
-  // Recomecar numa fase adiantada da um kit de entrada honesto: e o que o
-  // jogador teria acumulado ate ali, nao o arsenal inteiro.
-  heranca = indice === 0 ? null : {
-    vida: CONFIG.vidaMax, bateria: CONFIG.bateriaEntrada, arma: 'pineira',
-    armas: {
-      picareta: true, pineira: true,
-      espingarda: indice >= 2, macarico: indice >= 4,
-    },
-    municao: {
-      pinos: 40, cartuchos: indice >= 2 ? 8 : 0, gas: indice >= 4 ? 40 : 0,
-    },
-  };
-  tempoCorrida = 0;
-  iniciarFase(indice);
-}
-
-function iniciarFase(indice) {
-  herancaDaFase = heranca ? JSON.parse(JSON.stringify({ ...heranca, armas: heranca.armas })) : null;
-  jogo = criarJogo(indice, { herdado: heranca, semente: 1000 + indice });
-  revelado = new Uint8Array(jogo.mapa.largura * jogo.mapa.altura);
-  render.trocarFase(jogo.mapa);
-  if (depurar) window.__jogo = jogo;
-  ambiente(indice / (FASES.length - 1));
-  dica.textContent = `${jogo.mapa.nome} — ${jogo.mapa.dica}`;
-  dica.classList.remove('oculto');
-  setTimeout(() => dica.classList.add('oculto'), 7000);
+function comecar() {
+  ajustarTela();
+  jogo = criarJogo(mapaEscolhido, { semente: (Date.now() % 100000) + 1 });
+  render.trocarMapa(jogo.mapa);
+  acumulado = 0;
+  el('hud-banner').textContent = '';
+  el('hud-dica').textContent = '';
   mostrar('jogando');
-  entrada.limpar();
+  tela.requestPointerLock?.();
+  if (new URLSearchParams(location.search).has('depurar')) window.__jogo = jogo;
 }
 
-function repetirFase() {
-  heranca = herancaDaFase;
-  iniciarFase(jogo.fase);
+function ajustarTela() {
+  const r = palco.getBoundingClientRect();
+  // Teto de 1,25 no devicePixelRatio: iluminacao por fragmento com nove luzes
+  // custa, e 60 Hz vale mais que pixel em tela densa.
+  const escala = Math.min(window.devicePixelRatio || 1, 1.25);
+  render.redimensionar(Math.round(r.width * escala), Math.round(r.height * escala));
+}
+window.addEventListener('resize', ajustarTela);
+
+function banner(texto) {
+  const caixa = el('hud-banner');
+  caixa.textContent = texto;
+  caixa.classList.add('ativo');
+  bannerAte = performance.now() + 2200;
 }
 
-function avisar(texto) {
-  aviso.textContent = texto;
-  aviso.classList.remove('oculto');
-  avisoAte = performance.now() + 1800;
-}
-
-function formatarTempo(segundos) {
-  const m = Math.floor(segundos / 60);
-  const s = Math.floor(segundos % 60);
-  return `${m}:${String(s).padStart(2, '0')}`;
-}
-
-// -------------------------------------------------------------------- laco
+// ---------------------------------------------------------------- laco
 
 function laco(agora) {
   const dt = Math.min(0.1, (agora - ultimo) / 1000);
@@ -154,216 +224,202 @@ function laco(agora) {
 
   if (estado === 'jogando') {
     acumulado += dt;
-    let voltas = 0;
-    while (acumulado >= DT && voltas++ < 6) {
+    let passos = 0;
+    while (acumulado >= DT && passos++ < 5) {
       acumulado -= DT;
-      const e = entrada.ler(DT);
-      for (const evento of passo(jogo, e, DT)) tratarEvento(evento);
-      tempoCorrida += DT;
-      revelar();
-      if (entrada.consumir('pausa')) { mostrar('pausa'); break; }
-      if (entrada.consumir('reiniciar')) { repetirFase(); break; }
-      if (jogo.estado === 'morto') { tocar('morreu'); mostrarMorte(); break; }
-      if (jogo.estado === 'saiu') { tocar('elevador'); mostrarEntre(); break; }
+      const comandos = lerComandos();
+      if (pulsos.lanterna) { jogo.jogador.lanterna = !jogo.jogador.lanterna; pulsos.lanterna = false; }
+      for (const evento of passo(jogo, comandos, DT)) tratar(evento);
     }
+    if (pulsos.pausa) { pulsos.pausa = false; mostrar('pausa'); }
     if (estado === 'jogando') {
       render.desenhar(jogo, dt);
       atualizarHud();
-      desenharMapa();
+      const perto = zumbisVivos(jogo).filter(z => Math.hypot(z.x - jogo.jogador.x, z.y - jogo.jogador.y) < 8).length;
+      atualizarAmbiente({
+        rodada: jogo.rodada,
+        zumbisPerto: perto,
+        vida: jogo.jogador.vida / jogo.jogador.vidaMaxima * 100,
+        baixado: jogo.jogador.baixado,
+        forcaLigada: jogo.forcaLigada,
+      });
     }
-  } else if (jogo) {
+  } else if (jogo && estado === 'pausa') {
     render.desenhar(jogo, 0);
-  }
-
-  if (avisoAte && performance.now() > avisoAte) {
-    aviso.classList.add('oculto');
-    avisoAte = 0;
   }
   requestAnimationFrame(laco);
 }
 
-function tratarEvento(evento) {
-  render.evento(evento);
+function tratar(evento) {
   switch (evento.tipo) {
-    case 'tiro': tocar(evento.arma); break;
-    case 'acerto': tocar('acerto'); break;
-    case 'abate': tocar('abate'); break;
-    case 'dano': tocar('dano'); break;
-    case 'passo': tocar(evento.agua ? 'passoAgua' : 'passo'); break;
-    case 'porta': tocar('porta'); break;
-    case 'cuspe': tocar('cuspe'); break;
-    case 'inflando': tocar('inflando'); break;
-    case 'vazio': tocar('vazio'); break;
-    case 'lanterna': tocar('lanterna'); break;
-    case 'sem-pilha': tocar('semPilha'); avisar('PILHA VAZIA'); break;
-    case 'trancada': tocar('trancada'); avisar(`PRECISA DO CRACHA ${evento.cracha}`); break;
-    case 'segredo': tocar('segredo'); avisar('PASSAGEM ESCONDIDA'); break;
-    case 'item': tocar('item'); avisar(evento.rotulo); break;
-    case 'elevador-travado': tocar('travado'); avisar('O CAPATAZ AINDA ESTA DE PE'); break;
-    default: break;
-  }
-}
-
-function mostrarMorte() {
-  el('morto-resumo').textContent =
-    `${jogo.mapa.nome} — ${jogo.abatidos} de ${jogo.inimigos.length} abatidos`;
-  mostrar('morto');
-}
-
-function mostrarEntre() {
-  heranca = herdar(jogo);
-  progresso.faseMax = Math.max(progresso.faseMax, Math.min(FASES.length - 1, jogo.fase + 1));
-  salvarProgresso();
-  if (jogo.fase >= FASES.length - 1) {
-    if (!progresso.melhor || tempoCorrida < progresso.melhor) {
-      progresso.melhor = tempoCorrida;
-      salvarProgresso();
+    case 'tiro': {
+      const arma = armaNaMao(jogo);
+      const nome = SOM_DA_ARMA[arma.chave.replace('-forjada', '')] || 'tiro-pistola';
+      tocar(nome, { volume: arma.forjada ? 1.1 : 1 });
+      break;
     }
-    el('fim-resumo').textContent =
-      `Nove niveis, ${formatarTempo(tempoCorrida)}. O capataz ficou no fundo.`;
-    mostrar('fim');
-    return;
+    case 'vazio':
+      tocar('vazio');
+      break;
+    case 'recarga':
+      tocar('recarga');
+      break;
+    case 'acerto':
+      tocar('impacto-carne', { volume: evento.naCabeca ? 1 : 0.7 });
+      marcaAte = performance.now() + 120;
+      break;
+    case 'morte':
+      tocar('grito', { volume: 0.8 });
+      break;
+    case 'dano':
+      sangueAte = performance.now() + 700;
+      tocar('grunhido');
+      break;
+    case 'baixado':
+      tocar('baixado');
+      break;
+    case 'levantou':
+      tocar('revive');
+      banner('O TALISMA TE LEVANTOU');
+      break;
+    case 'tabua-arrancada':
+      tocar('tabua-arrancada', { volume: 0.7 });
+      break;
+    case 'tabua-reposta':
+      tocar('tabua-reposta', { volume: 0.6 });
+      break;
+    case 'porta-aberta':
+    case 'comprou':
+    case 'municao':
+      tocar('compra');
+      break;
+    case 'caixa':
+      tocar('caixa');
+      banner(`A CAIXA DEU: ${evento.arma}`);
+      break;
+    case 'forjou':
+      tocar('perk');
+      banner(evento.arma);
+      break;
+    case 'perk':
+      tocar('perk');
+      banner(evento.perk);
+      break;
+    case 'negado':
+      tocar('negado');
+      break;
+    case 'forca':
+      tocar('forca');
+      banner(evento.texto);
+      break;
+    case 'rodada':
+      tocar('rodada');
+      banner(evento.chefe ? `RODADA ${evento.rodada} — CAPATAZ` : `RODADA ${evento.rodada}`);
+      break;
+    case 'fim':
+      terminar();
+      break;
+    default:
+      break;
   }
-  const proxima = FASES[jogo.fase + 1];
-  el('entre-titulo').textContent = `${jogo.mapa.nome} LIBERADO`;
-  el('entre-resumo').innerHTML =
-    `abatidos <b>${jogo.abatidos}/${jogo.inimigos.length}</b> · `
-    + `itens <b>${jogo.coletados}</b> · segredos <b>${jogo.segredos}</b> · `
-    + `vida <b>${Math.round(jogo.jogador.vida)}</b> · tempo <b>${formatarTempo(tempoCorrida)}</b>`
-    + `<br>proximo nivel: <b>${proxima.nome}</b>`;
-  mostrar('entre');
 }
 
-// --------------------------------------------------------------------- HUD
+function terminar() {
+  const r = jogo.estatisticas;
+  salvarRecorde(jogo.mapa.nome, jogo.rodada);
+  el('fim-titulo').textContent = `RODADA ${jogo.rodada}`;
+  el('fim-resumo').innerHTML = [
+    ['mapa', jogo.mapa.nome],
+    ['zumbis abatidos', r.mortes],
+    ['na cabeca', `${r.cabecas} (${Math.round((r.cabecas / Math.max(1, r.mortes)) * 100)}%)`],
+    ['precisao', `${Math.round((r.acertos / Math.max(1, r.tiros)) * 100)}%`],
+    ['tabuas repostas', r.tabuasRepostas],
+    ['portas abertas', r.portasAbertas],
+    ['recorde neste mapa', `rodada ${recordes[jogo.mapa.nome] || jogo.rodada}`],
+  ].map(([a, b]) => `<tr><th>${a}</th><td>${b}</td></tr>`).join('');
+  tocar('fim');
+  mostrar('fim');
+}
+
+// ----------------------------------------------------------------- HUD
 
 function atualizarHud() {
   const j = jogo.jogador;
-  const arma = ARMAS[j.arma];
-  hud.vida.textContent = Math.max(0, Math.round(j.vida));
-  hud.vidaBarra.style.width = `${Math.max(0, (j.vida / CONFIG.vidaMax) * 100)}%`;
-  hud.bateria.textContent = Math.round(j.bateria);
-  hud.bateriaBarra.style.width = `${(j.bateria / CONFIG.bateriaMax) * 100}%`;
-  hud.bateriaBarra.classList.toggle('acesa', j.lanterna);
-  hud.arma.textContent = arma.nome;
-  hud.municao.textContent = arma.municao ? j.municao[arma.municao] : '\u221e';
-  hud.municao.classList.toggle('vazio', !!arma.municao && j.municao[arma.municao] === 0);
-  hud.crachas.innerHTML = ['A', 'B', 'C']
-    .map(c => `<i class="${j.crachas.has(c) ? 'tem' : ''} c${c}">${c}</i>`).join('');
-  hud.fase.textContent = `${String(jogo.fase + 1).padStart(2, '0')} ${jogo.mapa.nome}`;
-  hud.abates.textContent = `${jogo.abatidos}/${jogo.inimigos.length}`;
-  hud.tempo.textContent = formatarTempo(tempoCorrida);
+  const arma = armaNaMao(jogo);
+  const vivos = zumbisVivos(jogo).length;
+
+  el('hud-rodada').textContent = jogo.rodada;
+  el('hud-zumbis').textContent = jogo.faseDaRodada === 'intervalo'
+    ? `PROXIMA: ${quantidadeDaRodada(jogo.rodada)}`
+    : `${vivos + jogo.aNascer.length} restantes`;
+  el('hud-pontos').textContent = j.pontos.toLocaleString('pt-BR');
+
+  const fracao = Math.max(0, j.vida / j.vidaMaxima);
+  const barra = el('hud-vida-barra');
+  barra.style.width = `${fracao * 100}%`;
+  barra.classList.toggle('critica', fracao < 0.35);
+
+  el('hud-arma-nome').textContent = arma.nome;
+  const pente = el('hud-pente');
+  pente.textContent = Number.isFinite(arma.pente) ? arma.noPente : '∞';
+  pente.classList.toggle('vazio', Number.isFinite(arma.pente) && arma.noPente === 0);
+  el('hud-reserva').textContent = Number.isFinite(arma.naReserva) ? arma.naReserva : '∞';
+  el('hud-recarga').classList.toggle('ativo', arma.recarregando > 0);
+
+  const perks = el('hud-perks');
+  const siglas = [...j.perks].map(p => SIGLA_DO_PERK[p] || p.slice(0, 3).toUpperCase());
+  if (perks.dataset.atual !== siglas.join(',')) {
+    perks.dataset.atual = siglas.join(',');
+    perks.innerHTML = siglas.map(s => `<i class="perk">${s}</i>`).join('');
+  }
+
+  const alvo = alvoDeUso(jogo);
+  el('hud-dica').textContent = alvo ? `E — ${textoDoAlvo(jogo, alvo)}` : '';
+
+  el('hud-marca').classList.toggle('ativo', performance.now() < marcaAte);
+  el('hud-sangue').style.opacity = performance.now() < sangueAte
+    ? String(0.55 * (1 - fracao) + 0.25) : String(Math.max(0, 0.45 * (1 - fracao) - 0.05));
+
+  const baixado = el('hud-baixado');
+  baixado.classList.toggle('ativo', j.baixado);
+  if (j.baixado) el('hud-baixado-tempo').textContent = Math.ceil(j.sangrando);
+
+  if (bannerAte && performance.now() > bannerAte) {
+    el('hud-banner').textContent = '';
+    el('hud-banner').classList.remove('ativo');
+    bannerAte = 0;
+  }
 }
 
-// Minimapa com neblina: revela o que a lanterna alcanca, e menos quando ela
-// esta apagada. O mapa e uma ferramenta, nao um raio-X.
-function revelar() {
-  const j = jogo.jogador;
-  const mapa = jogo.mapa;
-  const raio = j.lanterna ? 7 : 4;
-  const cx = Math.floor(j.x);
-  const cy = Math.floor(j.y);
-  for (let y = cy - raio; y <= cy + raio; y++) {
-    for (let x = cx - raio; x <= cx + raio; x++) {
-      if (x < 0 || y < 0 || x >= mapa.largura || y >= mapa.altura) continue;
-      if (Math.hypot(x - cx, y - cy) > raio) continue;
-      revelado[y * mapa.largura + x] = 1;
-    }
-  }
-}
+// ------------------------------------------------------------- botoes
 
-function desenharMapa() {
-  const mapa = jogo.mapa;
-  const escala = Math.max(1, Math.floor(Math.min(148 / mapa.largura, 110 / mapa.altura)));
-  const w = mapa.largura * escala;
-  const h = mapa.altura * escala;
-  if (mapaTela.width !== w || mapaTela.height !== h) {
-    mapaTela.width = w;
-    mapaTela.height = h;
-  }
-  mapaCtx.fillStyle = 'rgba(6,6,8,0.82)';
-  mapaCtx.fillRect(0, 0, w, h);
-  for (let y = 0; y < mapa.altura; y++) {
-    for (let x = 0; x < mapa.largura; x++) {
-      if (!revelado[y * mapa.largura + x]) continue;
-      const t = M.tile(mapa, x, y);
-      let cor = null;
-      if (t === M.T.ELEVADOR) cor = '#e8c24a';
-      else if (t >= M.T.PORTA) {
-        const porta = M.portaEm(mapa, x, y);
-        if (porta && porta.falsa) cor = porta.aberta ? '#6a6a72' : null;
-        else if (porta && porta.aberta) cor = '#3a4a3a';
-        else cor = { [M.T.PORTA]: '#c8a84a', [M.T.TRAVADA_A]: '#e05a4a', [M.T.TRAVADA_B]: '#4aa8e0', [M.T.TRAVADA_C]: '#7ae04a' }[t];
-      } else if (t >= M.T.ROCHA) cor = '#55555e';
-      else cor = t === M.T.POCA ? '#2b4450' : '#22252b';
-      if (!cor) continue;
-      mapaCtx.fillStyle = cor;
-      mapaCtx.fillRect(x * escala, y * escala, escala, escala);
-    }
-  }
-  for (const item of jogo.itens) {
-    if (item.pego) continue;
-    if (!revelado[Math.floor(item.y) * mapa.largura + Math.floor(item.x)]) continue;
-    mapaCtx.fillStyle = item.cracha ? '#ffffff' : '#7fd8a0';
-    mapaCtx.fillRect(Math.floor(item.x) * escala, Math.floor(item.y) * escala, escala, escala);
-  }
-  for (const e of jogo.inimigos) {
-    if (e.vida <= 0 || e.estado === 'dormindo') continue;
-    if (!revelado[Math.floor(e.y) * mapa.largura + Math.floor(e.x)]) continue;
-    mapaCtx.fillStyle = TIPOS[e.tipo].chefe ? '#ffb020' : '#e05a4a';
-    mapaCtx.fillRect(Math.floor(e.x) * escala, Math.floor(e.y) * escala, escala, escala);
-  }
-  const j = jogo.jogador;
-  mapaCtx.save();
-  mapaCtx.translate(j.x * escala, j.y * escala);
-  mapaCtx.rotate(j.ang);
-  mapaCtx.fillStyle = '#eaf2ff';
-  mapaCtx.beginPath();
-  mapaCtx.moveTo(escala * 1.6, 0);
-  mapaCtx.lineTo(-escala, escala * 0.9);
-  mapaCtx.lineTo(-escala, -escala * 0.9);
-  mapaCtx.closePath();
-  mapaCtx.fill();
-  mapaCtx.restore();
-}
-
-// ------------------------------------------------------------------ botoes
-
-el('comecar').addEventListener('click', () => comecar(0));
-el('voltar').addEventListener('click', () => mostrar('jogando'));
-el('pausa-menu').addEventListener('click', () => { montarSeletor(); mostrar('menu'); });
-el('pausa-reiniciar').addEventListener('click', () => repetirFase());
-el('morto-repetir').addEventListener('click', () => repetirFase());
-el('morto-menu').addEventListener('click', () => { montarSeletor(); mostrar('menu'); });
-el('entre-continuar').addEventListener('click', () => iniciarFase(jogo.fase + 1));
-el('fim-menu').addEventListener('click', () => { montarSeletor(); mostrar('menu'); });
+el('menu-jogar').addEventListener('click', comecar);
+el('pausa-voltar').addEventListener('click', () => {
+  mostrar('jogando');
+  tela.requestPointerLock?.();
+});
+el('pausa-menu').addEventListener('click', () => { montarMenu(); mostrar('menu'); });
+el('fim-denovo').addEventListener('click', comecar);
+el('fim-menu').addEventListener('click', () => { montarMenu(); mostrar('menu'); });
 el('som').addEventListener('click', (ev) => {
   ev.currentTarget.textContent = alternarSom() ? 'SOM: LIGADO' : 'SOM: DESLIGADO';
 });
 el('som').textContent = somLigado() ? 'SOM: LIGADO' : 'SOM: DESLIGADO';
 
-tela.addEventListener('click', () => {
-  if (estado === 'jogando' && !entrada.travado) entrada.travar();
-});
-window.addEventListener('keydown', (ev) => {
-  if (ev.code !== 'Escape' && ev.code !== 'KeyP') return;
-  if (estado === 'pausa') mostrar('jogando');
-});
+// Tabela de controles, gerada dos proprios numeros do jogo.
+el('controles').innerHTML = [
+  ['mover', 'W A S D'],
+  ['olhar', 'mouse (clique para travar)'],
+  ['atirar', 'clique ou espaco'],
+  ['recarregar', 'R'],
+  ['usar / comprar', `E — alcance de ${CONFIG.alcanceDeUso.toFixed(1)} celulas`],
+  ['trocar de arma', 'Q'],
+  ['correr', `shift — ${CONFIG.vigorMaximo.toFixed(1)} s de vigor`],
+  ['lanterna', 'F'],
+  ['pausar', 'esc'],
+].map(([a, b]) => `<tr><th>${a}</th><td>${b}</td></tr>`).join('');
 
-// Manual de armas gerado do proprio dado: mexer no balanceamento nao deixa o
-// texto do menu desatualizado.
-el('armas').innerHTML = ORDEM.map((chave) => {
-  const a = ARMAS[chave];
-  const municao = a.municao ? a.municao : 'sem municao';
-  const ruido = a.ruido === 0 ? 'silenciosa' : `ruido ${a.ruido}`;
-  return `<tr><th>${a.chave}</th><td>${a.nome}</td>`
-    + `<td>${Math.round(a.dano * a.pelotas)} de dano</td>`
-    + `<td>${municao}</td><td>${ruido}</td></tr>`;
-}).join('');
-el('bichos').innerHTML = Object.entries(TIPOS).map(([, t]) =>
-  `<tr><td><b>${t.nome}</b></td><td>${t.vida} de vida</td>`
-  + `<td>${t.visao === 0 ? 'cego' : `ve ${t.visao}`}</td>`
-  + `<td>ouve ${t.audicao}</td></tr>`).join('');
-
-montarSeletor();
+ajustarTela();
+montarMenu();
 mostrar('menu');
 requestAnimationFrame(laco);

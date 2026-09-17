@@ -1,420 +1,574 @@
 // O jogo inteiro, sem uma linha de desenho.
 //
-// `main.js` so traduz teclado para `entrada` e le o estado para pintar. Tudo que
-// decide alguma coisa — andar, atirar, ouvir, abrir, morrer, sair — acontece
-// aqui, com passo logico fixo. E por isso que provas.mjs pode jogar de verdade.
+// `main.js` so traduz teclado para `comandos` e estado para pixel; `provas.mjs`
+// e `robo.js` chamam exatamente as mesmas funcoes daqui. E isso que permite
+// provar que a rodada 15 e sobrevivivel sem abrir o navegador.
+//
+// Duas regras de projeto que valem ser ditas em voz alta:
+//
+// 1. **Zumbi nasce so em zona aberta.** Compra menos mapa, menos janela para
+//    defender. E a mesma troca do genero: espaco custa pontos e paga em
+//    seguranca — e se o jogador quiser ficar no galpao com duas janelas para
+//    sempre, isso e uma estrategia legitima que o jogo nao proibe.
+//
+// 2. **O ponto vem do dano, nao da morte.** Dez por acerto, sessenta por morte,
+//    cem por morte na cabeca. Sem ponto por acerto, uma arma forte demais seca
+//    a economia, e o jogador chega na rodada 15 sem ter comprado nada.
 
-import { FASES } from './fases.js';
-import { CONFIG, ITENS, criarSorteio } from './regras.js';
-import * as M from './mapa.js';
-import { ARMAS, ORDEM, tracar } from './armas.js';
-import { TIPOS, criarInimigo, passoInimigo, ferirInimigo } from './inimigos.js';
+import { CONFIG, TEXTOS } from './regras.js';
+import {
+  carregar, criarFluxo, refazerFluxo, mover, solido, solidoParaTiro,
+  portaEm, abrirPorta, zonaEm, chave,
+} from './mapa.js';
+import { PLANTAS } from './planta.js';
+import {
+  ARMAS, equipar, equiparForjada, tracar, custoDaMunicao,
+} from './armas.js';
+import {
+  composicaoDaRodada, intervaloDeNascimento, RODADA_DO_CHEFE,
+} from './rodadas.js';
+import { criarZumbi, passoDoZumbi, ferir, comoAlvo } from './zumbis.js';
 
-export { CONFIG } from './regras.js';
+const ARMAS_DA_CAIXA = ['espingarda', 'pineira', 'carabina', 'macarico'];
+const TEMPO_ENTRE_RODADAS = 6;
 
-// 60 Hz fixo. Fase calibrada num monitor nao pode virar outra fase noutro.
-export const DT = 1 / 60;
-
-export function entradaNula() {
-  return {
-    frente: 0, lado: 0, girar: 0,
-    agachado: false, correndo: false,
-    atirar: false, usar: false, lanterna: false, trocar: null,
+export function criarSorteio(semente = 1) {
+  let estado = (semente | 0) || 1;
+  return () => {
+    estado = (estado * 1103515245 + 12345) & 0x7fffffff;
+    return estado / 0x7fffffff;
   };
 }
 
-export function criarJogo(indiceFase, opcoes = {}) {
-  const fase = FASES[indiceFase];
-  if (!fase) throw new Error(`fase ${indiceFase} nao existe`);
-  const mapa = M.carregar(fase);
-  const herdado = opcoes.herdado || null;
-
-  const jogador = {
-    x: mapa.inicio.x, y: mapa.inicio.y, ang: mapa.inicio.ang || 0,
-    vx: 0, vy: 0,
-    vida: herdado ? herdado.vida : CONFIG.vidaMax,
-    bateria: herdado ? herdado.bateria : CONFIG.bateriaEntrada,
-    lanterna: false, agachado: false,
-    arma: herdado ? herdado.arma : 'picareta',
-    armas: herdado ? { ...herdado.armas } : { picareta: true, pineira: true },
-    municao: herdado ? { ...herdado.municao } : { ...CONFIG.municaoInicial },
-    crachas: new Set(),
-    recarga: 0, brilho: 0, dor: 0, tremor: 0, andado: 0, avisoPorta: 0,
-  };
-
-  return {
-    fase: indiceFase, nome: mapa.nome, mapa, jogador,
-    inimigos: mapa.inimigos.map(e => criarInimigo(e.tipo, e.x, e.y)),
-    itens: mapa.itens,
-    projeteis: [], ruidos: [], eventos: [],
-    sorteio: criarSorteio(opcoes.semente || 20260917),
-    tempo: 0, estado: 'jogando', abatidos: 0, segredos: 0, coletados: 0,
-  };
-}
-
-export function passo(jogo, entrada, dt = DT) {
-  jogo.eventos.length = 0;
-  jogo.ruidos.length = 0;
-  if (jogo.estado !== 'jogando') return jogo.eventos;
-
-  const j = jogo.jogador;
-  jogo.tempo += dt;
-  j.brilho = Math.max(0, j.brilho - dt * 3.2);
-  j.dor = Math.max(0, j.dor - dt * 2);
-  j.tremor = Math.max(0, j.tremor - dt * 4);
-  j.recarga = Math.max(0, j.recarga - dt);
-  j.avisoPorta = Math.max(0, j.avisoPorta - dt);
-
-  if (entrada.lanterna) alternarLanterna(jogo);
-  if (entrada.trocar !== null && entrada.trocar !== undefined) trocarArma(jogo, entrada.trocar);
-
-  j.ang = normalizar(j.ang + entrada.girar);
-  j.agachado = !!entrada.agachado;
-
-  andar(jogo, entrada, dt);
-  gastarLanterna(jogo, dt);
-  if (entrada.usar) usar(jogo);
-  if (entrada.atirar) atirar(jogo);
-  pegarItens(jogo);
-
-  const ctx = contexto(jogo);
-  for (const e of jogo.inimigos) passoInimigo(e, ctx, dt);
-  moverProjeteis(jogo, dt);
-
-  conferirSaida(jogo);
-  if (j.vida <= 0 && jogo.estado === 'jogando') {
-    jogo.estado = 'morto';
-    jogo.eventos.push({ tipo: 'morreu' });
+export function criarJogo(indiceMapa = 0, opcoes = {}) {
+  const mapa = carregar(PLANTAS[indiceMapa]);
+  for (const janela of mapa.janelas) {
+    janela.tabuas = CONFIG.tabuasPorJanela;
+    janela.ocupadaPor = null;
   }
-  return jogo.eventos;
-}
-
-// ------------------------------------------------------------- movimento
-
-function andar(jogo, entrada, dt) {
-  const j = jogo.jogador;
-  const vel = entrada.agachado ? CONFIG.velAgachar
-    : entrada.correndo ? CONFIG.velCorrer : CONFIG.velAndar;
-
-  const cos = Math.cos(j.ang);
-  const sen = Math.sin(j.ang);
-  let dx = cos * entrada.frente - sen * entrada.lado;
-  let dy = sen * entrada.frente + cos * entrada.lado;
-  const norma = Math.hypot(dx, dy);
-  if (norma > 1) { dx /= norma; dy /= norma; }
-
-  if (norma > 1e-6) {
-    const k = Math.min(1, CONFIG.aceleracao * dt);
-    j.vx += (dx * vel - j.vx) * k;
-    j.vy += (dy * vel - j.vy) * k;
-  } else {
-    const k = Math.max(0, 1 - CONFIG.atrito * dt);
-    j.vx *= k;
-    j.vy *= k;
-  }
-
-  const antesX = j.x;
-  const antesY = j.y;
-  deslocar(jogo, j.vx * dt, j.vy * dt);
-  const andado = Math.hypot(j.x - antesX, j.y - antesY);
-  if (andado < 1e-5) { j.vx *= 0.2; j.vy *= 0.2; }
-
-  // Ruido de passo: sai a cada `passoRuido` celulas percorridas, e nao por
-  // quadro — senao andar devagar faria mais ruido que correr, por ter mais
-  // quadros dentro da mesma distancia.
-  j.andado += andado;
-  if (j.andado >= CONFIG.passoRuido) {
-    j.andado -= CONFIG.passoRuido;
-    const naAgua = M.tile(jogo.mapa, Math.floor(j.x), Math.floor(j.y)) === M.T.POCA;
-    let forca = entrada.agachado ? CONFIG.ruidoAgachar
-      : entrada.correndo ? CONFIG.ruidoCorrer : CONFIG.ruidoAndar;
-    if (naAgua) forca += CONFIG.ruidoAgua;
-    emitirRuido(jogo, j.x, j.y, forca);
-    if (forca > 0) jogo.eventos.push({ tipo: 'passo', agua: naAgua, forca });
-  }
-}
-
-function deslocar(jogo, dx, dy) {
-  const j = jogo.jogador;
-  const r = CONFIG.raioJogador;
-  if (!colide(jogo, j.x + dx, j.y, r)) j.x += dx;
-  else { tocarParede(jogo, j.x + dx, j.y, r); j.vx = 0; }
-  if (!colide(jogo, j.x, j.y + dy, r)) j.y += dy;
-  else { tocarParede(jogo, j.x, j.y + dy, r); j.vy = 0; }
-}
-
-function colide(jogo, x, y, r) {
-  for (const [ox, oy] of [[-r, -r], [r, -r], [-r, r], [r, r]]) {
-    if (M.solido(jogo.mapa, Math.floor(x + ox), Math.floor(y + oy))) return true;
-  }
-  return false;
-}
-
-// Porta comum e porta cujo cracha esta no bolso abrem no encosto. Parede falsa
-// nao: segredo que abre sozinho ao raspar na parede deixa de ser segredo.
-function tocarParede(jogo, x, y, r) {
-  const j = jogo.jogador;
-  for (const [ox, oy] of [[-r, -r], [r, -r], [-r, r], [r, r]]) {
-    const cx = Math.floor(x + ox);
-    const cy = Math.floor(y + oy);
-    const porta = M.portaEm(jogo.mapa, cx, cy);
-    if (!porta || porta.aberta || porta.falsa) continue;
-    if (porta.cracha && !j.crachas.has(porta.cracha)) {
-      if (j.avisoPorta <= 0) {
-        j.avisoPorta = 1.4;
-        jogo.eventos.push({ tipo: 'trancada', cracha: porta.cracha });
-      }
-      continue;
-    }
-    porta.aberta = true;
-    jogo.eventos.push({ tipo: 'porta', x: cx, y: cy });
-    emitirRuido(jogo, cx + 0.5, cy + 0.5, 8);
-  }
-}
-
-// -------------------------------------------------------------- lanterna
-
-function alternarLanterna(jogo) {
-  const j = jogo.jogador;
-  if (!j.lanterna && j.bateria <= 0) {
-    jogo.eventos.push({ tipo: 'sem-pilha' });
-    return;
-  }
-  j.lanterna = !j.lanterna;
-  jogo.eventos.push({ tipo: 'lanterna', ligada: j.lanterna });
-}
-
-function gastarLanterna(jogo, dt) {
-  const j = jogo.jogador;
-  if (!j.lanterna) return;
-  j.bateria -= CONFIG.gastoLanterna * dt;
-  if (j.bateria <= 0) {
-    j.bateria = 0;
-    j.lanterna = false;
-    jogo.eventos.push({ tipo: 'sem-pilha' });
-  }
-}
-
-// ----------------------------------------------------------------- armas
-
-function trocarArma(jogo, pedido) {
-  const j = jogo.jogador;
-  let nome = null;
-  if (typeof pedido === 'number') {
-    nome = ORDEM.find(k => ARMAS[k].chave === pedido) || null;
-  } else if (pedido === 'proxima' || pedido === 'anterior') {
-    const tenho = ORDEM.filter(k => j.armas[k]);
-    const i = tenho.indexOf(j.arma);
-    const passo = pedido === 'proxima' ? 1 : -1;
-    nome = tenho[(i + passo + tenho.length) % tenho.length];
-  } else if (typeof pedido === 'string') {
-    nome = pedido;
-  }
-  if (!nome || !j.armas[nome] || nome === j.arma) return;
-  j.arma = nome;
-  j.recarga = Math.max(j.recarga, 0.18);
-  jogo.eventos.push({ tipo: 'trocou', arma: nome });
-}
-
-function atirar(jogo) {
-  const j = jogo.jogador;
-  if (j.recarga > 0) return;
-  const arma = ARMAS[j.arma];
-  if (arma.municao && j.municao[arma.municao] < arma.gasto) {
-    jogo.eventos.push({ tipo: 'vazio', arma: j.arma });
-    j.recarga = 0.3;
-    return;
-  }
-  j.recarga = arma.cadencia;
-  if (arma.municao) j.municao[arma.municao] -= arma.gasto;
-  j.brilho = Math.max(j.brilho, arma.clarao);
-  jogo.eventos.push({ tipo: 'tiro', arma: j.arma });
-  if (arma.ruido > 0) emitirRuido(jogo, j.x, j.y, arma.ruido);
-
-  for (let p = 0; p < arma.pelotas; p++) {
-    const desvio = (jogo.sorteio() - 0.5) * arma.espalhamento
-      + (arma.pelotas > 1 ? (p / (arma.pelotas - 1) - 0.5) * arma.espalhamento * 0.8 : 0);
-    const ang = j.ang + desvio;
-    const dir = { x: Math.cos(ang), y: Math.sin(ang) };
-    const acerto = tracar(jogo.mapa, j, dir, arma.alcance, jogo.inimigos);
-    if (acerto.tipo === 'inimigo') {
-      const aplicado = ferirInimigo(acerto.alvo, arma.dano);
-      jogo.eventos.push({
-        tipo: 'acerto', alvo: acerto.alvo, dano: aplicado,
-        x: acerto.alvo.x, y: acerto.alvo.y,
-        blindado: aplicado < arma.dano,
-      });
-      // O grito e o preco de matar: ate a picareta, silenciosa, avisa os
-      // vizinhos de que algo morreu ali.
-      emitirRuido(jogo, acerto.alvo.x, acerto.alvo.y, 7);
-      if (acerto.alvo.vida <= 0) {
-        jogo.abatidos++;
-        jogo.eventos.push({ tipo: 'abate', alvo: acerto.alvo });
-      }
-    } else if (acerto.tipo === 'parede') {
-      jogo.eventos.push({
-        tipo: 'faisca', x: j.x + dir.x * acerto.distancia, y: j.y + dir.y * acerto.distancia,
-      });
-    }
-  }
-}
-
-// ------------------------------------------------------------------ usar
-
-function usar(jogo) {
-  const j = jogo.jogador;
-  const alvoX = j.x + Math.cos(j.ang) * 0.85;
-  const alvoY = j.y + Math.sin(j.ang) * 0.85;
-  const cx = Math.floor(alvoX);
-  const cy = Math.floor(alvoY);
-  const resultado = M.usarPorta(jogo.mapa, cx, cy, j.crachas);
-  if (resultado === 'nada') return;
-  if (resultado === 'segredo') {
-    jogo.segredos++;
-    jogo.eventos.push({ tipo: 'segredo', x: cx, y: cy });
-  } else if (resultado === 'abriu') {
-    jogo.eventos.push({ tipo: 'porta', x: cx, y: cy });
-    emitirRuido(jogo, cx + 0.5, cy + 0.5, 8);
-  } else if (resultado.startsWith('falta-')) {
-    jogo.eventos.push({ tipo: 'trancada', cracha: resultado.slice(6) });
-  }
-}
-
-// ----------------------------------------------------------------- itens
-
-function pegarItens(jogo) {
-  const j = jogo.jogador;
-  for (const item of jogo.itens) {
-    if (item.pego) continue;
-    if (Math.hypot(item.x - j.x, item.y - j.y) > 0.6) continue;
-
-    if (item.tipo === 'kit') {
-      if (j.vida >= CONFIG.vidaMax) continue;
-      j.vida = Math.min(CONFIG.vidaMax, j.vida + item.qtd);
-    } else if (item.tipo === 'pilha') {
-      if (j.bateria >= CONFIG.bateriaMax) continue;
-      j.bateria = Math.min(CONFIG.bateriaMax, j.bateria + item.qtd);
-    } else if (item.tipo === 'cracha') {
-      j.crachas.add(item.cracha);
-    } else if (item.tipo === 'arma') {
-      j.armas[item.arma] = true;
-      j.arma = item.arma;
-    } else {
-      const max = CONFIG.municaoMax[item.tipo];
-      if (j.municao[item.tipo] >= max) continue;
-      j.municao[item.tipo] = Math.min(max, j.municao[item.tipo] + item.qtd);
-    }
-    item.pego = true;
-    jogo.coletados++;
-    jogo.eventos.push({ tipo: 'item', rotulo: item.rotulo, item });
-  }
-}
-
-// ------------------------------------------------------------- inimigos
-
-function contexto(jogo) {
-  return {
-    mapa: jogo.mapa,
-    jogador: jogo.jogador,
-    ruidos: jogo.ruidos,
-    inimigos: jogo.inimigos,
-    sorteio: jogo.sorteio,
-    ferir: (dano, origem) => ferirJogador(jogo, dano, origem),
-    cuspir: (inimigo, dir) => {
-      jogo.projeteis.push({
-        x: inimigo.x + dir.x * 0.5, y: inimigo.y + dir.y * 0.5,
-        vx: dir.x * 7.2, vy: dir.y * 7.2,
-        dano: TIPOS[inimigo.tipo].dano, vida: 2.4,
-      });
-      jogo.eventos.push({ tipo: 'cuspe', x: inimigo.x, y: inimigo.y });
-      emitirRuido(jogo, inimigo.x, inimigo.y, 6);
+  const jogo = {
+    indiceMapa,
+    mapa,
+    fluxo: criarFluxo(mapa),
+    sorteio: criarSorteio(opcoes.semente || 7),
+    tempo: 0,
+    estado: 'jogando',
+    rodada: opcoes.rodada || 1,
+    faseDaRodada: 'intervalo',
+    relogioDaFase: opcoes.semPreparo ? 0 : 2.5,
+    aNascer: [],
+    vivos: [],
+    relogioDeNascimento: 0,
+    relogioDeUso: 0,
+    forcaLigada: false,
+    eventos: [],
+    mensagem: null,
+    estatisticas: {
+      mortes: 0, cabecas: 0, tiros: 0, acertos: 0, tabuasRepostas: 0,
+      pontosGanhos: 0, portasAbertas: 0, rodadaMaxima: opcoes.rodada || 1,
     },
-    sinal: (tipo, inimigo) => {
-      jogo.eventos.push({ tipo, x: inimigo.x, y: inimigo.y, inimigo });
+    jogador: {
+      x: mapa.inicio.x,
+      y: mapa.inicio.y,
+      ang: 0,
+      inclinacao: 0,
+      z: CONFIG.alturaDoOlho,
+      vida: CONFIG.vidaMaxima,
+      vidaMaxima: CONFIG.vidaMaxima,
+      semDanoDesde: 99,
+      pontos: opcoes.pontos ?? CONFIG.pontosIniciais,
+      armas: [equipar('picareta'), equipar('pistola')],
+      naMao: 1,
+      perks: new Set(),
+      talismaGasto: false,
+      vigor: CONFIG.vigorMaximo,
+      lanterna: true,
+      baixado: false,
+      sangrando: 0,
+      correndo: false,
     },
   };
+  refazerFluxo(mapa, jogo.fluxo, jogo.jogador);
+  prepararRodada(jogo, jogo.rodada);
+  return jogo;
 }
 
-function moverProjeteis(jogo, dt) {
-  const j = jogo.jogador;
-  for (let i = jogo.projeteis.length - 1; i >= 0; i--) {
-    const p = jogo.projeteis[i];
-    p.x += p.vx * dt;
-    p.y += p.vy * dt;
-    p.vida -= dt;
-    // 0,38 e o raio de acerto do cuspe. Em 0,45 nao havia desvio possivel:
-    // andar de lado durante o voo do projetil nao saia do corpo dele.
-    if (Math.hypot(p.x - j.x, p.y - j.y) < 0.38) {
-      ferirJogador(jogo, p.dano, p);
-      jogo.projeteis.splice(i, 1);
-    } else if (p.vida <= 0 || M.solido(jogo.mapa, Math.floor(p.x), Math.floor(p.y))) {
-      jogo.eventos.push({ tipo: 'espirro', x: p.x, y: p.y });
-      jogo.projeteis.splice(i, 1);
-    }
+export function armaNaMao(jogo) {
+  return jogo.jogador.armas[jogo.jogador.naMao];
+}
+
+function prepararRodada(jogo, rodada) {
+  const composicao = composicaoDaRodada(rodada);
+  const fila = [];
+  for (let i = 0; i < composicao.comum; i++) fila.push('comum');
+  for (let i = 0; i < composicao.rastejante; i++) fila.push('rastejante');
+  for (let i = 0; i < composicao.chefe; i++) fila.push('chefe');
+  // Embaralha com o sorteio do jogo, e nao com Math.random: a mesma semente
+  // tem de dar a mesma partida, senao a prova do robo nao vale nada.
+  for (let i = fila.length - 1; i > 0; i--) {
+    const j = Math.floor(jogo.sorteio() * (i + 1));
+    [fila[i], fila[j]] = [fila[j], fila[i]];
   }
+  jogo.aNascer = fila;
+  jogo.rodada = rodada;
+  jogo.estatisticas.rodadaMaxima = Math.max(jogo.estatisticas.rodadaMaxima, rodada);
+  jogo.relogioDeNascimento = 0;
 }
 
-function ferirJogador(jogo, dano, origem) {
-  const j = jogo.jogador;
-  if (jogo.estado !== 'jogando') return;
-  j.vida -= dano;
-  j.dor = 1;
-  j.tremor = Math.min(1, j.tremor + dano / 40);
-  jogo.eventos.push({ tipo: 'dano', dano, origem });
-  if (origem && origem.x !== undefined) {
-    const d = Math.hypot(j.x - origem.x, j.y - origem.y) || 1;
-    deslocar(jogo, ((j.x - origem.x) / d) * CONFIG.empurraoMorte * 0.12,
-      ((j.y - origem.y) / d) * CONFIG.empurraoMorte * 0.12);
-  }
-}
-
-// ----------------------------------------------------------------- saida
-
-function conferirSaida(jogo) {
-  const e = jogo.mapa.elevador;
-  if (!e) return;
-  const j = jogo.jogador;
-  if (Math.floor(j.x) !== e.x || Math.floor(j.y) !== e.y) return;
-  if (jogo.mapa.exigeCapataz) {
-    const chefe = jogo.inimigos.find(i => TIPOS[i.tipo].chefe);
-    if (chefe && chefe.vida > 0) {
-      if (j.avisoPorta <= 0) {
-        j.avisoPorta = 1.4;
-        jogo.eventos.push({ tipo: 'elevador-travado' });
-      }
-      return;
-    }
-  }
-  jogo.estado = 'saiu';
-  jogo.eventos.push({ tipo: 'saiu' });
-}
-
-function emitirRuido(jogo, x, y, forca) {
-  if (forca <= 0) return;
-  jogo.ruidos.push({
-    x, y, forca,
-    campo: M.alcanceRuido(jogo.mapa, { x, y }, forca),
+// Janelas onde pode nascer: so as que estao em zona aberta. Zumbi nascendo em
+// zona fechada seria zumbi que nunca chega — e a rodada nunca fecharia.
+export function janelasAtivas(jogo) {
+  return jogo.mapa.janelas.filter((janela) => {
+    const z = zonaEm(jogo.mapa, janela.dentro.x, janela.dentro.y);
+    return z >= 0 && jogo.mapa.zonas[z].aberta;
   });
 }
 
-function normalizar(ang) {
-  while (ang > Math.PI) ang -= Math.PI * 2;
-  while (ang < -Math.PI) ang += Math.PI * 2;
-  return ang;
+function nascer(jogo) {
+  const janelas = janelasAtivas(jogo);
+  if (!janelas.length || !jogo.aNascer.length) return;
+  if (jogo.vivos.length >= CONFIG.zumbisSimultaneos) return;
+  const tipo = jogo.aNascer.shift();
+  // Prefere a janela com menos gente na fila: espalha a horda em vez de
+  // empilhar tudo numa porta, o que sem isso deixa metade do mapa vazio.
+  let escolhida = janelas[0];
+  let menos = Infinity;
+  for (const janela of janelas) {
+    const fila = jogo.vivos.filter(z => z.janela === janela
+      && (z.estado === 'esperando' || z.estado === 'arrancando')).length;
+    const desempate = fila + jogo.sorteio() * 0.9;
+    if (desempate < menos) { menos = desempate; escolhida = janela; }
+  }
+  jogo.vivos.push(criarZumbi(tipo, jogo.rodada, escolhida));
 }
 
-// O que passa de uma fase para a proxima: vida, pilha, arma e municao. Cracha
-// nao passa — cada nivel tem o proprio chaveiro.
-//
-// A vida tem piso ao entrar numa fase nova, e isso e uma decisao, nao descuido:
-// sem piso, sair de uma fase com 20 de vida significa comecar a seguinte morto
-// de antemao — o robo de prova morreu assim tres vezes seguidas na CORREIA,
-// com 31 de vida herdados da BOMBAS. Descer de elevador e o respiro.
-export function herdar(jogo) {
+export function passo(jogo, comandos, dt) {
+  const eventos = [];
+  jogo.eventos = eventos;
+  if (jogo.estado === 'morto') return eventos;
+  jogo.tempo += dt;
   const j = jogo.jogador;
+
+  // --- jogador ---------------------------------------------------------
+  if (comandos.girar) j.ang += comandos.girar;
+  if (comandos.inclinar !== undefined) {
+    j.inclinacao = Math.max(-0.9, Math.min(0.9, j.inclinacao + comandos.inclinar));
+  }
+  moverJogador(jogo, comandos, dt);
+
+  j.semDanoDesde += dt;
+  if (!j.baixado && j.semDanoDesde > CONFIG.esperaParaRegenerar && j.vida < j.vidaMaxima) {
+    j.vida = Math.min(j.vidaMaxima, j.vida + CONFIG.regeneracaoPorSegundo * dt);
+  }
+  if (j.baixado) {
+    j.sangrando -= dt;
+    if (j.sangrando <= 0) {
+      jogo.estado = 'morto';
+      eventos.push({ tipo: 'fim', rodada: jogo.rodada });
+      return eventos;
+    }
+  }
+
+  // --- armas -----------------------------------------------------------
+  for (const arma of j.armas) {
+    arma.esfriando = Math.max(0, arma.esfriando - dt);
+    if (arma.recarregando > 0) {
+      arma.recarregando -= dt;
+      if (arma.recarregando <= 0) concluirRecarga(arma);
+    }
+  }
+  if (comandos.trocar) trocarArma(jogo, eventos);
+  if (comandos.recarregar) iniciarRecarga(jogo, eventos);
+  if (comandos.atirar) atirar(jogo, eventos);
+  // Uso tem travamento, e isto foi um defeito de verdade que o robo achou: sem
+  // ele, segurar a tecla comprava municao sessenta vezes por segundo. O robo
+  // ficou parado na parede da pineira gastando tudo que ganhava e morreu na
+  // rodada 7 com o mapa fechado — o jogo estava vendendo em loop.
+  jogo.relogioDeUso = Math.max(0, (jogo.relogioDeUso || 0) - dt);
+  if (comandos.usar && jogo.relogioDeUso <= 0) {
+    const antes = eventos.length;
+    usar(jogo, eventos);
+    const agiu = eventos.slice(antes).some(e => e.tipo !== 'negado');
+    if (agiu) jogo.relogioDeUso = 0.6;
+  }
+
+  // --- zumbis ----------------------------------------------------------
+  // O campo de fluxo e refeito quatro vezes por segundo: e o suficiente para a
+  // horda parecer que sabe onde voce esta, e barato o bastante para a rodada 30.
+  jogo.relogioDoFluxo = (jogo.relogioDoFluxo || 0) - dt;
+  if (jogo.relogioDoFluxo <= 0) {
+    jogo.relogioDoFluxo = 0.25;
+    refazerFluxo(jogo.mapa, jogo.fluxo, j);
+  }
+
+  const ctx = { mapa: jogo.mapa, fluxo: jogo.fluxo, jogador: j };
+  for (const z of jogo.vivos) {
+    if (z.estado === 'morto') continue;
+    for (const evento of passoDoZumbi(z, ctx, dt)) {
+      if (evento.tipo === 'mordida') morder(jogo, evento, eventos);
+      else eventos.push(evento);
+    }
+  }
+  separarZumbis(jogo);
+  jogo.vivos = jogo.vivos.filter(z => z.estado !== 'morto');
+
+  // --- rodada ----------------------------------------------------------
+  if (jogo.faseDaRodada === 'intervalo') {
+    jogo.relogioDaFase -= dt;
+    if (jogo.relogioDaFase <= 0) {
+      jogo.faseDaRodada = 'correndo';
+      eventos.push({ tipo: 'rodada', rodada: jogo.rodada, chefe: jogo.rodada % RODADA_DO_CHEFE === 0 });
+    }
+  } else {
+    jogo.relogioDeNascimento -= dt;
+    if (jogo.relogioDeNascimento <= 0) {
+      jogo.relogioDeNascimento = intervaloDeNascimento(jogo.rodada);
+      nascer(jogo);
+    }
+    if (!jogo.aNascer.length && !jogo.vivos.length) {
+      jogo.faseDaRodada = 'intervalo';
+      jogo.relogioDaFase = TEMPO_ENTRE_RODADAS;
+      eventos.push({ tipo: 'rodada-vencida', rodada: jogo.rodada });
+      prepararRodada(jogo, jogo.rodada + 1);
+    }
+  }
+  return eventos;
+}
+
+function moverJogador(jogo, comandos, dt) {
+  const j = jogo.jogador;
+  let frente = (comandos.frente ? 1 : 0) - (comandos.tras ? 1 : 0);
+  let lado = (comandos.dir ? 1 : 0) - (comandos.esq ? 1 : 0);
+  const querCorrer = !!comandos.correr && frente > 0 && !j.baixado;
+  if (querCorrer && j.vigor > 0) {
+    j.vigor = Math.max(0, j.vigor - dt);
+    j.correndo = true;
+  } else {
+    j.vigor = Math.min(CONFIG.vigorMaximo, j.vigor + CONFIG.vigorPorSegundo * dt);
+    j.correndo = false;
+  }
+  const base = j.baixado ? CONFIG.velocidadeSangrando
+    : j.correndo ? CONFIG.velocidadeCorrendo : CONFIG.velocidadeAndando;
+  const norma = Math.hypot(frente, lado) || 1;
+  frente /= norma;
+  lado /= norma;
+  const cos = Math.cos(j.ang);
+  const sen = Math.sin(j.ang);
+  const dx = (cos * frente - sen * lado) * base * dt;
+  const dy = (sen * frente + cos * lado) * base * dt;
+  mover(jogo.mapa, j, dx, dy, CONFIG.raioDoJogador);
+}
+
+// Zumbis nao se atravessam. Sem isso, seis zumbis chegam como um zumbi so e
+// cerco deixa de existir.
+function separarZumbis(jogo) {
+  const vivos = jogo.vivos;
+  for (let i = 0; i < vivos.length; i++) {
+    const a = vivos[i];
+    if (a.estado === 'esperando' || a.estado === 'arrancando' || a.estado === 'entrando') continue;
+    for (let k = i + 1; k < vivos.length; k++) {
+      const b = vivos[k];
+      if (b.estado === 'esperando' || b.estado === 'arrancando' || b.estado === 'entrando') continue;
+      const dx = b.x - a.x;
+      const dy = b.y - a.y;
+      const minimo = a.raio + b.raio;
+      const d = Math.hypot(dx, dy);
+      if (d >= minimo || d < 1e-6) continue;
+      const sobra = (minimo - d) / 2;
+      const nx = dx / d;
+      const ny = dy / d;
+      a.x -= nx * sobra;
+      a.y -= ny * sobra;
+      b.x += nx * sobra;
+      b.y += ny * sobra;
+    }
+  }
+}
+
+function morder(jogo, evento, eventos) {
+  const j = jogo.jogador;
+  if (j.baixado) return;
+  j.vida -= evento.dano;
+  j.semDanoDesde = 0;
+  eventos.push({ tipo: 'dano', dano: evento.dano, vida: j.vida });
+  if (j.vida > 0) return;
+  j.vida = 0;
+  if (j.perks.has('talisma') && !j.talismaGasto) {
+    // O talisma levanta uma vez e some: e a diferenca entre um erro e o fim.
+    j.talismaGasto = true;
+    j.perks.delete('talisma');
+    j.vida = CONFIG.vidaAoLevantar;
+    eventos.push({ tipo: 'levantou', por: 'talisma' });
+    return;
+  }
+  j.baixado = true;
+  j.sangrando = CONFIG.tempoDeSangramento;
+  eventos.push({ tipo: 'baixado' });
+}
+
+// --------------------------------------------------------------- armas
+
+function trocarArma(jogo, eventos) {
+  const j = jogo.jogador;
+  j.naMao = (j.naMao + 1) % j.armas.length;
+  eventos.push({ tipo: 'trocou', arma: armaNaMao(jogo).nome });
+}
+
+function cadenciaEfetiva(jogo, arma) {
+  const bonus = jogo.jogador.perks.has('gatilho')
+    ? CONFIG.multiplicadorDeCadenciaDoGatilho : 1;
+  return arma.cadencia * bonus;
+}
+
+function iniciarRecarga(jogo, eventos) {
+  const arma = armaNaMao(jogo);
+  if (arma.tipo === 'corpo' || arma.recarregando > 0) return;
+  if (arma.noPente >= arma.pente) { eventos.push({ tipo: 'aviso', texto: TEXTOS.penteCheio }); return; }
+  if (arma.naReserva <= 0) { eventos.push({ tipo: 'aviso', texto: 'SEM MUNICAO' }); return; }
+  const divisor = jogo.jogador.perks.has('graxa') ? CONFIG.multiplicadorDeRecargaDaGraxa : 1;
+  arma.recarregando = arma.recarga / divisor;
+  eventos.push({ tipo: 'recarga', arma: arma.nome });
+}
+
+function concluirRecarga(arma) {
+  const falta = arma.pente - arma.noPente;
+  const posso = Math.min(falta, arma.naReserva);
+  arma.noPente += posso;
+  arma.naReserva -= posso;
+  arma.recarregando = 0;
+}
+
+function atirar(jogo, eventos) {
+  const j = jogo.jogador;
+  const arma = armaNaMao(jogo);
+  if (arma.recarregando > 0 || arma.esfriando > 0) return;
+  if (arma.tipo !== 'corpo' && arma.noPente <= 0) {
+    eventos.push({ tipo: 'vazio' });
+    arma.esfriando = 0.35;
+    iniciarRecarga(jogo, eventos);
+    return;
+  }
+  arma.esfriando = 1 / cadenciaEfetiva(jogo, arma);
+  if (arma.tipo !== 'corpo') arma.noPente -= 1;
+  jogo.estatisticas.tiros++;
+
+  const direcao = { x: Math.cos(j.ang), y: Math.sin(j.ang), z: j.inclinacao };
+  const origem = { x: j.x, y: j.y, z: j.baixado ? 0.5 : CONFIG.alturaDoOlho };
+  const alvos = jogo.vivos.filter(z => z.estado !== 'morto').map(comoAlvo);
+  const acertos = tracar(
+    (x, y) => solidoParaTiro(jogo.mapa, x, y),
+    origem, direcao, arma, alvos, jogo.sorteio,
+  );
+  eventos.push({ tipo: 'tiro', arma: arma.chave, acertos: acertos.length });
+
+  const jaContado = new Set();
+  for (const acerto of acertos) {
+    const z = jogo.vivos.find(v => v.id === acerto.alvo.id);
+    if (!z || z.estado === 'morto') continue;
+    const alturaRelativa = 0.5;
+    const resultado = ferir(z, acerto.dano, acerto.naCabeca, acerto.naCabeca ? 1 : alturaRelativa);
+    if (resultado.aplicado <= 0) continue;
+    if (!jaContado.has(z.id)) {
+      jaContado.add(z.id);
+      jogo.estatisticas.acertos++;
+      ganhar(jogo, CONFIG.pontosPorAcerto);
+    }
+    eventos.push({
+      tipo: 'acerto', zumbi: z, naCabeca: acerto.naCabeca, dano: resultado.aplicado,
+      distancia: acerto.distancia,
+    });
+    if (resultado.morreu) {
+      jogo.estatisticas.mortes++;
+      if (acerto.naCabeca) jogo.estatisticas.cabecas++;
+      ganhar(jogo, acerto.naCabeca ? CONFIG.pontosPorCabeca : CONFIG.pontosPorMorte);
+      eventos.push({ tipo: 'morte', zumbi: z, naCabeca: acerto.naCabeca });
+    }
+  }
+}
+
+function ganhar(jogo, pontos) {
+  jogo.jogador.pontos += pontos;
+  jogo.estatisticas.pontosGanhos += pontos;
+}
+
+// ------------------------------------------------------------ interacao
+
+// O que esta ao alcance da mao, em ordem de prioridade. O HUD mostra o primeiro
+// item desta lista, e a tecla de usar age nele: uma tecla, uma acao, sem menu.
+export function alvoDeUso(jogo) {
+  const j = jogo.jogador;
+  const perto = [];
+
+  for (const maquina of jogo.mapa.maquinas) {
+    const d = Math.hypot(maquina.x - j.x, maquina.y - j.y);
+    if (d <= CONFIG.alcanceDeUso) perto.push({ tipo: 'maquina', maquina, d });
+  }
+  for (const janela of jogo.mapa.janelas) {
+    if (janela.tabuas >= CONFIG.tabuasPorJanela) continue;
+    const d = Math.hypot(janela.dentro.x + 0.5 - j.x, janela.dentro.y + 0.5 - j.y);
+    if (d <= CONFIG.alcanceDeUso) perto.push({ tipo: 'janela', janela, d });
+  }
+  // Porta: as fechadas dentro do alcance da mao, escolhida a que esta mais na
+  // direcao do olhar. A primeira versao sondava uma celula a 1,1 de distancia e
+  // so ela — com alcance de uso de 2,6, o jogador (e o robo) ficava do lado da
+  // porta, olhando para ela, sem conseguir abrir, porque a sonda caia na parede
+  // ao lado. O robo achou isso ficando 400 segundos parado com 11 mil pontos.
+  for (const porta of jogo.mapa.portas.values()) {
+    if (porta.aberta) continue;
+    const dx = porta.x + 0.5 - j.x;
+    const dy = porta.y + 0.5 - j.y;
+    const d = Math.hypot(dx, dy);
+    if (d > CONFIG.alcanceDeUso) continue;
+    const rumo = Math.atan2(dy, dx);
+    const desvio = Math.abs(Math.atan2(Math.sin(rumo - j.ang), Math.cos(rumo - j.ang)));
+    if (desvio > 1.1) continue;
+    perto.push({ tipo: 'porta', porta, d: d + desvio * 0.4 });
+  }
+
+  perto.sort((a, b) => a.d - b.d);
+  return perto[0] || null;
+}
+
+export function textoDoAlvo(jogo, alvo) {
+  if (!alvo) return null;
+  if (alvo.tipo === 'porta') return `ABRIR POR ${alvo.porta.custo}`;
+  if (alvo.tipo === 'janela') return 'REPOR TABUA';
+  const q = alvo.maquina;
+  if (q.tipo === 'arma') {
+    const base = ARMAS[q.arma];
+    const tem = jogo.jogador.armas.find(a => a.chave === q.arma || a.chave === `${q.arma}-forjada`);
+    return tem ? `${base.nome}: MUNICAO POR ${custoDaMunicao(base)}` : `${base.nome} POR ${base.custo}`;
+  }
+  if (q.tipo === 'caixa') return `CAIXA POR ${CONFIG.custoDaCaixa}`;
+  if (q.tipo === 'forja') return `FORJAR POR ${CONFIG.custoDaForja}`;
+  if (q.tipo === 'forca') return jogo.forcaLigada ? TEXTOS.forcaLigada : 'LIGAR A FORCA';
+  if (q.tipo === 'perk') {
+    const perk = CONFIG.perks[q.perk];
+    return `${perk.nome} POR ${perk.custo} — ${perk.descricao}`;
+  }
+  return null;
+}
+
+function usar(jogo, eventos) {
+  const alvo = alvoDeUso(jogo);
+  if (!alvo) return;
+  const j = jogo.jogador;
+
+  if (alvo.tipo === 'porta') {
+    if (j.pontos < alvo.porta.custo) { eventos.push({ tipo: 'negado', texto: TEXTOS.semPontos }); return; }
+    j.pontos -= alvo.porta.custo;
+    abrirPorta(jogo.mapa, alvo.porta);
+    jogo.estatisticas.portasAbertas++;
+    refazerFluxo(jogo.mapa, jogo.fluxo, j);
+    eventos.push({ tipo: 'porta-aberta', porta: alvo.porta });
+    return;
+  }
+
+  if (alvo.tipo === 'janela') {
+    alvo.janela.tabuas = Math.min(CONFIG.tabuasPorJanela, alvo.janela.tabuas + 1);
+    jogo.estatisticas.tabuasRepostas++;
+    ganhar(jogo, CONFIG.pontosPorTabuaReposta);
+    eventos.push({ tipo: 'tabua-reposta', janela: alvo.janela });
+    return;
+  }
+
+  const q = alvo.maquina;
+  if (q.tipo === 'forca') {
+    if (jogo.forcaLigada) return;
+    jogo.forcaLigada = true;
+    for (const outra of jogo.mapa.maquinas) {
+      if (outra.tipo === 'perk' || outra.tipo === 'forja') outra.ligada = true;
+    }
+    eventos.push({ tipo: 'forca', texto: TEXTOS.forcaLigada });
+    return;
+  }
+
+  if (q.tipo === 'perk' || q.tipo === 'forja') {
+    if (!jogo.forcaLigada) { eventos.push({ tipo: 'negado', texto: TEXTOS.precisaDeForca }); return; }
+  }
+
+  if (q.tipo === 'arma') {
+    const base = ARMAS[q.arma];
+    const tem = j.armas.findIndex(a => a.chave === q.arma || a.chave === `${q.arma}-forjada`);
+    if (tem >= 0) {
+      const custo = custoDaMunicao(base);
+      if (j.pontos < custo) { eventos.push({ tipo: 'negado', texto: TEXTOS.semPontos }); return; }
+      j.pontos -= custo;
+      j.armas[tem].naReserva = j.armas[tem].reserva;
+      eventos.push({ tipo: 'municao', arma: base.nome });
+      return;
+    }
+    if (j.pontos < base.custo) { eventos.push({ tipo: 'negado', texto: TEXTOS.semPontos }); return; }
+    j.pontos -= base.custo;
+    // A picareta nunca e trocada: ela e o plano de emergencia, e trocar ela por
+    // engano seria perder o unico recurso infinito do jogo.
+    const slot = j.naMao === 0 ? 1 : j.naMao;
+    j.armas[slot] = equipar(q.arma);
+    j.naMao = slot;
+    eventos.push({ tipo: 'comprou', arma: base.nome });
+    return;
+  }
+
+  if (q.tipo === 'caixa') {
+    if (j.pontos < CONFIG.custoDaCaixa) { eventos.push({ tipo: 'negado', texto: TEXTOS.semPontos }); return; }
+    j.pontos -= CONFIG.custoDaCaixa;
+    const sorteada = ARMAS_DA_CAIXA[Math.floor(jogo.sorteio() * ARMAS_DA_CAIXA.length)];
+    const slot = j.naMao === 0 ? 1 : j.naMao;
+    j.armas[slot] = equipar(sorteada);
+    j.naMao = slot;
+    eventos.push({ tipo: 'caixa', arma: ARMAS[sorteada].nome });
+    return;
+  }
+
+  if (q.tipo === 'forja') {
+    const arma = armaNaMao(jogo);
+    if (arma.tipo === 'corpo' || arma.forjada) { eventos.push({ tipo: 'negado', texto: 'NAO FORJA' }); return; }
+    if (j.pontos < CONFIG.custoDaForja) { eventos.push({ tipo: 'negado', texto: TEXTOS.semPontos }); return; }
+    j.pontos -= CONFIG.custoDaForja;
+    const forjada = equiparForjada(arma.chave);
+    j.armas[j.naMao] = forjada;
+    eventos.push({ tipo: 'forjou', arma: forjada.nome });
+    return;
+  }
+
+  if (q.tipo === 'perk') {
+    const perk = CONFIG.perks[q.perk];
+    if (j.perks.has(q.perk)) { eventos.push({ tipo: 'negado', texto: 'JA TEM' }); return; }
+    if (j.perks.size >= 4) { eventos.push({ tipo: 'negado', texto: 'MAOS CHEIAS' }); return; }
+    if (j.pontos < perk.custo) { eventos.push({ tipo: 'negado', texto: TEXTOS.semPontos }); return; }
+    j.pontos -= perk.custo;
+    j.perks.add(q.perk);
+    if (q.perk === 'caldo') {
+      j.vidaMaxima = CONFIG.vidaMaxima * CONFIG.multiplicadorDeVidaDoCaldo;
+      j.vida = j.vidaMaxima;
+    }
+    if (q.perk === 'talisma') j.talismaGasto = false;
+    eventos.push({ tipo: 'perk', perk: perk.nome });
+  }
+}
+
+// ------------------------------------------------------- apoio a provas
+
+export function zumbisVivos(jogo) {
+  return jogo.vivos.filter(z => z.estado !== 'morto');
+}
+
+export function tabuasDeTodasAsJanelas(jogo) {
+  return jogo.mapa.janelas.reduce((s, janela) => s + janela.tabuas, 0);
+}
+
+export function resumo(jogo) {
   return {
-    vida: Math.max(j.vida, CONFIG.pisoDeVidaAoDescer),
-    bateria: j.bateria, arma: j.arma,
-    armas: { ...j.armas }, municao: { ...j.municao },
+    rodada: jogo.rodada,
+    estado: jogo.estado,
+    vida: Math.round(jogo.jogador.vida),
+    pontos: jogo.jogador.pontos,
+    vivos: zumbisVivos(jogo).length,
+    aNascer: jogo.aNascer.length,
+    perks: [...jogo.jogador.perks],
+    arma: armaNaMao(jogo).nome,
+    ...jogo.estatisticas,
   };
 }
+
+export { PLANTAS, chave, solido };
