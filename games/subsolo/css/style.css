@@ -1,0 +1,330 @@
+/* O jogo tem 320x200 de verdade; o resto e ampliacao inteira com pixel duro.
+   Escala fracionaria embaralha a textura procedural e o serrilhado da parede,
+   que e justamente o que da a cara do raycaster. */
+
+:root {
+  --tinta: #d8d2c4;
+  --apagado: #8d8578;
+  --fundo: #07070a;
+  --moldura: #1b1b20;
+  --realce: #e8c24a;
+  --sangue: #c03a2a;
+  --borda: 1px solid #2c2c34;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  background: #000;
+  color: var(--tinta);
+  font: 500 14px/1.5 ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
+  overflow: hidden;
+  -webkit-text-size-adjust: 100%;
+}
+
+#palco {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  background: radial-gradient(circle at 50% 42%, #14141b 0%, #05050a 70%);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+#tela {
+  width: 100vw;
+  height: 100vh;
+  max-width: 100vw;
+  max-height: 100vh;
+  object-fit: contain;
+  image-rendering: pixelated;
+  cursor: crosshair;
+  background: #000;
+}
+
+#palco.jogando #tela { cursor: none; }
+
+/* ------------------------------------------------------------------- HUD */
+
+#hud {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  display: none;
+  padding: clamp(8px, 1.6vw, 20px);
+  font-size: clamp(11px, 1.15vw, 15px);
+  text-shadow: 0 1px 2px #000, 0 0 6px #000;
+}
+
+#palco.jogando #hud { display: block; }
+
+.medidor {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.medidor .rotulo { width: 5.2em; color: var(--apagado); letter-spacing: 0.08em; }
+
+.medidor .barra {
+  width: clamp(80px, 13vw, 190px);
+  height: 9px;
+  background: #1a1a20;
+  border: var(--borda);
+  overflow: hidden;
+}
+
+.medidor .barra i {
+  display: block;
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(90deg, #8e2a1e, var(--sangue));
+  transition: width 90ms linear;
+}
+
+#hud-bateria-barra { background: linear-gradient(90deg, #2a5a6e, #4aa8c8); }
+#hud-bateria-barra.acesa { background: linear-gradient(90deg, #a88a2a, #ffe08a); }
+
+.medidor b { min-width: 2.4em; }
+
+.arma {
+  position: absolute;
+  right: clamp(8px, 1.6vw, 20px);
+  bottom: clamp(8px, 1.6vw, 20px);
+  text-align: right;
+  line-height: 1.2;
+}
+
+.arma b { display: block; color: var(--realce); letter-spacing: 0.1em; }
+.arma span { font-size: 1.9em; font-weight: 700; }
+.arma span.vazio { color: var(--sangue); }
+
+.crachas {
+  position: absolute;
+  left: clamp(8px, 1.6vw, 20px);
+  bottom: clamp(8px, 1.6vw, 20px);
+  display: flex;
+  gap: 6px;
+}
+
+.crachas i {
+  width: 1.9em;
+  height: 1.4em;
+  display: grid;
+  place-items: center;
+  font-style: normal;
+  font-weight: 700;
+  border: var(--borda);
+  background: #12121a;
+  color: #3a3a44;
+}
+
+.crachas i.tem { color: #10100c; }
+.crachas i.tem.cA { background: #e05a4a; border-color: #ff8a70; }
+.crachas i.tem.cB { background: #4aa8e0; border-color: #80d0ff; }
+.crachas i.tem.cC { background: #7ae04a; border-color: #b0ff80; }
+
+.canto {
+  position: absolute;
+  top: clamp(8px, 1.6vw, 20px);
+  right: clamp(8px, 1.6vw, 20px);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  color: var(--apagado);
+}
+
+.canto span:first-child { color: var(--tinta); letter-spacing: 0.08em; }
+
+#mapa {
+  position: absolute;
+  right: clamp(8px, 1.6vw, 20px);
+  top: 26%;
+  width: clamp(96px, 11vw, 168px);
+  height: auto;
+  image-rendering: pixelated;
+  border: var(--borda);
+  opacity: 0.88;
+}
+
+#aviso, #dica {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 6px 14px;
+  background: rgba(8, 8, 12, 0.82);
+  border: var(--borda);
+  letter-spacing: 0.1em;
+  pointer-events: none;
+  max-width: min(92vw, 760px);
+  text-align: center;
+}
+
+#aviso { top: 14%; color: var(--realce); }
+#dica { bottom: 16%; color: var(--tinta); font-size: clamp(11px, 1.1vw, 14px); }
+.oculto { display: none !important; }
+
+/* -------------------------------------------------------------- cortinas */
+
+.cortina {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: clamp(14px, 3vw, 40px);
+  background: linear-gradient(180deg, rgba(4, 4, 8, 0.95), rgba(8, 6, 4, 0.97));
+  overflow-y: auto;
+  text-align: center;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(34px, 8vw, 84px);
+  letter-spacing: 0.24em;
+  color: var(--realce);
+  text-shadow: 0 0 26px rgba(232, 194, 74, 0.28);
+}
+
+h2 {
+  margin: 0;
+  font-size: clamp(20px, 3.4vw, 34px);
+  letter-spacing: 0.16em;
+  color: var(--realce);
+}
+
+.linha { margin: 0; max-width: 62ch; color: var(--apagado); }
+.linha b { color: var(--tinta); }
+.aviso-regra { max-width: 74ch; font-size: 0.92em; }
+.rodape { margin: 0; color: #5f5a52; font-size: 0.85em; }
+
+.colunas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: clamp(12px, 3vw, 46px);
+  justify-content: center;
+  align-items: flex-start;
+  margin: 4px 0;
+}
+
+table { border-collapse: collapse; }
+
+.controles td, .controles th, .ficha td, .ficha th {
+  padding: 2px 8px;
+  text-align: left;
+  font-weight: 500;
+}
+
+.controles th, .ficha th { color: var(--apagado); font-weight: 500; }
+.ficha caption {
+  color: var(--realce);
+  letter-spacing: 0.14em;
+  padding-bottom: 4px;
+  text-align: left;
+  font-size: 0.85em;
+}
+.ficha { margin-bottom: 10px; font-size: 0.9em; }
+.ficha td:first-child { color: var(--tinta); }
+.fichas { text-align: left; }
+
+kbd {
+  display: inline-block;
+  min-width: 1.7em;
+  padding: 1px 5px;
+  margin-right: 3px;
+  border: var(--borda);
+  border-bottom-width: 2px;
+  border-radius: 3px;
+  background: #15151c;
+  color: var(--tinta);
+  font: inherit;
+  font-size: 0.88em;
+}
+
+.fases {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 6px;
+  width: min(92vw, 720px);
+  margin: 6px 0;
+}
+
+.fase {
+  padding: 7px 10px;
+  text-align: left;
+  background: #10101a;
+  border: var(--borda);
+  color: var(--tinta);
+  font: inherit;
+  font-size: 0.86em;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+}
+
+.fase b { color: var(--realce); margin-right: 6px; }
+.fase:hover:not(:disabled) { background: #1a1a26; border-color: var(--realce); }
+.fase:disabled { color: #3c3c44; cursor: not-allowed; }
+.fase:disabled b { color: #3c3c44; }
+
+.botao {
+  padding: 11px 30px;
+  background: var(--realce);
+  border: none;
+  color: #12100a;
+  font: inherit;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  cursor: pointer;
+}
+
+.botao:hover { background: #ffd968; }
+
+.botao.secundario {
+  background: transparent;
+  border: var(--borda);
+  color: var(--apagado);
+}
+
+.botao.secundario:hover { color: var(--tinta); border-color: var(--realce); }
+
+/* ----------------------------------------------------------------- toque */
+
+#toque { display: none; }
+
+@media (pointer: coarse) {
+  #palco.jogando #toque {
+    display: grid;
+    position: absolute;
+    right: 2vw;
+    bottom: 2vh;
+    grid-template-columns: repeat(2, auto);
+    gap: 8px;
+    z-index: 3;
+  }
+
+  .tecla {
+    min-width: 76px;
+    padding: 14px 10px;
+    background: rgba(18, 18, 26, 0.72);
+    border: var(--borda);
+    color: var(--tinta);
+    font: inherit;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    touch-action: none;
+    user-select: none;
+  }
+
+  #mapa { top: auto; bottom: 26vh; width: 90px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .medidor .barra i { transition: none; }
+}

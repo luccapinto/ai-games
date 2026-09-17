@@ -9,8 +9,8 @@ registrados ao lado.
 costs. Each game is a self-contained, playable folder that records the model that
 wrote it, the agent that drove it, and the tokens it burned.*
 
-**6 jogos** de **1 pessoa**, 16.144 linhas de código,
-2,3 M tokens novos e US$ 6,99 de API no total.
+**7 jogos** de **1 pessoa**, 20.958 linhas de código,
+2,4 M tokens novos e US$ 8,57 de API no total.
 
 👉 **[Jogar tudo](https://luccapinto.github.io/ai-games/)** · **[Ver o benchmark](https://luccapinto.github.io/ai-games/benchmark.html)** · **[Mandar o seu jogo](CONTRIBUTING.md)**
 
@@ -18,6 +18,7 @@ wrote it, the agent that drove it, and the tokens it burned.*
 
 | Jogo | Gênero | Quem fez | Modelo | Tokens novos | Custo | Jogar |
 | --- | --- | --- | --- | --- | --- | --- |
+| **SUBSOLO** [`subsolo`](games/subsolo/README.md) | FPS | Lucca Pinto | claude-opus-5 | 105,0 k | US$ 1,58 | [jogar](https://luccapinto.github.io/ai-games/games/subsolo/) |
 | **SEIVA** [`seiva`](games/seiva/README.md) | Defesa de torre | Lucca Pinto | claude-opus-5 | 70,0 k | US$ 1,05 | [jogar](https://luccapinto.github.io/ai-games/games/seiva/) |
 | **PROCESSO** [`processo`](games/processo/README.md) | Cartas com construção de baralho | Lucca Pinto | claude-opus-5 | 44,0 k | US$ 0,66 | [jogar](https://luccapinto.github.io/ai-games/games/processo/) |
 | **CRIPTA** [`cripta`](games/cripta/README.md) | Puzzle | Lucca Pinto | claude-opus-5 | 86,0 k | US$ 1,30 | [jogar](https://luccapinto.github.io/ai-games/games/cripta/) |
@@ -29,7 +30,7 @@ wrote it, the agent that drove it, and the tokens it burned.*
 
 | Modelo | Jogos | Tokens novos | Cache | Custo | Linhas |
 | --- | --- | --- | --- | --- | --- |
-| claude-opus-5 | 5 | 396,0 k | 0 | US$ 5,96 | 5.435 |
+| claude-opus-5 | 6 | 501,0 k | 0 | US$ 7,54 | 10.249 |
 | deepseek-flash | 1 | 1,9 M | 159,1 M | US$ 1,03 | 10.709 |
 
 Tokens novos são entrada + saída. Cache aparece em coluna separada de propósito:
@@ -95,6 +96,25 @@ pagar preço cheio por ele outra vez. Sem cache, o custo destes jogos seria uma
 ordem de grandeza maior.
 
 ## Os jogos por dentro
+
+### SUBSOLO
+
+Uma mina de manganês reaberta como depósito, nove níveis para baixo, e as bombas do fundo pararam. A lanterna vê longe, gasta pilha e entrega você: o que mora lá embaixo caça por som, e um deles é cego. Quatro armas, cinco bichos e um capataz que só abre a guarda quando arma o golpe.
+
+O que tem dentro:
+
+- Nove fases provadas jogando: um robô joga as nove com a mesma física, as mesmas armas e a mesma IA do navegador, e a prova exige que ele saia vivo — hoje ele termina com 96 de 130 de vida
+- Ruído é mecânica e se propaga pela mesma topologia do corpo: Dijkstra na grade, com pedágio de 4 células em porta fechada, e a audição de cada bicho é um raio em células de caminhada, não de linha reta
+- O robô achou o defeito que nenhuma partida minha achou: a espingarda estava atrás de uma parede falsa, e quem não achasse o segredo carregava cartucho o jogo inteiro sem ter arma — ele empatou 400 segundos com o chefe por isso
+- O capataz feria a cada quadro durante a investida: 0,55 s de encosto valiam 33 golpes e 726 de dano. Só apareceu porque o relatório do robô separa o dano por tipo de inimigo
+- Raycaster escrito pixel por pixel em ImageData, e a conta de luz é uma só: o inimigo consulta o mesmo mapa de luz que tinge o pixel, então ele nunca vê você num escuro que a tela mostra iluminado
+- Zero arquivo de imagem e de áudio: textura, bicho, arma, item e som saem de canvas fora de tela e de WebAudio
+
+- **Quem fez:** Lucca Pinto
+- **Modelo:** claude-opus-5 via Anthropic, dirigido por Oh My Pi — 105,0 k tokens novos, 0 de cache, 96 chamadas, US$ 1,58
+- **Custo total:** US$ 1,58 (estimado)
+- **Tamanho:** 4.814 linhas de código próprio, 0,3 MB
+- **Pasta:** [`games/subsolo/`](games/subsolo/README.md)
 
 ### SEIVA
 

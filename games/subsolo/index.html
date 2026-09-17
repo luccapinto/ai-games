@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SUBSOLO</title>
+<meta name="description" content="FPS de raycasting numa mina reaberta: a lanterna ve longe, gasta pilha e entrega voce. Nove niveis, cinco bichos, quatro armas.">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="palco">
+  <canvas id="tela" width="320" height="200" aria-label="SUBSOLO, jogo de tiro em primeira pessoa"></canvas>
+
+  <div id="hud" aria-hidden="true">
+    <div class="medidor">
+      <span class="rotulo">VIDA</span>
+      <span class="barra"><i id="hud-vida-barra"></i></span>
+      <b id="hud-vida">130</b>
+    </div>
+    <div class="medidor">
+      <span class="rotulo">PILHA</span>
+      <span class="barra"><i id="hud-bateria-barra"></i></span>
+      <b id="hud-bateria">60</b>
+    </div>
+    <div class="arma">
+      <b id="hud-arma">PICARETA</b>
+      <span id="hud-municao">&infin;</span>
+    </div>
+    <div id="hud-crachas" class="crachas"></div>
+    <div class="canto">
+      <span id="hud-fase">01 BOCA DA MINA</span>
+      <span id="hud-abates">0/0</span>
+      <span id="hud-tempo">0:00</span>
+    </div>
+    <canvas id="mapa" width="148" height="110"></canvas>
+  </div>
+
+  <div id="aviso" class="oculto"></div>
+  <div id="dica" class="oculto"></div>
+
+  <section id="menu" class="cortina">
+    <h1>SUBSOLO</h1>
+    <p class="linha">A mina de manganes foi reaberta como depósito e as bombas
+      pararam. Você é a manutenção. Nove níveis até o fundo.<br>
+      <b>A lanterna vê longe, gasta pilha e entrega você.</b></p>
+
+    <div class="colunas">
+      <table class="controles">
+        <tr><th>andar</th><td><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></td></tr>
+        <tr><th>olhar</th><td>mouse (ou <kbd>&larr;</kbd><kbd>&rarr;</kbd>)</td></tr>
+        <tr><th>atirar</th><td>clique</td></tr>
+        <tr><th>correr</th><td><kbd>shift</kbd> — barulhento</td></tr>
+        <tr><th>agachar</th><td><kbd>ctrl</kbd> — silencioso</td></tr>
+        <tr><th>lanterna</th><td><kbd>F</kbd></td></tr>
+        <tr><th>usar / abrir</th><td><kbd>E</kbd> ou <kbd>espaço</kbd></td></tr>
+        <tr><th>trocar arma</th><td><kbd>1</kbd>–<kbd>4</kbd> ou roda</td></tr>
+        <tr><th>recomeçar nível</th><td><kbd>R</kbd></td></tr>
+        <tr><th>pausar</th><td><kbd>P</kbd> ou <kbd>esc</kbd></td></tr>
+      </table>
+
+      <div class="fichas">
+        <table class="ficha"><caption>armas</caption><tbody id="armas"></tbody></table>
+        <table class="ficha"><caption>o que mora lá embaixo</caption><tbody id="bichos"></tbody></table>
+      </div>
+    </div>
+
+    <p class="linha aviso-regra">Ruído é mecânica: correr chama, tiro chama mais,
+      poça de água chama a cada passo. A picareta é silenciosa. O <b>CEGO</b> não
+      vê nada e ouve tudo — dele não se esconde no escuro, dele se foge andando
+      agachado.</p>
+
+    <div id="fases" class="fases"></div>
+    <p class="linha" id="melhor"></p>
+    <button id="comecar" class="botao">DESCER</button>
+    <button id="som" class="botao secundario">SOM: LIGADO</button>
+    <p class="rodape">No celular: polegar esquerdo anda, direito olha e atira.</p>
+  </section>
+
+  <section id="pausa" class="cortina oculto">
+    <h2>PAUSA</h2>
+    <button id="voltar" class="botao">CONTINUAR</button>
+    <button id="pausa-reiniciar" class="botao secundario">RECOMEÇAR O NÍVEL</button>
+    <button id="pausa-menu" class="botao secundario">SAIR PARA O MENU</button>
+  </section>
+
+  <section id="morto" class="cortina oculto">
+    <h2>A MINA FICOU COM VOCÊ</h2>
+    <p class="linha" id="morto-resumo"></p>
+    <button id="morto-repetir" class="botao">TENTAR DE NOVO</button>
+    <button id="morto-menu" class="botao secundario">MENU</button>
+  </section>
+
+  <section id="entre" class="cortina oculto">
+    <h2 id="entre-titulo">NÍVEL LIBERADO</h2>
+    <p class="linha" id="entre-resumo"></p>
+    <button id="entre-continuar" class="botao">DESCER MAIS UM</button>
+  </section>
+
+  <section id="fim" class="cortina oculto">
+    <h2>AS BOMBAS VOLTARAM</h2>
+    <p class="linha" id="fim-resumo"></p>
+    <button id="fim-menu" class="botao">MENU</button>
+  </section>
+
+  <div id="toque" aria-hidden="true">
+    <button class="tecla" data-acao="atirar">ATIRAR</button>
+    <button class="tecla" data-acao="lanterna">LUZ</button>
+    <button class="tecla" data-acao="usar">USAR</button>
+    <button class="tecla" data-acao="trocar">ARMA</button>
+    <button class="tecla" data-acao="agachar">AGACHAR</button>
+  </div>
+</div>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
