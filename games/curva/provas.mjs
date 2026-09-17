@@ -12,7 +12,7 @@
 // numero desta tabela mudar, a sensacao do kart mudou.
 
 import {
-  PISTAS, carregar, superficie, maisProximo, INCLINACAO_MAXIMA,
+  PISTAS, carregar, superficie, maisProximo, paraMundo, INCLINACAO_MAXIMA,
 } from './js/pista.js';
 import {
   KART, criarCarro, passoCarro, comandosNulos, faixaDaCarga, darTurbo, rodopiar, DT,
@@ -578,6 +578,76 @@ prova('kart recolocado ainda conta a volta, mas perde o tempo dela', () => {
     'ninguem foi avisado de que a volta nao valeu tempo');
 });
 
+prova('kart jogado na grama volta sozinho, sem teleporte', () => {
+  // Defeito medido: fora do asfalto a IA olhava 6 a 12 m PARA FRENTE, no centro
+  // da pista. Com o kart oito metros fora isso e um angulo raso, e ele andava em
+  // paralelo no capim ate a paciencia estourar — 13 das 18 recolocacoes de uma
+  // corrida de tres voltas eram este caso, e recolocacao e teleporte: estraga a
+  // corrida de quem estava ao lado e apaga a disputa.
+  for (const lado of [1, -1]) {
+    const corrida = criarCorrida(0, { voltas: 3, ia: 3, semente: 5 });
+    corrida.estado = 'correndo';
+    const carro = corrida.carros[1];
+    const c = corrida.pista.centro[40];
+    const fora = c.largura / 2 + 4.5;
+    const ponto = paraMundo(corrida.pista, 40, lado * fora);
+    carro.x = ponto.x;
+    carro.y = ponto.y;
+    carro.z = ponto.z;
+    // apontado ao longo da pista, como fica quem foi empurrado para fora
+    carro.ang = c.ang;
+    carro.vx = 9;
+    carro.vy = 0;
+    carro.omega = 0;
+    carro.atolado = 0;
+    const recolocacoesAntes = carro.recolocacoes;
+    let voltouEm = 0;
+    for (let i = 0; i < 60 * 8; i++) {
+      passoCorrida(corrida, comandosNulos(), DT);
+      if (!voltouEm && carro.superficie === 'asfalto') voltouEm = i / 60;
+      if (voltouEm) break;
+    }
+    ok(voltouEm > 0 && voltouEm < 4,
+      `pelo lado ${lado > 0 ? 'de dentro' : 'de fora'}, o kart levou ${voltouEm ? voltouEm.toFixed(1) + ' s' : 'mais de 8 s'} para achar o asfalto`);
+    igual(carro.recolocacoes, recolocacoesAntes,
+      'o kart foi teleportado em vez de voltar dirigindo');
+  }
+});
+
+prova('IA girada na contramao se desvira dirigindo', () => {
+  // O complemento da prova acima. A paciencia agora perdoa quem esta voltando
+  // para a pista, e a pergunta obvia e: e quem esta apontado para o lado errado?
+  // Medido: a IA se desvira em cerca de um segundo e volta a andar no rumo, sem
+  // teleporte. Quem ainda depende do resgate e o kart PARADO sem ninguem no
+  // volante, e isso esta provado em "kart atolado volta para a pista".
+  const corrida = criarCorrida(0, { voltas: 3, ia: 3, semente: 5 });
+  corrida.estado = 'correndo';
+  const carro = corrida.carros[1];
+  const c = corrida.pista.centro[40];
+  const ponto = paraMundo(corrida.pista, 40, 0);
+  carro.x = ponto.x;
+  carro.y = ponto.y;
+  carro.z = ponto.z;
+  carro.ang = c.ang + Math.PI;
+  carro.vx = 8;
+  carro.vy = 0;
+  carro.atolado = 0;
+  const antes = carro.recolocacoes;
+  let noRumoEm = 0;
+  for (let i = 0; i < 60 * 5 && !noRumoEm; i++) {
+    passoCorrida(corrida, comandosNulos(), DT);
+    const sup = superficie(corrida.pista, carro.x, carro.y);
+    const eixo = corrida.pista.centro[sup.i];
+    const aoLongo = (carro.vx * Math.cos(carro.ang) - carro.vy * Math.sin(carro.ang))
+      * Math.cos(eixo.ang)
+      + (carro.vx * Math.sin(carro.ang) + carro.vy * Math.cos(carro.ang)) * Math.sin(eixo.ang);
+    if (aoLongo > 2) noRumoEm = i / 60;
+  }
+  ok(noRumoEm > 0 && noRumoEm < 3,
+    `a IA levou ${noRumoEm ? noRumoEm.toFixed(1) + ' s' : 'mais de 5 s'} para voltar ao rumo da pista`);
+  igual(carro.recolocacoes, antes, 'a IA foi teleportada em vez de se desvirar');
+});
+
 prova('ninguem fica sem completar volta numa corrida cheia', () => {
   // A prova que pegou o defeito acima: com dez karts, o pelotao se destruia na
   // largada (146 dos 278 toques nos primeiros 20 s) e karts recolocados
@@ -590,7 +660,12 @@ prova('ninguem fica sem completar volta numa corrida cheia', () => {
       `com semente ${semente}, o ultimo colocado fez ${Math.min(...voltas)} voltas de 3`);
     // Incidente, e nao quadro de contato: antes da carencia por par, um encostao
     // de um segundo entrava como 60 batidas e este numero nao queria dizer nada.
-    ok(r.toques < 60, `com semente ${semente}, o pelotao teve ${r.toques} incidentes`);
+    ok(r.toques < 40, `com semente ${semente}, o pelotao teve ${r.toques} incidentes`);
+    // Recolocacao e teleporte, e teleporte e o remendo, nao a corrida: com a
+    // volta perpendicular e a paciencia por progresso, uma corrida inteira cabe
+    // em menos de dez.
+    const teleportes = r.classificacao.reduce((s, l) => s + (l.recolocacoes || 0), 0);
+    ok(teleportes <= 10, `com semente ${semente}, foram ${teleportes} recolocacoes na corrida`);
     const comTempo = r.classificacao.filter(l => l.melhorVolta > 0).length;
     ok(comTempo >= 7, `com semente ${semente}, so ${comTempo} de 9 registraram tempo`);
   }

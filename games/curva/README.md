@@ -223,6 +223,34 @@ e terminava a corrida com zero voltas, sumindo da classificacao. Agora a volta
 conta sempre que os tres setores sairam na ordem; o TEMPO e que exige volta
 limpa, como em corrida de verdade.
 
+**Teleporte demais.** Depois dos consertos de pelotao sobrou um numero feio: 9 a
+18 recolocacoes por corrida de tres voltas. Recolocacao e teleporte, e teleporte
+apaga disputa. Medido de onde vinham: **13 das 18 eram kart fora do asfalto** -
+contato jogava na grama e a paciencia de 2,2 s estourava antes do retorno.
+
+Duas causas, as duas de pilotagem:
+
+- fora da pista a IA olhava 6 a 12 m **para frente**, no centro da pista. Com o
+  kart oito metros fora, isso e um angulo raso: ele andava em paralelo no capim.
+  Agora a olhada encurta conforme a distancia da borda - longe, quase
+  perpendicular.
+- e ela atravessava a grama a 43 km/h. Grama da 0,64 g: o raio minimo nessa
+  velocidade e 23 m, e nao existe volta possivel. O teto de velocidade fora da
+  pista agora cai com a distancia: longe, 21 km/h. Levanta o pe, aponta, volta.
+
+E a paciencia passou a olhar **progresso** em vez de superficie: quem esta
+diminuindo a distancia da pista nao e teleportado. Parado e contramao continuam
+contando sempre - esses dois nao se resolvem com tempo.
+
+| medida (3 voltas, 9 karts) | antes | depois |
+| --- | --- | --- |
+| recolocacoes | 18 / 13 / 9 | 5 / 7 / 3 |
+| incidentes | 40 / 43 / 20 | 27 / 17 / 22 |
+| karts com tempo de volta | 8/9 | 8-9/9 |
+
+Retorno medido em seis situacoes (dois lados, 2,5 / 4,5 / 7 m fora): 0,8 a 2,4 s,
+zero teleportes.
+
 **E a escala de habilidade foi reafinada.** Com o chassi novo, o perfil ouro
 deixou de ser o mais rapido na SERRA. Afinador rodado de novo: com
 `0,97 0,90 0,83 0,75` a ordem ouro > prata > bronze > ferro sai certa nas seis
