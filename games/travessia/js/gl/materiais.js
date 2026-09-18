@@ -17,6 +17,7 @@ layout(location = 6) in float iGiro;
 layout(location = 7) in vec3 iTom;
 uniform mat4 uVP;
 uniform vec3 uCamera;
+uniform vec3 uAlvo;
 uniform float uAlcance;
 ${VENTO}
 out vec3 vNor;
@@ -27,10 +28,24 @@ void main() {
   float s = sin(iGiro);
   vec3 giradoP = vec3(aPos.x * c + aPos.z * s, aPos.y, -aPos.x * s + aPos.z * c);
   vec3 giradoN = vec3(aNor.x * c + aNor.z * s, aNor.y, -aNor.x * s + aNor.z * c);
-  // Encolhe para dentro do proprio pe nos ultimos passos do alcance: sem
-  // isso o mato aparece de estalo numa linha reta que segue o jogador.
+  // Duas razoes para um pe de mato encolher: estar no fim do alcance (sem
+  // isso ele aparece de estalo numa linha reta que segue o jogador) e estar
+  // no corredor entre a camera e o jogador. A segunda e o que impede uma copa
+  // de juazeiro de tapar a tela inteira de verde em mata fechada.
   float d = distance(iPos.xz, uCamera.xz);
-  float some = 1.0 - smoothstep(uAlcance - 13.0, uAlcance, d);
+  float some = (1.0 - smoothstep(uAlcance - 13.0, uAlcance, d))
+    * smoothstep(0.4, 1.1, d);
+  vec2 eixo = uAlvo.xz - uCamera.xz;
+  float vao = length(eixo);
+  if (vao > 0.5) {
+    vec2 rumo = eixo / vao;
+    vec2 rel = iPos.xz - uCamera.xz;
+    float ao = dot(rel, rumo);
+    float lado = length(rel - rumo * ao);
+    float noCaminho = step(0.25, ao) * step(ao, vao - 0.5)
+      * (1.0 - smoothstep(0.5, 1.4, lado));
+    some *= 1.0 - noCaminho;
+  }
   vec3 p = giradoP * (iEscala * some) + iPos;
   p = balancar(p, iPos, aVento * iEscala);
   vNor = giradoN;

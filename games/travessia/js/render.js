@@ -199,6 +199,7 @@ export function criarRender(canvas) {
   let posicaoAnterior = null;
   let ultimoPreenchimento = null;
   let gole = 0;
+  const obstaculosDaCamera = [];
 
   function redimensionar() {
     const largura = Math.max(2, Math.round(canvas.width * escalaDaCena));
@@ -273,7 +274,25 @@ export function criarRender(canvas) {
       },
       fumaca: 0,
     };
-    camera = criarCamera(campo);
+    // O que o olho nao atravessa: casa e cruzeiro, nas mesmas posicoes em que
+    // povoarMundo os planta. Casa manda a camera subir (telhado tem beira
+    // larga); tronco so encurta a vara.
+    obstaculosDaCamera.length = 0;
+    for (const vila of jogo.mundo.vilas) {
+      for (const casa of vila.casas) {
+        const px = vila.x + 0.5 + (casa.x - vila.x) * 1.75;
+        const pz = vila.y + 0.5 + (casa.y - vila.y) * 1.75;
+        obstaculosDaCamera.push({
+          x: px, z: pz, raio: 1.9, alto: campo.em(px, pz) + 2.5, sobe: true,
+        });
+      }
+      const cx = vila.x + 0.5 - 2.4;
+      const cz = vila.y + 0.5 - 2.4;
+      obstaculosDaCamera.push({
+        x: cx, z: cz, raio: 0.7, alto: campo.em(cx, cz) + 3.4, sobe: false,
+      });
+    }
+    camera = criarCamera(campo, obstaculosDaCamera);
     particulas.length = 0;
     numeros.length = 0;
     andados.clear();
@@ -585,8 +604,8 @@ export function criarRender(canvas) {
       const d = Math.hypot(vila.x - j.x, vila.y - j.y);
       if (d > 150) continue;
       const casa = vila.casas[0];
-      const x = vila.x + 0.5 + (casa.x - vila.x) * 1.55;
-      const z = vila.y + 0.5 + (casa.y - vila.y) * 1.55;
+      const x = vila.x + 0.5 + (casa.x - vila.x) * 1.75;
+      const z = vila.y + 0.5 + (casa.y - vila.y) * 1.75;
       soltarParticula(x, campo.em(x, z) + 2.4, z,
         (Math.random() - 0.5) * 0.25, 0.85 + Math.random() * 0.4, (Math.random() - 0.5) * 0.25,
         3.4 + Math.random() * 1.6, 0.8, [0.78, 0.76, 0.72, 0.30], 0.05);
@@ -725,6 +744,8 @@ export function criarRender(canvas) {
       gl.uniform1f(programa.u.uTempo, tempo);
       gl.uniform1f(programa.u.uVento, menosMovimento ? 0 : 1);
       gl.uniform1f(programa.u.uAlcance, alcanceDeProps);
+      // corredor entre camera e jogador: o mato que cair nele encolhe
+      gl.uniform3f(programa.u.uAlvo, cam.alvo[0], cam.alvo[1], cam.alvo[2]);
       // O lampiao segue o jogador e so acende quando a noite entra.
       gl.uniform3f(programa.u.uLampiao, j.x, campo.em(j.x, j.y) + 1.1, j.y);
       gl.uniform1f(programa.u.uForcaDoLampiao, ar.noite * 0.95);
@@ -807,7 +828,6 @@ export function criarRender(canvas) {
     ];
     const cima = [cam.visao[1], cam.visao[5], cam.visao[9]];
     const j = jogo.jogador;
-
     for (const p of particulas) {
       const a = (p.vida / p.total) * p.cor[3];
       lista.push(p.x, p.y, p.z, p.tamanho, p.tamanho,
@@ -818,7 +838,8 @@ export function criarRender(canvas) {
     // Letra em tamanho de mundo cresce quando se chega perto: a captura de
     // tela saiu com "Josefa" ocupando meia tela. Aqui o corpo da letra e
     // proporcional a distancia, que em tela da sempre o mesmo tamanho.
-    const corpoDaLetra = (d, base) => Math.min(base * 4, Math.max(base * 0.55, base * d * 0.09));
+    const corpoDaLetra = (d, base) =>
+      Math.min(base * 3.4, Math.max(base * 0.3, base * d * 0.09));
 
     // barra de vida do bicho irritado
     for (const bicho of jogo.inimigos) {

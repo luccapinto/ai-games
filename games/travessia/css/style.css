@@ -303,6 +303,12 @@ kbd {
 @media (pointer: coarse) {
   #palco.andando #toque { display: block; }
 
+
+  /* Em tela de celular o recado da missao caia em cima dos medidores e do
+     mapa: desce para baixo da caixa de vida e estreita. */
+  .recado { top: 98px; max-width: 52vw; min-width: 0; font-size: 0.86em; }
+  .medidores { min-width: 174px; font-size: 0.82em; }
+  #aviso { top: 30%; font-size: 0.9em; }
   /* Metade direita da tela e a mira do polegar, atras dos botoes. */
   #olhar {
     position: absolute;
@@ -348,7 +354,7 @@ kbd {
   [data-acao="loja"] { bottom: 2vh; }
 
   .bolsa { display: none; }
-  #mapa { width: 104px; }
+  #mapa { width: 84px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

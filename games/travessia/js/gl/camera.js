@@ -12,7 +12,9 @@ const CIMA = [0, 1, 0];
 const ALTURA_DO_OMBRO = 1.35;
 const LIMITE_DE_INCLINACAO = [-1.15, 0.45];
 
-export function criarCamera(campo) {
+// `obstaculos` sao cilindros do que o olho nao pode atravessar: casa e
+// cruzeiro. Barranco ja e resolvido pelo campo de altura.
+export function criarCamera(campo, obstaculos = []) {
   const estado = {
     giro: Math.PI * 0.5,
     inclinacao: -0.16,
@@ -25,6 +27,7 @@ export function criarCamera(campo) {
     invVP: criarMat4(),
     projecao: criarMat4(),
     visao: criarMat4(),
+    subiuPorCasa: 0,
     iniciado: false,
   };
 
@@ -36,6 +39,31 @@ export function criarCamera(campo) {
 
   function aproximar(passo) {
     estado.distancia = Math.min(11, Math.max(2.6, estado.distancia + passo));
+  }
+
+  // Cilindro por casa. Sao poucas dezenas e so importam as que estao perto,
+  // entao a conta bruta cabe folgada num quadro.
+  function dentroDeCasa(px, py, pz) {
+    for (const o of obstaculos) {
+      if (py > o.alto) continue;
+      const dx = px - o.x;
+      const dz = pz - o.z;
+      if (dx * dx + dz * dz < o.raio * o.raio) return true;
+    }
+    return false;
+  }
+
+  // Perto de casa a camera sobe mesmo sem a vara bater nela: telhado tem beira
+  // larga e entra no campo de visao pela lateral. Em vila apertada, meia tela
+  // de telha vermelha era o que a captura mostrava.
+  function casaPorPerto() {
+    for (const o of obstaculos) {
+      if (!o.sobe) continue;
+      const dx = estado.alvo[0] - o.x;
+      const dz = estado.alvo[2] - o.z;
+      if (dx * dx + dz * dz < 49) return true;
+    }
+    return false;
   }
 
   function seguir(jogador, dt, largura, altura) {
@@ -69,27 +97,49 @@ export function criarCamera(campo) {
       Math.max(LIMITE_DE_INCLINACAO[0], estado.inclinacao + subida));
 
     const cosI = Math.cos(inclinacao);
-    const dirX = cosI * frenteX;
-    const dirY = Math.sin(inclinacao);
-    const dirZ = cosI * frenteZ;
+    let dirX = cosI * frenteX;
+    let dirY = Math.sin(inclinacao);
+    let dirZ = cosI * frenteZ;
     estado.frente[0] = dirX;
     estado.frente[1] = dirY;
     estado.frente[2] = dirZ;
 
-    // Encurta a vara ate o chao parar de atrapalhar. Passo grosso e depois
-    // fino: com passo unico fino, a camera entrava um pouco antes de reagir.
-    let distancia = estado.distancia;
-    for (let i = 1; i <= 10; i++) {
-      const t = (i / 10) * estado.distancia;
-      const px = estado.alvo[0] - dirX * t;
-      const py = estado.alvo[1] - dirY * t;
-      const pz = estado.alvo[2] - dirZ * t;
-      if (py < campo.em(px, pz) + 0.85) {
-        distancia = Math.max(1.4, t - estado.distancia / 10);
-        break;
+    // Encurta a vara ate parar de atravessar coisa, e — se quem atrapalha for
+    // casa — sobe o olho por cima do telhado em vez de so colar no jogador.
+    // Sem isso, nascer numa vila apertada enchia meia tela de telha vermelha.
+    const varar = (dx, dy, dz) => {
+      for (let i = 1; i <= 12; i++) {
+        const t = (i / 12) * estado.distancia;
+        const px = estado.alvo[0] - dx * t;
+        const py = estado.alvo[1] - dy * t;
+        const pz = estado.alvo[2] - dz * t;
+        if (dentroDeCasa(px, py, pz)) {
+          return { distancia: Math.max(2.4, t - estado.distancia / 12), casa: true };
+        }
+        if (py < campo.em(px, pz) + 0.85) {
+          return { distancia: Math.max(1.6, t - estado.distancia / 12), casa: false };
+        }
       }
+      return { distancia: estado.distancia, casa: false };
+    };
+
+    let tentativa = varar(dirX, dirY, dirZ);
+    const alvoDeSubida = tentativa.casa || casaPorPerto() ? 0.44 : 0;
+    estado.subiuPorCasa += (alvoDeSubida - estado.subiuPorCasa) * (1 - Math.exp(-5 * dt));
+    if (estado.subiuPorCasa > 0.01) {
+      const i2 = Math.max(LIMITE_DE_INCLINACAO[0], inclinacao - estado.subiuPorCasa);
+      const c2 = Math.cos(i2);
+      dirX = c2 * frenteX;
+      dirY = Math.sin(i2);
+      dirZ = c2 * frenteZ;
+      estado.frente[0] = dirX;
+      estado.frente[1] = dirY;
+      estado.frente[2] = dirZ;
+      tentativa = varar(dirX, dirY, dirZ);
     }
-    // aproximar e instantaneo (nao atravessa pedra), afastar e suave
+    const distancia = tentativa.distancia;
+
+    // aproximar e instantaneo (nao atravessa parede), afastar e suave
     estado.distanciaSuave = distancia < estado.distanciaSuave
       ? distancia
       : estado.distanciaSuave + (distancia - estado.distanciaSuave) * (1 - Math.exp(-6 * dt));

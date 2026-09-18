@@ -104,10 +104,10 @@ export function povoarMundo(mundo, campo) {
   for (const [n, vila] of mundo.vilas.entries()) {
     for (const [c, casa] of vila.casas.entries()) {
       // Afasta a casa do centro: no mundo ela nasce a dois passos e meio e em
-      // 3D isso empilha telhado em cima de gente. O terreiro fica limpo, com
-      // cruzeiro e cacimba no meio, e as casas em volta.
-      const dx = (casa.x - vila.x) * 1.55;
-      const dz = (casa.y - vila.y) * 1.55;
+      // 3D isso empilha telhado em cima de gente e prende a camera. A 1,75 o
+      // terreiro fica limpo, com cruzeiro e cacimba no meio.
+      const dx = (casa.x - vila.x) * 1.75;
+      const dz = (casa.y - vila.y) * 1.75;
       const px = vila.x + 0.5 + dx;
       const pz = vila.y + 0.5 + dz;
       por(listas.casa, px, campo.em(px, pz) - 0.12, pz,
@@ -129,9 +129,10 @@ export function povoarMundo(mundo, campo) {
       por(listas.mourao, px, campo.em(px, pz) - 0.05, pz, 1,
         ang + Math.PI / 2 + Math.PI / mouroes, TOM_NEUTRO);
     }
-
-    const cx = vila.x + 0.5;
-    const cz = vila.y + 0.5;
+    // O cruzeiro sai do centro exato: e ali que o jogador nasce, e nascer
+    // dentro de um pau de cinco metros deixa a camera encostada nele.
+    const cx = vila.x + 0.5 - 2.4;
+    const cz = vila.y + 0.5 - 2.4;
     por(listas.cruzeiro, cx, campo.em(cx, cz) - 0.1, cz, 1, n * 0.7, TOM_NEUTRO);
     const ax = vila.agua.x + 0.5;
     const az = vila.agua.y + 0.5;

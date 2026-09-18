@@ -70,7 +70,10 @@ export function criarCampoDeAltura(mundo) {
           if (terreno[cy * largura + cx] === TERRENOS.agua) molhadas++;
         }
       }
-      chao[y * largura + x] = base[y * largura + x] - FUNDO_DO_RIO * (molhadas / 4);
+      // So o miolo do rio afunda. Afundando tambem a margem, o jogador andando
+      // na beira ficava com agua pelo joelho — a captura de tela pegou isso.
+      const cava = molhadas === 4 ? 1 : molhadas === 3 ? 0.5 : 0;
+      chao[y * largura + x] = base[y * largura + x] - FUNDO_DO_RIO * cava;
     }
   }
 
