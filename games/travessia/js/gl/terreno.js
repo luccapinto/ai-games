@@ -245,6 +245,8 @@ function montarAgua(mundo, campo) {
   return { dados: new Float32Array(lista), pedacos };
 }
 
+// Guarda o buffer junto do VAO: trocar de semente sem apagar o terreno
+// anterior deixava 18 MB de vertice pendurado na GPU por partida.
 export function construirTerreno(gl, mundo, campo, detalhado) {
   const fina = detalhado ? montarMalha(mundo, campo, 1) : null;
   const grossa = montarMalha(mundo, campo, detalhado ? 2 : 3);
@@ -255,19 +257,22 @@ export function construirTerreno(gl, mundo, campo, detalhado) {
     { buffer, local: 1, tamanho: 3, passo: 9, deslocamento: 3 },
     { buffer, local: 2, tamanho: 3, passo: 9, deslocamento: 6 },
   ];
+  const chao = (malha) => {
+    const buffer = criarBuffer(gl, malha.dados);
+    return { ...malha, dados: null, buffer, vao: criarVao(gl, atributos(buffer)) };
+  };
 
-  const saida = {
-    grossa: { ...grossa, vao: criarVao(gl, atributos(criarBuffer(gl, grossa.dados))) },
+  const bufferDaAgua = criarBuffer(gl, agua.dados);
+  return {
+    grossa: chao(grossa),
+    fina: fina ? chao(fina) : null,
     agua: {
       ...agua,
-      vao: criarVao(gl, [{ buffer: criarBuffer(gl, agua.dados), local: 0, tamanho: 3 }]),
+      dados: null,
+      buffer: bufferDaAgua,
+      vao: criarVao(gl, [{ buffer: bufferDaAgua, local: 0, tamanho: 3 }]),
     },
-    fina: null,
   };
-  if (fina) {
-    saida.fina = { ...fina, vao: criarVao(gl, atributos(criarBuffer(gl, fina.dados))) };
-  }
-  return saida;
 }
 
 // --------------------------------------------------------- sombreadores

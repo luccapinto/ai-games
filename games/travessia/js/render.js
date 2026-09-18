@@ -210,7 +210,32 @@ export function criarRender(canvas) {
   }
 
   // ------------------------------------------------------------ preparar
+
+  // Comecar outra semente sem soltar a anterior vazava, por partida, os ~18 MB
+  // do terreno mais uns quarenta VAO de instancia. Dez recomecos numa GPU
+  // integrada e a alocacao comeca a falhar. Os modelos (mandacaru, casa, gente)
+  // NAO entram aqui: eles sao construidos uma vez e servem todos os mundos.
+  function soltarMundo() {
+    if (!mundoGl) return;
+    const apagar = (peca) => {
+      if (!peca) return;
+      if (peca.vao) gl.deleteVertexArray(peca.vao);
+      if (peca.buffer) gl.deleteBuffer(peca.buffer);
+    };
+    apagar(mundoGl.terreno.fina);
+    apagar(mundoGl.terreno.grossa);
+    apagar(mundoGl.terreno.agua);
+    for (const grupo of Object.values(mundoGl.tipos)) {
+      for (const vao of grupo.vaos) gl.deleteVertexArray(vao);
+      for (const buffer of grupo.buffers) gl.deleteBuffer(buffer);
+    }
+    for (const grupo of Object.values(mundoGl.recursos)) apagar(grupo);
+    apagar(mundoGl.anel);
+    mundoGl = null;
+  }
+
   function preparar(jogo) {
+    soltarMundo();
     campo = criarCampoDeAltura(jogo.mundo);
     const malhaTerreno = construirTerreno(gl, jogo.mundo, campo, !celular);
     const povo = povoarMundo(jogo.mundo, campo);
