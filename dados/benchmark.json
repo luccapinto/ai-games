@@ -4,7 +4,7 @@
     "jogos": 10,
     "autores": 1,
     "modelos": 2,
-    "linhas": 40825,
+    "linhas": 41263,
     "usd": 24.62,
     "tokens_novos": 3703978,
     "tokens_cache": 159076224,
@@ -153,7 +153,7 @@
         "tokens_totais": 165000,
         "usd": 2.48,
         "chamadas_api": 96,
-        "linhas": 6243,
+        "linhas": 6681,
         "tem_custo": true
       },
       "url": "games/guardrail/"
@@ -521,9 +521,9 @@
       "tokens_cache": 0,
       "chamadas_api": 1146,
       "usd": 23.59,
-      "linhas": 30116,
-      "tokens_por_linha": 60.1,
-      "linhas_por_dolar": 1276.64
+      "linhas": 30554,
+      "tokens_por_linha": 59.24,
+      "linhas_por_dolar": 1295.21
     },
     {
       "nome": "deepseek-flash",
@@ -572,9 +572,9 @@
       "tokens_cache": 0,
       "chamadas_api": 1010,
       "usd": 17.63,
-      "linhas": 24681,
-      "tokens_por_linha": 57.29,
-      "linhas_por_dolar": 1399.94
+      "linhas": 25119,
+      "tokens_por_linha": 56.29,
+      "linhas_por_dolar": 1424.79
     },
     {
       "nome": "Hermes Agent (Talos)",
@@ -610,9 +610,9 @@
       "tokens_cache": 0,
       "chamadas_api": 1146,
       "usd": 23.59,
-      "linhas": 30116,
-      "tokens_por_linha": 60.1,
-      "linhas_por_dolar": 1276.64
+      "linhas": 30554,
+      "tokens_por_linha": 59.24,
+      "linhas_por_dolar": 1295.21
     },
     {
       "nome": "DeepSeek",
