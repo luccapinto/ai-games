@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>GUARDRAIL</title>
+<meta name="description" content="Defesa de torre de IA: as torres sao modelos com preco, benchmark e contexto reais, os inimigos sao as pragas da internet e o cluster tem VRAM contada.">
+<meta name="theme-color" content="#0b0e14">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="palco">
+
+  <header id="topo">
+    <div class="marca"><b>GUARDRAIL</b><span id="m-mapa">DATACENTER</span></div>
+
+    <div class="medidor" title="Onda atual e total"><span>ONDA</span><b id="m-onda">0/40</b></div>
+    <div class="medidor perigo" title="Integridade do cluster"><span>INTEGRIDADE</span><b id="m-vidas">20</b></div>
+    <div class="medidor grana" title="Dinheiro disponivel"><span>US$</span><b id="m-dinheiro">340</b></div>
+
+    <div id="vram" title="Orcamento de compute do cluster">
+      <div class="vram-topo"><span>VRAM</span><b id="vram-num">0 / 26</b><i id="vram-aviso"></i></div>
+      <div class="vram-barra"><u id="vram-cheio"></u><s id="vram-marca"></s></div>
+    </div>
+
+    <div id="habilidades"></div>
+
+    <div id="tempos">
+      <button class="bt" id="bt-pausa" title="Pausar (espaco). Da para construir pausado">PAUSA</button>
+      <button class="bt vel" data-vel="1">1x</button>
+      <button class="bt vel ligada" data-vel="2">2x</button>
+      <button class="bt vel" data-vel="4">4x</button>
+      <button class="bt destaque" id="bt-onda" title="Antecipar a proxima onda (N) — paga bonus">ONDA</button>
+      <button class="bt" id="bt-som" title="Ligar e desligar o som">SOM</button>
+      <button class="bt" id="bt-manual" title="Manual completo (H)">?</button>
+    </div>
+  </header>
+
+  <main id="meio">
+    <div id="tela-caixa">
+      <canvas id="tela" width="960" height="600" aria-label="GUARDRAIL, mapa de defesa visto de cima"></canvas>
+    </div>
+
+    <aside id="lado">
+      <nav id="abas">
+        <button class="aba ligada" data-aba="loja">LOJA</button>
+        <button class="aba" data-aba="info">FICHA</button>
+        <button class="aba" data-aba="onda">ONDA</button>
+        <button class="aba" data-aba="feed">FEED</button>
+      </nav>
+      <div class="painel" id="painel-loja"></div>
+      <div class="painel oculto" id="painel-info"></div>
+      <div class="painel oculto" id="painel-onda"></div>
+      <div class="painel oculto" id="painel-feed"></div>
+    </aside>
+  </main>
+
+  <section id="menu" class="cortina">
+    <h1>GUARDRAIL</h1>
+    <p class="linha">Voce defende o pipeline. As torres sao <b>modelos</b> — o preco
+      por milhao de tokens vira o custo, o benchmark vira o dano, os tokens por
+      segundo viram a cadencia, a janela de contexto vira o alcance e a taxa de
+      alucinacao vira a chance de errar o tiro. Os inimigos sao as pragas:
+      alucinacao, prompt injection, bot farm, deepfake, golpe, cripto pump.</p>
+    <p class="linha destaque-linha">Todo modelo come <b>VRAM</b> de um cluster de
+      tamanho fixo. Estourou o orcamento, <b>todas as suas torres ficam mais
+      lentas</b> — a pergunta do jogo nao e quanta torre cabe no mapa, e quantos
+      modelos cabem no cluster.</p>
+
+    <div id="mapas" class="mapas"></div>
+
+    <div class="modos-jogo">
+      <button class="botao" id="bt-campanha">CAMPANHA — 40 ONDAS</button>
+      <button class="botao secundario" id="bt-semfim">MODO SEM FIM</button>
+      <button class="botao secundario" id="bt-manual2">MANUAL</button>
+    </div>
+
+    <table class="controles">
+      <tr><th>construir</th><td>clique na torre da loja, depois na laje</td></tr>
+      <tr><th>ver numeros</th><td>clique em qualquer torre ou praga</td></tr>
+      <tr><th>habilidades</th><td><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd></td></tr>
+      <tr><th>pausa</th><td><kbd>espaco</kbd> — da para construir pausado</td></tr>
+      <tr><th>velocidade</th><td><kbd>[</kbd><kbd>]</kbd> — 1x, 2x, 4x</td></tr>
+      <tr><th>antecipar onda</th><td><kbd>N</kbd> — paga bonus</td></tr>
+      <tr><th>vender</th><td><kbd>V</kbd> com a torre selecionada, devolve 60%</td></tr>
+      <tr><th>manual</th><td><kbd>H</kbd></td></tr>
+    </table>
+  </section>
+
+  <section id="manual" class="cortina oculto">
+    <div class="manual-topo">
+      <h2>MANUAL</h2>
+      <nav id="manual-abas">
+        <button class="aba ligada" data-man="dano">TIPOS DE DANO</button>
+        <button class="aba" data-man="torres">MODELOS</button>
+        <button class="aba" data-man="modos">SERVIR</button>
+        <button class="aba" data-man="pragas">PRAGAS</button>
+      </nav>
+      <button class="botao secundario" id="bt-fechar-manual">FECHAR</button>
+    </div>
+    <div id="manual-corpo"></div>
+  </section>
+
+  <section id="fim" class="cortina oculto">
+    <h2 id="fim-titulo">O PIPELINE CAIU</h2>
+    <p class="linha" id="fim-resumo"></p>
+    <div id="fim-placar" class="placar"></div>
+    <div class="modos-jogo">
+      <button class="botao" id="bt-denovo">JOGAR DE NOVO</button>
+      <button class="botao secundario" id="bt-menu">MENU</button>
+    </div>
+  </section>
+
+  <div id="brinde" class="oculto"></div>
+</div>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
