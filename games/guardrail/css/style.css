@@ -250,7 +250,9 @@ kbd { display: inline-block; padding: 1px 5px; margin-right: 3px; border: 1px so
 .placar div b { display: block; font-size: 16px; color: var(--frio); font-variant-numeric: tabular-nums; }
 
 /* ----------------------------------------------------------------- manual */
-#manual { justify-content: flex-start; padding: 12px; }
+/* Opaco de verdade: o manual e uma tabela de referencia, e o texto do menu
+   aparecendo por tras dela atrapalha a leitura. */
+#manual { justify-content: flex-start; padding: 12px; background: #080b11; backdrop-filter: none; }
 .manual-topo { display: flex; align-items: center; gap: 10px; width: 100%; max-width: 1000px; flex-wrap: wrap; }
 .manual-topo h2 { letter-spacing: 6px; color: var(--frio); }
 #manual-abas { flex: 1; border: 1px solid var(--linha); }

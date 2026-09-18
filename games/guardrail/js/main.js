@@ -730,7 +730,10 @@ function pintarManual(qual) {
   } else {
     ['PRAGA', 'ESTREIA', 'HP', 'VEL', 'PAGA', 'A REGRA'].forEach(h => cab.append(el('th', null, h)));
     const quando = Object.fromEntries(estreias().map(e => [e.tipo, e.onda]));
-    for (const [id, p] of Object.entries(PRAGAS)) {
+    // Ordenado pela onda em que estreia: e assim que o jogador encontra a
+    // praga que acabou de aparecer, e nao pela ordem em que eu escrevi.
+    const ordenadas = Object.entries(PRAGAS).sort((a, b) => (quando[a[0]] || 99) - (quando[b[0]] || 99));
+    for (const [id, p] of ordenadas) {
       const r = el('tr');
       const a = el('td', 'destaque', p.nome);
       a.style.color = p.cor;
@@ -758,9 +761,12 @@ function mostrarFim() {
   const v = jogo.venceu;
   $('#fim-titulo').textContent = v ? 'O PIPELINE AGUENTOU' : 'A BASE DE DADOS CAIU';
   $('#fim-titulo').className = v ? 'bom' : 'ruim';
+  const n = jogo.estat.vazadas;
+  const chegaram = n === 1 ? '1 praga chegou no banco' : `${n0(n)} pragas chegaram no banco`;
+  const limpas = jogo.estat.ondasLimpas;
   $('#fim-resumo').textContent = v
-    ? `Quarenta ondas em ${jogo.mapa.nome} com ${jogo.vidas} de ${jogo.vidasMax} de integridade. Ninguem vai saber, mas aguentou.`
-    : `Caiu na onda ${jogo.onda} de ${jogo.mapa.nome}. ${jogo.estat.vazadas} pragas chegaram no banco.`;
+    ? `${jogo.mapa.nome}: as quarenta ondas com ${jogo.vidas} de ${jogo.vidasMax} de integridade. Ninguém vai saber, mas aguentou.`
+    : `Caiu na onda ${jogo.onda} de ${jogo.mapa.nome} depois de segurar ${limpas === 1 ? 'uma onda' : `${limpas} ondas`}. ${chegaram}.`;
   const p = $('#fim-placar');
   p.innerHTML = '';
   const dados = [
