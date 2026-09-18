@@ -79,6 +79,13 @@ export function atmosfera(hora) {
   // que e o que se quer, e a sombra ainda cai para um quinto disso.
   const forcaDoSol = noturno ? 0.26 : 0.35 + 0.62 * Math.min(1, alturaDoSol * 1.35);
   const forcaAmbiente = 0.30 + 0.20 * luz;
+  // Tudo que sai daqui esta em LINEAR: a luz multiplica em linear e a passada
+  // final e que devolve para sRGB. Antes disso, a sombra de uma parede de
+  // taipa dava 0,12 e a tela mostrava 12% de brilho — preto de tinta.
+  const linear = (c) => [c[0] ** 2.2, c[1] ** 2.2, c[2] ** 2.2];
+  const horizonteL = linear(horizonte);
+  const zeniteL = linear(zenite);
+  const luzL = linear(corDaLuz);
 
   return {
     hora,
@@ -89,23 +96,23 @@ export function atmosfera(hora) {
     alturaDoSol,
     direcao,
     corDaLuz: [
-      corDaLuz[0] * forcaDoSol,
-      corDaLuz[1] * forcaDoSol,
-      corDaLuz[2] * forcaDoSol,
+      luzL[0] * forcaDoSol,
+      luzL[1] * forcaDoSol,
+      luzL[2] * forcaDoSol,
     ],
     // Piso azul de noite: sem ele a madrugada fica preta de verdade e o
     // jogador nao ve onde pisa nem com o lampiao aceso.
     corAmbiente: [
-      (zenite[0] * 0.55 + horizonte[0] * 0.45) * forcaAmbiente + noite * 0.050,
-      (zenite[1] * 0.55 + horizonte[1] * 0.45) * forcaAmbiente + noite * 0.062,
-      (zenite[2] * 0.58 + horizonte[2] * 0.42) * forcaAmbiente + noite * 0.092,
+      (zeniteL[0] * 0.55 + horizonteL[0] * 0.45) * forcaAmbiente + noite * 0.013,
+      (zeniteL[1] * 0.55 + horizonteL[1] * 0.45) * forcaAmbiente + noite * 0.017,
+      (zeniteL[2] * 0.58 + horizonteL[2] * 0.42) * forcaAmbiente + noite * 0.028,
     ],
-    horizonte,
-    zenite,
+    horizonte: horizonteL,
+    zenite: zeniteL,
     // A nevoa fecha mais de madrugada (ar parado, umidade no chao) e abre ao
     // meio-dia. E ela que faz o horizonte em camadas ter profundidade.
     nevoa: 0.0062 + noite * 0.0052,
-    corNevoa: misturar(horizonte, zenite, 0.22),
+    corNevoa: misturar(horizonteL, zeniteL, 0.22),
     discoSol: noturno ? 0.22 : 1,
   };
 }

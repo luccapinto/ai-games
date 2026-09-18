@@ -84,7 +84,16 @@ export function criarAlvo(gl, largura, altura, opcoes = {}) {
   if (opcoes.cor !== false) {
     const cor = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, cor);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, largura, altura, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+    // Meia precisao quando da: a cena e guardada em linear, e em oito bits
+    // por canal a madrugada sai em degraus.
+    const flutuante = opcoes.flutuante && gl.getExtension('EXT_color_buffer_half_float');
+    if (flutuante) {
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA16F, largura, altura, 0,
+        gl.RGBA, gl.HALF_FLOAT, null);
+    } else {
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, largura, altura, 0,
+        gl.RGBA, gl.UNSIGNED_BYTE, null);
+    }
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);

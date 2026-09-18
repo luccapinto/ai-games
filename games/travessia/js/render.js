@@ -21,7 +21,7 @@ import {
 } from './gl/contexto.js';
 import {
   criarMat4, identidade, multiplicar, ortografica, olhar, pousar, articular,
-  projetar,
+  esticar, projetar,
 } from './gl/matriz.js';
 import { atmosfera, FONTE_CEU } from './gl/ceu.js';
 import {
@@ -65,8 +65,10 @@ export function criarRender(canvas) {
     || window.innerWidth < 760;
   const menosMovimento = !!(window.matchMedia
     && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
-  const ladoDaSombra = celular ? 1024 : 2048;
-  const alcanceDeProps = celular ? 62 : 92;
+  // Numeros de orcamento, medidos num Intel HD 620 a 1360x860: com mapa de
+  // sombra de 2048 e mato ate 92 passos o quadro nao fechava em 60.
+  const ladoDaSombra = celular ? 1024 : 1536;
+  const alcanceDeProps = celular ? 58 : 82;
   const escalaDaCena = celular ? 0.78 : 1;
 
   // ------------------------------------------------------------ programas
@@ -196,13 +198,14 @@ export function criarRender(canvas) {
   let dorRecente = { angulo: 0, forca: 0 };
   let posicaoAnterior = null;
   let ultimoPreenchimento = null;
+  let gole = 0;
 
   function redimensionar() {
     const largura = Math.max(2, Math.round(canvas.width * escalaDaCena));
     const altura = Math.max(2, Math.round(canvas.height * escalaDaCena));
     if (cena && cena.largura === largura && cena.altura === altura) return;
     if (cena) apagarAlvo(gl, cena);
-    cena = criarAlvo(gl, largura, altura, { profundidade: true });
+    cena = criarAlvo(gl, largura, altura, { profundidade: true, flutuante: true });
   }
 
   // ------------------------------------------------------------ preparar
@@ -381,25 +384,29 @@ export function criarRender(canvas) {
     }
   }
 
-  // Animacao: as sete juntas saem de uma fase so, que vem da distancia
-  // andada. Quem nao anda nao balanca, e quem corre balanca mais.
-  function montarOssosDeGente(fase, forca, golpe) {
+  // Animacao: as oito juntas saem de uma fase so, que vem da distancia
+  // andada. Quem nao anda nao balanca, e quem corre balanca mais. O oitavo
+  // osso e o cantil, que nao gira: encolhe conforme a agua acaba.
+  function montarOssosDeGente(fase, forca, golpe, bebendo = 0, cantil = 1) {
     const balanco = Math.sin(fase) * forca;
     const contra = Math.sin(fase + Math.PI) * forca;
     identidade(ossoTemp);
     ossos.set(ossoTemp, 0);
     articular(ossoTemp, 0, 0.82, 0, 0, Math.sin(fase * 2) * forca * 0.05);
     ossos.set(ossoTemp, 16);
-    articular(ossoTemp, 0, 1.34, 0, 0, Math.sin(fase * 2 + 1) * forca * 0.04);
+    articular(ossoTemp, 0, 1.34, 0, 0, Math.sin(fase * 2 + 1) * forca * 0.04 - bebendo * 0.3);
     ossos.set(ossoTemp, 32);
     articular(ossoTemp, 0, 1.22, 0, 0, contra * 0.85);
     ossos.set(ossoTemp, 48);
-    articular(ossoTemp, 0, 1.22, 0, 0, balanco * 0.85 - golpe * 1.9);
+    // braco da frente: golpe empurra para a frente, beber sobe ate a boca
+    articular(ossoTemp, 0, 1.22, 0, 0, balanco * 0.85 - golpe * 1.9 + bebendo * 2.5);
     ossos.set(ossoTemp, 64);
     articular(ossoTemp, 0, 0.82, 0, 0, balanco);
     ossos.set(ossoTemp, 80);
     articular(ossoTemp, 0, 0.82, 0, 0, contra);
     ossos.set(ossoTemp, 96);
+    esticar(ossoTemp, 0.97, 0.3 + 0.7 * cantil);
+    ossos.set(ossoTemp, 112);
   }
 
   function montarOssosDeOnca(fase, forca) {
@@ -487,8 +494,10 @@ export function criarRender(canvas) {
 
     const estadoDoJogador = passoDe(j, j.x, j.y, dt);
     const golpe = Math.max(0, 1 - (arma.cadencia - j.recarga) * 7) * (j.recarga > 0 ? 1 : 0);
+
     montarOssosDeGente(estadoDoJogador.fase,
-      Math.min(0.8, estadoDoJogador.velocidade * 0.16) + 0.03, golpe);
+      Math.min(0.8, estadoDoJogador.velocidade * 0.16) + 0.03, golpe,
+      Math.sin(Math.min(1, gole) * Math.PI), j.sede / j.sedeMaxima);
     corpo(programa, modelos.jogador, j.x, campo.em(j.x, j.y), j.y, j.ang, 1,
       j.dor > 0.05 ? [j.dor * 0.5, 0, 0] : SEM_REALCE);
   }
@@ -629,6 +638,7 @@ export function criarRender(canvas) {
     fumacaDaVila(jogo, passoDeTempo);
     moverParticulas(passoDeTempo);
     dorRecente.forca = Math.max(0, dorRecente.forca - passoDeTempo * 1.6);
+    gole = Math.max(0, gole - passoDeTempo * 1.7);
 
     // ---------------------------------------------- 1. passada do sol
     const focoX = j.x + Math.cos(cam.giro) * 16;
@@ -752,7 +762,8 @@ export function criarRender(canvas) {
     luzComum(progAgua);
     gl.uniform3fv(progAgua.u.uHorizonte, ar.horizonte);
     gl.uniform3fv(progAgua.u.uZenite, ar.zenite);
-    gl.uniform3f(progAgua.u.uFundo, 0.106, 0.180, 0.169);
+    // fundo do rio em linear (0,106 0,180 0,169 em sRGB)
+    gl.uniform3f(progAgua.u.uFundo, 0.0077, 0.0243, 0.0211);
     gl.uniformMatrix4fv(progAgua.u.uVP, false, mVP);
     gl.bindVertexArray(mundoGl.terreno.agua.vao);
     for (const pedaco of mundoGl.terreno.agua.pedacos) {
@@ -905,6 +916,7 @@ export function criarRender(canvas) {
 
   function aoBeber(x, y) {
     if (!campo) return;
+    gole = 1;
     const alturaDaAgua = campo.em(x, y) + 0.2;
     for (let i = 0; i < 16; i++) {
       soltarParticula(x, alturaDaAgua, y,

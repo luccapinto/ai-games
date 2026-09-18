@@ -75,9 +75,7 @@ void main() {
   gl_Position = uVP * vec4(p, 1.0);
 }`;
 
-// ------------------------------------------------------------ gente e bicho
-
-export const OSSOS = 7;
+export const OSSOS = 8;
 
 export const VS_OSSO = `#version 300 es
 layout(location = 0) in vec3 aPos;
@@ -136,7 +134,9 @@ void main() {
   // aqui e nao no fragmento.
   vUV = vec2(iAtlas.x + (aQuad.x + 0.5) * iAtlas.z,
              iAtlas.y + (0.5 - aQuad.y) * iAtlas.w);
-  vCor = iCor;
+  // A cena inteira e linear; o painel tambem entra linear e so a passada
+  // final devolve para sRGB.
+  vCor = vec4(pow(iCor.rgb, vec3(2.2)), iCor.a);
   vTemAtlas = iAtlas.z > 0.0 ? 1.0 : 0.0;
   gl_Position = uVP * vec4(p, 1.0);
 }`;
@@ -203,30 +203,31 @@ void main() {
   vec2 d = (vUV - 0.5) * vec2(uTamanho.x / uTamanho.y, 1.0);
   float vinheta = 1.0 - dot(d, d) * 0.55;
   cor *= clamp(vinheta, 0.0, 1.0);
-
-  // vida baixa: pulsa vermelho na borda
+  // Os vermelhos abaixo estao em linear (sRGB elevado a 2,2), porque a
+  // devolucao de gama so acontece no fim desta funcao.
   if (uVidaBaixa > 0.01) {
     float pulso = 0.5 + 0.5 * sin(uTempo * 5.2);
     float borda = smoothstep(0.16, 0.62, dot(d, d));
-    cor = mix(cor, vec3(0.42, 0.03, 0.03), borda * uVidaBaixa * (0.28 + 0.34 * pulso));
+    cor = mix(cor, vec3(0.145, 0.0005, 0.0005), borda * uVidaBaixa * (0.30 + 0.36 * pulso));
   }
 
-  // de onde veio a pancada
+  // De onde veio a pancada. A primeira versao pintava um quarto da tela de
+  // vermelho e nao se via mais o bicho; agora e uma lasca estreita na borda.
   if (uForcaDoDano > 0.01) {
     float a = atan(d.y, d.x);
     float perto = cos(a - uAnguloDoDano) * 0.5 + 0.5;
-    float borda = smoothstep(0.06, 0.34, dot(d, d));
-    cor = mix(cor, vec3(0.75, 0.09, 0.06), pow(perto, 7.0) * borda * uForcaDoDano);
+    float borda = smoothstep(0.10, 0.40, dot(d, d));
+    cor = mix(cor, vec3(0.48, 0.003, 0.002), pow(perto, 16.0) * borda * uForcaDoDano * 0.85);
   }
 
-  cor = mix(cor, vec3(0.55, 0.06, 0.05), uDor * 0.34);
+  cor = mix(cor, vec3(0.27, 0.002, 0.002), uDor * 0.24);
 
-  // So comprime o que passa de 0,85. A curva antiga dividia tudo e o sertao
-  // saia leitoso: caatinga cor de barro virava oliva, e ceu de nascer virava
-  // cinza. Um respingo de saturacao no fim, que lavado nao e descorado.
+  // So comprime o que passa de 0,85 em linear, e devolve para sRGB no fim.
+  // Sem a devolucao de gama, tudo que caia na sombra saia preto de tinta.
   vec3 alto = max(cor - 0.85, vec3(0.0));
   cor = min(cor, vec3(0.85)) + alto / (1.0 + alto * 1.7);
+  cor = pow(max(cor, vec3(0.0)), vec3(1.0 / 2.2));
   float luz = dot(cor, vec3(0.299, 0.587, 0.114));
-  cor = clamp(mix(vec3(luz), cor, 1.16), 0.0, 1.0);
+  cor = clamp(mix(vec3(luz), cor, 1.12), 0.0, 1.0);
   corSaida = vec4(cor, 1.0);
 }`;

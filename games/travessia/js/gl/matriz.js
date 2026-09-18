@@ -116,6 +116,15 @@ export function articular(saida, px, py, pz, anguloX, anguloZ) {
   return saida;
 }
 
+// Estica em Y em torno de uma altura fixa. E o que faz o cantil no cinto
+// baixar conforme a agua acaba, sem precisar de outro modelo.
+export function esticar(saida, base, fator) {
+  identidade(saida);
+  saida[5] = fator;
+  saida[13] = base * (1 - fator);
+  return saida;
+}
+
 export function inverter(saida, m) {
   const [
     a00, a01, a02, a03, a10, a11, a12, a13,

@@ -10,13 +10,20 @@
 // esse canal e o peso do vento (raiz nao anda, ponta anda); na gente e o
 // numero do osso. Modelo de bicho e de gente olha para +X.
 
+// A cor de cada modelo e escrita em sRGB, que e como olho humano e paleta de
+// briefing falam, e guardada em linear, que e como luz multiplica. Sem isso
+// tudo que cai na sombra vira preto: a parede de taipa sombreada dava 0,12 e
+// a tela mostrava 12% de brilho.
+const paraLinear = (c) => c ** 2.2;
+
 export function construtor() {
   const dados = [];
   let maxY = -Infinity;
   let minY = Infinity;
 
   function vertice(p, n, cor, extra) {
-    dados.push(p[0], p[1], p[2], n[0], n[1], n[2], cor[0], cor[1], cor[2], extra);
+    dados.push(p[0], p[1], p[2], n[0], n[1], n[2],
+      paraLinear(cor[0]), paraLinear(cor[1]), paraLinear(cor[2]), extra);
     if (p[1] > maxY) maxY = p[1];
     if (p[1] < minY) minY = p[1];
   }
@@ -166,15 +173,17 @@ function sorteador(semente) {
 }
 
 // --------------------------------------------------------------- vegetacao
-
 // Mandacaru: coluna de sete gomos e dois ou tres bracos que sobem em L.
 // E a silhueta que diz "caatinga" de longe, e por isso ele e o modelo mais
 // caprichado do mato.
 export function mandacaru(semente = 7) {
   const m = construtor();
   const s = sorteador(semente);
-  const verde = [0.278, 0.376, 0.243];
-  const claro = [0.376, 0.471, 0.286];
+  // Verde de mandacaru: cinza-esverdeado, nunca verde de jardim. Os valores
+  // sao sRGB e sobem em relacao a primeira versao porque, depois da correcao
+  // de gama, a coluna vertical quase nao pega sol de meio-dia e saia preta.
+  const verde = [0.345, 0.443, 0.290];
+  const claro = [0.451, 0.541, 0.337];
   const alturaTronco = 1.5 + s() * 1.0;
   m.prisma(0, 0, 0, 0.17, 0.13, alturaTronco, 7, verde);
   m.prisma(0, alturaTronco - 0.02, 0, 0.13, 0.05, 0.22, 7, claro);
@@ -199,8 +208,8 @@ export function mandacaru(semente = 7) {
 export function arbusto(semente = 3) {
   const m = construtor();
   const s = sorteador(semente);
-  const pau = [0.322, 0.271, 0.196];
-  const ponta = [0.408, 0.353, 0.247];
+  const pau = [0.388, 0.322, 0.235];
+  const ponta = [0.478, 0.412, 0.294];
   const galhos = 5 + Math.floor(s() * 4);
   for (let g = 0; g < galhos; g++) {
     const ang = (g / galhos) * Math.PI * 2 + s() * 0.7;
@@ -427,8 +436,10 @@ export function gente(estilo = {}) {
   }
 
   if (estilo.cantil) {
-    // cantil no cinto: o medidor diegetico. O render escala isso pela sede.
-    m.prisma(-0.13, 0.80, 0.14, 0.085, 0.085, 0.16, 7, [0.451, 0.384, 0.251], 1);
+    // Cantil no cinto, no osso 7: e o unico medidor diegetico do jogo — o
+    // render encolhe esse osso conforme a agua acaba.
+    m.prisma(-0.13, 0.78, 0.15, 0.09, 0.085, 0.19, 7, [0.451, 0.384, 0.251], 7);
+    m.caixa(-0.13, 0.98, 0.15, 0.035, 0.03, 0.035, [0.290, 0.243, 0.165], 7);
   }
   if (estilo.faca) {
     m.caixa(0.30, 1.02, 0.22, 0.16, 0.022, 0.035, [0.788, 0.804, 0.824], 4);
@@ -525,11 +536,14 @@ export function anel(raioInterno, raioExterno, lados = 28) {
   for (let i = 0; i < lados; i++) {
     const a0 = (i / lados) * Math.PI * 2;
     const a1 = ((i + 1) / lados) * Math.PI * 2;
+    // Angulo crescente anda no sentido horario visto de cima, entao a ordem
+    // e interno-a0, interno-a1, externo-a1, externo-a0 para o anel olhar
+    // para cima. Na ordem contraria ele some com o descarte de face de tras.
     m.quadrilatero(
       [Math.cos(a0) * raioInterno, 0, Math.sin(a0) * raioInterno],
-      [Math.cos(a0) * raioExterno, 0, Math.sin(a0) * raioExterno],
-      [Math.cos(a1) * raioExterno, 0, Math.sin(a1) * raioExterno],
       [Math.cos(a1) * raioInterno, 0, Math.sin(a1) * raioInterno],
+      [Math.cos(a1) * raioExterno, 0, Math.sin(a1) * raioExterno],
+      [Math.cos(a0) * raioExterno, 0, Math.sin(a0) * raioExterno],
       branco);
   }
   return m;

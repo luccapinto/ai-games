@@ -110,8 +110,7 @@ html, body {
 .seta-perigo i {
   position: absolute;
   left: -13px;
-  top: -26vh;
-  width: 0;
+  top: -36vh;
   height: 0;
   border-left: 13px solid transparent;
   border-right: 13px solid transparent;

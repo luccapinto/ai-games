@@ -126,7 +126,8 @@ function corDaCelula(mundo, campo, x, y) {
     g += (COR_DA_ESTRADA[1] - g) * 0.68;
     b += (COR_DA_ESTRADA[2] - b) * 0.68;
   }
-  return [r, g, b];
+  // sRGB na paleta, linear na malha: a luz multiplica em linear.
+  return [r ** 2.2, g ** 2.2, b ** 2.2];
 }
 
 function montarMalha(mundo, campo, passo) {
