@@ -36,7 +36,10 @@ export class Render {
     const c = document.createElement('canvas');
     c.width = LARGURA_PX;
     c.height = ALTURA_PX;
-    const g = c.getContext('2d');
+    // `alpha: false` no fundo importa: com canal alfa, copiar o fundo para a
+    // tela vira mistura por pixel em vez de copia, e sao 576 mil pixels por
+    // quadro. Sem GPU isso sozinho custava alguns milissegundos.
+    const g = c.getContext('2d', { alpha: false });
 
     g.fillStyle = mapa.piso;
     g.fillRect(0, 0, LARGURA_PX, ALTURA_PX);
@@ -184,11 +187,14 @@ export class Render {
     this.pulso += dt;
     this.prepararFundo(jogo.mapa);
 
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    this.offX = 0;
+    this.offY = 0;
     if (this.tremor > 0.05) {
-      ctx.translate((Math.random() - 0.5) * this.tremor, (Math.random() - 0.5) * this.tremor);
+      this.offX = (Math.random() - 0.5) * this.tremor;
+      this.offY = (Math.random() - 0.5) * this.tremor;
       this.tremor *= 0.86;
     } else this.tremor = 0;
+    ctx.setTransform(1, 0, 0, 1, this.offX, this.offY);
 
     ctx.drawImage(this.fundo, 0, 0);
 
@@ -206,14 +212,39 @@ export class Render {
     ctx.setTransform(1, 0, 0, 1, 0, 0);
   }
 
-  _vinheta(prefixo, forca) {
+  // A vinheta e rasterizada por cor uma vez so. Construir o gradiente radial e
+  // pintar 576 mil pixels com ele a cada quadro custava 5,4 ms — mais caro que
+  // desenhar as 120 pragas. Agora o gradiente e rasterizado num canvas na
+  // primeira vez e o quadro so mistura o bitmap, com a pulsacao no alfa. E ele
+  // so cobre a faixa de borda, que e a unica parte onde vinheta se enxerga.
+  _vinheta(cor, forca) {
     const ctx = this.ctx;
+    if (!this.vinhetas) this.vinhetas = new Map();
+    let v = this.vinhetas.get(cor);
+    if (!v) {
+      v = document.createElement('canvas');
+      v.width = LARGURA_PX;
+      v.height = ALTURA_PX;
+      const g = v.getContext('2d');
+      const grad = g.createRadialGradient(
+        LARGURA_PX / 2, ALTURA_PX / 2, ALTURA_PX * 0.3,
+        LARGURA_PX / 2, ALTURA_PX / 2, ALTURA_PX * 0.85);
+      grad.addColorStop(0, cor + '0)');
+      grad.addColorStop(1, cor + '1)');
+      g.fillStyle = grad;
+      g.fillRect(0, 0, LARGURA_PX, ALTURA_PX);
+      this.vinhetas.set(cor, v);
+    }
     const a = forca * (0.7 + 0.3 * Math.sin(this.pulso * 6));
-    const g = ctx.createRadialGradient(LARGURA_PX / 2, ALTURA_PX / 2, ALTURA_PX * 0.3, LARGURA_PX / 2, ALTURA_PX / 2, ALTURA_PX * 0.85);
-    g.addColorStop(0, prefixo + '0)');
-    g.addColorStop(1, prefixo + a.toFixed(3) + ')');
-    ctx.fillStyle = g;
-    ctx.fillRect(0, 0, LARGURA_PX, ALTURA_PX);
+    const faixa = 132;
+    ctx.save();
+    ctx.globalAlpha = a;
+    ctx.beginPath();
+    ctx.rect(0, 0, LARGURA_PX, ALTURA_PX);
+    ctx.rect(faixa, faixa, LARGURA_PX - faixa * 2, ALTURA_PX - faixa * 2);
+    ctx.clip('evenodd');
+    ctx.drawImage(v, 0, 0);
+    ctx.restore();
   }
 
   _travada(jogo) {
@@ -299,65 +330,84 @@ export class Render {
     }
   }
 
+  // O corpo da torre e sempre o mesmo desenho: placa escura, octogono na cor
+  // da familia, recorte interno e glifo. Redesenhar isso a cada quadro custava
+  // 110 microssegundos por torre — com 24 torres, 2,7 ms so em coisa que nao
+  // muda. Agora cada tipo e rasterizado uma vez num canvas de 44 px e o quadro
+  // so copia. O que muda (cano, pips, etiqueta, estado) continua por cima.
+  _selo(def) {
+    if (!this.selos) this.selos = new Map();
+    let s = this.selos.get(def.id);
+    if (s) return s;
+    const lado = 44;
+    s = document.createElement('canvas');
+    s.width = lado;
+    s.height = lado;
+    const g = s.getContext('2d');
+    g.translate(lado / 2, lado / 2);
+    const r = 15;
+    g.beginPath(); octo(g, 0, 0, r + 3); g.fillStyle = 'rgba(8,11,17,.9)'; g.fill();
+    g.beginPath(); octo(g, 0, 0, r); g.fillStyle = def.cor; g.fill();
+    g.lineWidth = 1.4; g.strokeStyle = 'rgba(6,9,14,.75)'; g.stroke();
+    g.beginPath(); octo(g, 0, 0, r - 4.5); g.fillStyle = sombra(def.cor); g.fill();
+    g.fillStyle = def.cor;
+    g.font = '700 11px ui-monospace, monospace';
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    g.fillText(def.glifo, 0, 1);
+    this.selos.set(def.id, s);
+    return s;
+  }
+
   _torres(jogo, ui) {
     const ctx = this.ctx;
+    const r = 15;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
     for (const t of jogo.torres) {
       const def = TORRE_POR_ID[t.tipo];
-      const x = t.cx * CELULA;
-      const y = t.cy * CELULA;
+      const x = t.cx * CELULA + this.offX;
+      const y = t.cy * CELULA + this.offY;
       const sel = ui.selecionada === t;
-      const r = 15;
-
-      ctx.save();
-      ctx.translate(x, y);
+      const corrompida = t.corrompida > 0;
+      const desligada = t.desligada > 0 || t.aquecendo > 0;
 
       // cano apontado para o alvo
       if (!t.at.naoAtira) {
-        ctx.save();
+        ctx.setTransform(1, 0, 0, 1, x, y);
         ctx.rotate(t.angulo);
         ctx.fillStyle = hexA(def.cor, 0.85);
         ctx.fillRect(6, -3, 15, 6);
-        ctx.restore();
+        ctx.setTransform(1, 0, 0, 1, this.offX, this.offY);
       }
 
-      // corpo: placa escura por baixo e corpo cheio na cor da familia. Com o
-      // corpo vazado o glifo sumia no fundo — uma torre tem que ser
-      // reconhecivel sem clicar nela.
-      const corrompida = t.corrompida > 0;
-      const desligada = t.desligada > 0 || t.aquecendo > 0;
-      ctx.beginPath();
-      octo(ctx, 0, 0, r + 3);
-      ctx.fillStyle = 'rgba(8,11,17,.9)';
-      ctx.fill();
+      if (corrompida || desligada) {
+        ctx.beginPath(); octo(ctx, x - this.offX, y - this.offY, r + 3);
+        ctx.fillStyle = 'rgba(8,11,17,.9)'; ctx.fill();
+        ctx.beginPath(); octo(ctx, x - this.offX, y - this.offY, r);
+        ctx.fillStyle = corrompida ? '#ff5ca8' : '#5a5a68'; ctx.fill();
+        ctx.fillStyle = corrompida ? '#3a0a22' : '#14141a';
+        ctx.font = '700 11px ui-monospace, monospace';
+        ctx.fillText(def.glifo, x - this.offX, y - this.offY + 1);
+      } else {
+        ctx.drawImage(this._selo(def), x - this.offX - 22, y - this.offY - 22);
+      }
 
-      ctx.beginPath();
-      octo(ctx, 0, 0, r);
-      ctx.fillStyle = corrompida ? '#ff5ca8' : desligada ? '#5a5a68' : def.cor;
-      ctx.fill();
-      ctx.lineWidth = sel ? 3 : 1.4;
-      ctx.strokeStyle = sel ? '#ffffff' : 'rgba(6,9,14,.75)';
-      ctx.stroke();
-
-      // recorte interno, para o glifo nao ficar boiando
-      ctx.beginPath();
-      octo(ctx, 0, 0, r - 4.5);
-      ctx.fillStyle = sombra(def.cor);
-      ctx.fill();
-
-      // glifo
-      ctx.fillStyle = corrompida ? '#ffd4e8' : desligada ? '#c8c8d4' : def.cor;
-      ctx.font = '700 11px ui-monospace, monospace';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(def.glifo, 0, 1);
+      const px = x - this.offX;
+      const py = y - this.offY;
+      if (sel) {
+        ctx.beginPath(); octo(ctx, px, py, r);
+        ctx.lineWidth = 3; ctx.strokeStyle = '#ffffff'; ctx.stroke();
+      }
 
       // pips de nivel, um arco por caminho
       for (let c = 0; c < 2; c++) {
+        if (!t.niveis[c]) continue;
+        ctx.fillStyle = c === 0 ? '#7ee2ff' : '#ffb04a';
         for (let n = 0; n < t.niveis[c]; n++) {
-          ctx.fillStyle = c === 0 ? '#7ee2ff' : '#ffb04a';
           const a = (c === 0 ? -1 : 1) * (0.62 + n * 0.34);
           ctx.beginPath();
-          ctx.arc(Math.sin(a) * (r + 5), -Math.cos(a) * (r + 5), 2.4, 0, TAU);
+          ctx.arc(px + Math.sin(a) * (r + 5), py - Math.cos(a) * (r + 5), 2.4, 0, TAU);
           ctx.fill();
         }
       }
@@ -365,97 +415,143 @@ export class Render {
       // etiqueta do modo de servir quando nao e o padrao
       if (t.modoServir !== 'padrao') {
         ctx.fillStyle = 'rgba(0,0,0,.66)';
-        ctx.fillRect(-15, r + 1, 30, 9);
+        ctx.fillRect(px - 15, py + r + 1, 30, 9);
         ctx.fillStyle = '#9fd6a0';
         ctx.font = '700 7px ui-monospace, monospace';
-        ctx.fillText(MODOS[t.modoServir].nome.slice(0, 5), 0, r + 6);
+        ctx.fillText(MODOS[t.modoServir].nome.slice(0, 5), px, py + r + 6);
       }
 
       if (corrompida) {
         ctx.strokeStyle = '#ff5ca8';
         ctx.lineWidth = 2;
         ctx.beginPath();
-        ctx.arc(0, 0, r + 6 + Math.sin(this.pulso * 14) * 2, 0, TAU);
+        ctx.arc(px, py, r + 6 + Math.sin(this.pulso * 14) * 2, 0, TAU);
         ctx.stroke();
       }
       if (t.at.protegida) {
         ctx.strokeStyle = 'rgba(159,214,160,.5)';
         ctx.lineWidth = 1;
         ctx.beginPath();
-        ctx.arc(0, 0, r + 3, 0, TAU);
+        ctx.arc(px, py, r + 3, 0, TAU);
         ctx.stroke();
       }
-      ctx.restore();
     }
+  }
+
+  // O corpo de uma praga tambem nao muda: a mesma forma, na mesma cor, no
+  // mesmo tamanho. Rasterizar 120 deles por quadro custava 9 ms — mais da
+  // metade do orcamento de 16,6 ms — porque `stroke` num rasterizador de
+  // software e caro e porque eram 360 chamadas de save/translate/restore.
+  // Aqui cada combinacao forma+cor+raio vira um selo desenhado uma vez.
+  _seloPraga(forma_, cor, r) {
+    if (!this.selosPraga) this.selosPraga = new Map();
+    const rq = Math.max(6, Math.round(r * 2) / 2);   // quantiza o raio
+    const chave = `${forma_}|${cor}|${rq}`;
+    let s = this.selosPraga.get(chave);
+    if (s) return s;
+    const lado = Math.ceil(rq * 4) + 8;
+    s = document.createElement('canvas');
+    s.width = lado;
+    s.height = lado;
+    const g = s.getContext('2d');
+    g.translate(lado / 2, lado / 2);
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    forma(g, forma_, rq, cor, 0);
+    s.meio = lado / 2;
+    s.raio = rq;
+    if (this.selosPraga.size > 260) this.selosPraga.clear();
+    this.selosPraga.set(chave, s);
+    return s;
   }
 
   _pragas(jogo, ui) {
     const ctx = this.ctx;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
+    const barras = [];
+    let alpha = 1;
     for (const p of jogo.pragas) {
       if (p.morta) continue;
       const x = p.x * CELULA;
       const y = p.y * CELULA;
       if (x < -40 || x > LARGURA_PX + 40) continue;
-
       if (p.muro) { this._muro(p); continue; }
 
       const oculto = p.oculto && p.revelado <= 0;
       const r = 10 * p.escala;
-      ctx.save();
-      ctx.translate(x, y);
-      ctx.globalAlpha = oculto ? 0.26 : 1;
 
-      if (p.congelado > 0) { ctx.strokeStyle = '#6fc8ff'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, 0, r + 5, 0, TAU); ctx.stroke(); }
-      if (p.invuln > 0) { ctx.strokeStyle = '#ffd166'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(0, 0, r + 7, 0, TAU); ctx.stroke(); }
+      if (p.congelado > 0) { ctx.strokeStyle = '#6fc8ff'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(x, y, r + 5, 0, TAU); ctx.stroke(); }
+      if (p.invuln > 0) { ctx.strokeStyle = '#ffd166'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(x, y, r + 7, 0, TAU); ctx.stroke(); }
+
+      const a = oculto ? 0.26 : 1;
+      if (a !== alpha) { ctx.globalAlpha = a; alpha = a; }
 
       const cor = p.disfarcado ? '#cfd8c8' : p.def.cor;
-      forma(ctx, p.def.forma, r, cor, this.pulso + p.uid);
+      if (p.def.forma === 'asa' || p.def.forma === 'rolo' || p.def.forma === 'espiral' || p.def.forma === 'foguete') {
+        // formas animadas nao dao para selar: elas mudam com o tempo. Sao
+        // poucas na tela ao mesmo tempo, entao seguem no caminho lento.
+        ctx.setTransform(1, 0, 0, 1, x + this.offX, y + this.offY);
+        forma(ctx, p.def.forma, r, cor, this.pulso + p.uid);
+        ctx.setTransform(1, 0, 0, 1, this.offX, this.offY);
+      } else {
+        const s = this._seloPraga(p.def.forma, cor, r);
+        ctx.drawImage(s, x - s.meio, y - s.meio);
+      }
 
-      if (p.dot > 0) { ctx.fillStyle = 'rgba(88,227,160,.3)'; ctx.beginPath(); ctx.arc(0, 0, r + 3, 0, TAU); ctx.fill(); }
+      if (p.dot > 0) { ctx.fillStyle = 'rgba(88,227,160,.3)'; ctx.beginPath(); ctx.arc(x, y, r + 3, 0, TAU); ctx.fill(); }
       if (p.marca > 0) {
         ctx.strokeStyle = '#ff8f6b'; ctx.lineWidth = 1.5;
-        ctx.beginPath(); ctx.moveTo(-r - 4, 0); ctx.lineTo(r + 4, 0); ctx.moveTo(0, -r - 4); ctx.lineTo(0, r + 4); ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(x - r - 4, y); ctx.lineTo(x + r + 4, y);
+        ctx.moveTo(x, y - r - 4); ctx.lineTo(x, y + r + 4);
+        ctx.stroke();
       }
       if (p.viesTipo) {
         ctx.fillStyle = DANOS[p.viesTipo].cor;
         ctx.font = '700 8px ui-monospace, monospace';
-        ctx.fillText(DANOS[p.viesTipo].curto, 0, 0);
+        ctx.fillText(DANOS[p.viesTipo].curto, x, y);
       }
       if (p.imunes.size) {
         ctx.font = '700 7px ui-monospace, monospace';
         let i = 0;
         for (const im of p.imunes) {
           ctx.fillStyle = DANOS[im] ? DANOS[im].cor : '#fff';
-          ctx.fillText('x', -r + 3 + i * 6, -r - 3);
+          ctx.fillText('x', x - r + 3 + i * 6, y - r - 3);
           i++;
         }
       }
-      ctx.globalAlpha = 1;
 
-      // barra de vida
-      if (p.hp < p.hpMax) {
-        const w = Math.max(18, r * 2.2);
-        const f = Math.max(0, p.hp / p.hpMax);
-        ctx.fillStyle = 'rgba(0,0,0,.72)';
-        ctx.fillRect(-w / 2 - 1, -r - 9, w + 2, 5);
-        ctx.fillStyle = f > 0.5 ? '#6ef0a8' : f > 0.22 ? '#ffd166' : '#ff6b5c';
-        ctx.fillRect(-w / 2, -r - 8, w * f, 3);
-      }
+      if (p.hp < p.hpMax) barras.push(x, y - r - 9, Math.max(18, r * 2.2), Math.max(0, p.hp / p.hpMax));
       if (p.def.chefe) {
+        if (alpha !== 1) { ctx.globalAlpha = 1; alpha = 1; }
         ctx.fillStyle = '#fff';
         ctx.font = '700 9px ui-monospace, monospace';
-        ctx.fillText(p.def.nome, 0, -r - 15);
+        ctx.fillText(p.def.nome, x, y - r - 17);
       }
       if (ui.pragaSelecionada === p) {
         ctx.strokeStyle = '#fff';
         ctx.lineWidth = 1.5;
         ctx.setLineDash([3, 3]);
-        ctx.beginPath(); ctx.arc(0, 0, r + 9, 0, TAU); ctx.stroke();
+        ctx.beginPath(); ctx.arc(x, y, r + 9, 0, TAU); ctx.stroke();
         ctx.setLineDash([]);
       }
-      ctx.restore();
+    }
+    if (alpha !== 1) ctx.globalAlpha = 1;
+
+    // As barras de vida saem em tres passadas, uma por cor, em vez de trocar
+    // fillStyle duas vezes por praga.
+    if (!barras.length) return;
+    ctx.fillStyle = 'rgba(0,0,0,.72)';
+    for (let i = 0; i < barras.length; i += 4) ctx.fillRect(barras[i] - barras[i + 2] / 2 - 1, barras[i + 1], barras[i + 2] + 2, 5);
+    const faixas = [[0.5, 1.01, '#6ef0a8'], [0.22, 0.5, '#ffd166'], [-1, 0.22, '#ff6b5c']];
+    for (const [lo, hi, c] of faixas) {
+      ctx.fillStyle = c;
+      for (let i = 0; i < barras.length; i += 4) {
+        const f = barras[i + 3];
+        if (f <= lo || f > hi) continue;
+        ctx.fillRect(barras[i] - barras[i + 2] / 2, barras[i + 1] + 1, barras[i + 2] * f, 3);
+      }
     }
   }
 
@@ -571,6 +667,9 @@ function poligono(ctx, n, r, giro = 0) {
   ctx.closePath();
 }
 
+// O traco em volta sai caro num rasterizador de software, mas aqui ele so roda
+// uma vez por combinacao de forma, cor e raio: quem chama isto no laco quente
+// e o cache de selos, nao o quadro.
 function forma(ctx, nome, r, cor, fase) {
   ctx.fillStyle = cor;
   ctx.strokeStyle = 'rgba(0,0,0,.55)';

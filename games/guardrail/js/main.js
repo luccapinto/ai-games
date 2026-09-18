@@ -124,10 +124,14 @@ function comecar(modo) {
   $('#menu').classList.add('oculto');
   $('#fim').classList.add('oculto');
   $('#manual').classList.add('oculto');
-  $('#m-mapa').textContent = jogo.mapa.nome + (modo === 'semfim' ? ' — SEM FIM' : '');
+  no['m-mapa'].textContent = jogo.mapa.nome + (modo === 'semfim' ? ' — SEM FIM' : '');
+  // Os caches de escrita no DOM guardam o ultimo valor visto; partida nova
+  // comeca com eles limpos, senao o topo herda o numero da partida passada.
+  for (const k of Object.keys(visto)) delete visto[k];
   som.acordar();
+  mudarVelocidade(2);
   trocarAba('loja');
-  pintarTudo();
+  pintarTopo();
   ultimo = performance.now();
 }
 
@@ -150,47 +154,71 @@ function pintarTudo() {
 
 // -------------------------------------------------------------------- loja
 
-function pintarLoja() {
+// A loja e construida uma vez e depois so atualizada. Reconstruir os onze
+// cartoes quatro vezes por segundo derrubava o quadro sozinho: no medidor de
+// 120 pragas, o DOM custava mais que a simulacao e o desenho somados.
+let cartoes = null;
+let btGpu = null;
+
+function montarLoja() {
   const p = $('#painel-loja');
   p.innerHTML = '';
+  cartoes = [];
   for (const classe of ['modelo', 'infra']) {
-    p.append(el('div', 'grupo-titulo', classe === 'modelo' ? 'MODELOS — as torres que atiram' : 'INFRAESTRUTURA — nao atiram, sustentam'));
+    p.append(el('div', 'grupo-titulo', classe === 'modelo'
+      ? 'MODELOS — as torres que atiram'
+      : 'INFRAESTRUTURA — nao atiram, sustentam'));
     for (const d of TORRES.filter(t => t.classe === classe)) {
-      const custo = custoDe(jogo, d.id);
-      const caro = jogo.dinheiro < custo;
-      const b = el('button', 'cartao' + (ui.colocando === d.id ? ' ligada' : '') + (caro ? ' cara' : ''));
+      const b = el('button', 'cartao');
       const gl = el('div', 'glifo', d.glifo);
       gl.style.color = d.cor;
       const meio = el('div');
       meio.append(el('div', 'nome', d.nome));
       const sub = d.naoAtira
-        ? (d.capacidade ? `+${d.capacidade} de VRAM, raio ${d.alcance}` : d.rendaOnda ? `US$ ${d.rendaOnda} por onda` : `aura, raio ${d.alcance}`)
+        ? (d.capacidade ? `+${d.capacidade} de VRAM, raio ${n1(d.alcance)}`
+          : d.rendaOnda ? `US$ ${d.rendaOnda} por onda, raio ${n1(d.alcance)}`
+            : `aura de cadencia, raio ${n1(d.alcance)}`)
         : `${DANOS[d.tipoDano].nome} ${d.dano} x ${n1(d.cadencia)}/s, alcance ${n1(d.alcance)}`;
       meio.append(el('div', 'sub', sub));
       const preco = el('div', 'preco');
-      preco.append(el('b', null, 'US$ ' + n0(custo)), el('span', null, `${n1(d.vram)} VRAM`));
+      const valor = el('b');
+      preco.append(valor, el('span', null, `${n1(d.vram)} VRAM`));
       b.append(gl, meio, preco);
       b.onclick = () => {
         ui.colocando = ui.colocando === d.id ? null : d.id;
-        ui.custoColocando = custo;
+        ui.custoColocando = custoDe(jogo, d.id);
         ui.selecionada = null;
         ui.pragaSelecionada = null;
         pintarLoja();
       };
       p.append(b);
+      cartoes.push({ d, b, valor, ultimo: -1, caro: null, ligada: null });
     }
   }
 
   const caixa = el('div', 'loja-gpu');
+  caixa.append(el('b', null, 'O DE CASACO DE COURO'));
+  caixa.append(el('p', null, 'A mais nova e sempre a mais barata por FLOP, ele diz. Mais 8 de VRAM no cluster. Cada compra encarece a proxima em 62%.'));
+  btGpu = el('button', 'bt destaque');
+  btGpu.onclick = () => { if (comprarGpu(jogo)) { som.gpu(); pintarTudo(); } else som.negado(); };
+  caixa.append(btGpu);
+  p.append(caixa);
+}
+
+function pintarLoja() {
+  if (!cartoes) montarLoja();
+  for (const c of cartoes) {
+    const custo = custoDe(jogo, c.d.id);
+    if (custo !== c.ultimo) { c.ultimo = custo; c.valor.textContent = 'US$ ' + n0(custo); }
+    const caro = jogo.dinheiro < custo;
+    if (caro !== c.caro) { c.caro = caro; c.b.classList.toggle('cara', caro); }
+    const ligada = ui.colocando === c.d.id;
+    if (ligada !== c.ligada) { c.ligada = ligada; c.b.classList.toggle('ligada', ligada); }
+  }
   const preco = precoGpu(jogo);
-  caixa.innerHTML = `<b>O DE CASACO DE COURO</b><br>A mais nova e sempre a mais barata por FLOP, ele diz.
-    Mais <b>8 de VRAM</b> no cluster. Cada compra encarece a proxima em 62%.
-    ${jogo.loja.desconto ? '<br>Promocao desta onda: 35% de desconto.' : ''}`;
-  const bt = el('button', 'bt destaque', `COMPRAR GPU — US$ ${n0(preco)}`);
-  bt.disabled = jogo.dinheiro < preco;
-  bt.onclick = () => { if (comprarGpu(jogo)) { som.gpu(); pintarTudo(); } else som.negado(); };
-  caixa.append(bt);
-  $('#painel-loja').append(caixa);
+  const txt = `COMPRAR GPU — US$ ${n0(preco)}${jogo.loja.desconto ? '  (-35% NESTA ONDA)' : ''}`;
+  if (btGpu.textContent !== txt) btGpu.textContent = txt;
+  btGpu.disabled = jogo.dinheiro < preco;
 }
 
 // ------------------------------------------------------------------- ficha
@@ -440,7 +468,13 @@ const CLASSE_FEED = {
   falsa: 'meme', recusou: 'meme',
 };
 
+let feedPintado = -1;
+
 function pintarFeed() {
+  // O feed so e redesenhado quando entra linha nova. Redesenhar sessenta
+  // paragrafos quatro vezes por segundo nao acrescenta nada e custa quadro.
+  if (feedPintado === jogo.feed.length) return;
+  feedPintado = jogo.feed.length;
   const p = $('#painel-feed');
   p.innerHTML = '';
   const lista = jogo.feed.slice().reverse();
@@ -453,51 +487,87 @@ function pintarFeed() {
 
 // --------------------------------------------------------------------- topo
 
+// O topo e redesenhado em todo quadro, entao ele nao pode procurar elemento
+// nem escrever no DOM a toa: `querySelector` e `style.width` por quadro, vezes
+// dez elementos, custavam mais que o desenho do mapa inteiro. Os nos sao
+// guardados uma vez e cada escrita so acontece quando o valor muda.
+const no = {};
+const visto = {};
+
+function guardarNos() {
+  for (const id of ['m-onda', 'm-vidas', 'm-dinheiro', 'm-mapa', 'vram-num', 'vram-aviso',
+    'vram-cheio', 'vram-marca', 'bt-onda', 'bt-pausa', 'brinde']) no[id] = $('#' + id);
+  no.barraVram = $('.vram-barra');
+}
+
+function escrever(chave, elemento, valor) {
+  if (visto[chave] === valor) return;
+  visto[chave] = valor;
+  elemento.textContent = valor;
+}
+
+function estilo(chave, elemento, prop, valor) {
+  if (visto[chave] === valor) return;
+  visto[chave] = valor;
+  elemento.style[prop] = valor;
+}
+
 function pintarTopo() {
-  $('#m-onda').textContent = jogo.modo === 'semfim' ? String(jogo.onda) : `${jogo.onda}/${TOTAL_ONDAS}`;
-  $('#m-vidas').textContent = String(jogo.vidas);
-  $('#m-dinheiro').textContent = n0(jogo.dinheiro);
+  escrever('onda', no['m-onda'], jogo.modo === 'semfim' ? String(jogo.onda) : `${jogo.onda}/${TOTAL_ONDAS}`);
+  escrever('vidas', no['m-vidas'], String(jogo.vidas));
+  escrever('dinheiro', no['m-dinheiro'], n0(jogo.dinheiro));
 
   const v = estadoVram(jogo);
-  $('#vram-num').textContent = `${n1(v.uso)} / ${n1(v.capacidade)}`;
-  $('#vram-aviso').textContent = v.estourado
+  escrever('vramNum', no['vram-num'], `${n1(v.uso)} / ${n1(v.capacidade)}`);
+  escrever('vramAviso', no['vram-aviso'], v.estourado
     ? `ESTOURADO: -${v.perda}% de cadencia`
-    : v.capturada > 0 ? `OOM KILLER levou ${n1(v.capturada)} do teto` : '';
-  const barra = $('.vram-barra');
-  barra.classList.toggle('estourado', v.estourado);
-  const teto = Math.max(v.capacidade, v.uso);
-  $('#vram-cheio').style.width = Math.min(100, v.uso / teto * 100) + '%';
-  $('#vram-marca').style.left = (v.capacidade / teto * 100) + '%';
+    : v.capturada > 0 ? `OOM KILLER levou ${n1(v.capturada)} do teto` : '');
+  if (visto.estourado !== v.estourado) {
+    visto.estourado = v.estourado;
+    no.barraVram.classList.toggle('estourado', v.estourado);
+  }
+  const teto = Math.max(v.capacidade, v.uso, 1);
+  estilo('vramCheio', no['vram-cheio'], 'width', Math.round(Math.min(100, v.uso / teto * 100)) + '%');
+  estilo('vramMarca', no['vram-marca'], 'left', Math.round(v.capacidade / teto * 100) + '%');
 
-  for (const b of document.querySelectorAll('.hab')) {
-    const h = jogo.habilidades.find(x => x.id === b.dataset.hab);
-    const def = HABILIDADE_POR_ID[b.dataset.hab];
-    b.classList.toggle('pronta', h.pronta);
-    b.querySelector('.recarga').style.width = (1 - h.recarga / def.recarga) * 100 + '%';
-    b.querySelector('.tempo').textContent = h.pronta ? 'PRONTA' : Math.ceil(h.recarga) + ' s';
+  for (const b of botoesHab) {
+    const h = jogo.habilidades.find(x => x.id === b.id);
+    const pronta = h.recarga <= 0;
+    if (b.pronta !== pronta) { b.pronta = pronta; b.bt.classList.toggle('pronta', pronta); }
+    const pct = Math.round((1 - h.recarga / b.def.recarga) * 100);
+    if (b.pct !== pct) { b.pct = pct; b.barra.style.width = pct + '%'; }
+    const txt = pronta ? 'PRONTA' : Math.ceil(h.recarga) + ' s';
+    if (b.txt !== txt) { b.txt = txt; b.tempo.textContent = txt; }
   }
 
-  const bo = $('#bt-onda');
-  if (!temProximaOnda(jogo)) { bo.disabled = true; bo.textContent = 'FIM'; }
-  else {
-    bo.disabled = false;
-    bo.textContent = jogo.emOnda ? 'ONDA +' : `ONDA ${Math.ceil(Math.max(0, jogo.preparo))}s`;
+  const bo = no['bt-onda'];
+  const temProx = temProximaOnda(jogo);
+  escrever('btOnda', bo, !temProx ? 'FIM'
+    : jogo.emOnda ? 'ONDA +' : `ONDA ${Math.ceil(Math.max(0, jogo.preparo))}s`);
+  if (visto.btOndaOff !== !temProx) { visto.btOndaOff = !temProx; bo.disabled = !temProx; }
+  if (visto.pausado !== pausado) {
+    visto.pausado = pausado;
+    no['bt-pausa'].classList.toggle('ligada', pausado);
+    no['bt-pausa'].textContent = pausado ? 'PAUSADO' : 'PAUSA';
   }
-  $('#bt-pausa').classList.toggle('ligada', pausado);
-  $('#bt-pausa').textContent = pausado ? 'PAUSADO' : 'PAUSA';
 }
+
+const botoesHab = [];
 
 function montarHabilidades() {
   const c = $('#habilidades');
   c.innerHTML = '';
+  botoesHab.length = 0;
   for (const h of HABILIDADES) {
-    const b = el('button', 'hab');
-    b.dataset.hab = h.id;
-    b.title = h.desc;
-    b.append(el('b', null, `${h.tecla}  ${h.nome.split(' ')[0]}`), el('span', 'tempo', 'PRONTA'), el('i', 'recarga'));
-    b.querySelector('.recarga').style.width = '100%';
-    b.onclick = () => acionar(h.id);
-    c.append(b);
+    const bt = el('button', 'hab');
+    bt.title = h.desc;
+    const tempo = el('span', 'tempo', 'PRONTA');
+    const barra = el('i', 'recarga');
+    barra.style.width = '100%';
+    bt.append(el('b', null, `${h.tecla}  ${h.nome.split(' ')[0]}`), tempo, barra);
+    bt.onclick = () => acionar(h.id);
+    c.append(bt);
+    botoesHab.push({ id: h.id, def: h, bt, tempo, barra, pronta: null, pct: null, txt: null });
   }
 }
 
@@ -794,6 +864,7 @@ for (const b of document.querySelectorAll('.vel')) b.onclick = () => mudarVeloci
 for (const b of document.querySelectorAll('#abas .aba')) b.onclick = () => trocarAba(b.dataset.aba);
 for (const b of document.querySelectorAll('#manual-abas .aba')) b.onclick = () => pintarManual(b.dataset.man);
 
+guardarNos();
 montarHabilidades();
 pintarMenu();
 requestAnimationFrame(quadro);

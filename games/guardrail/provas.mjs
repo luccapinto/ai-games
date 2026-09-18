@@ -123,6 +123,32 @@ prova('todo mapa tem laje bastante para montar defesa de verdade', () => {
   }
 });
 
+prova('nenhum mapa tem trecho longo de trilha que torre nenhuma alcanca', () => {
+  // A prova acima olha da laje para a trilha. Esta olha da trilha para a laje,
+  // e e a que pega o defeito de verdade: na ILHA CENTRAL a espiral tinha 55%
+  // do percurso fora do alcance de qualquer laje possivel. O mapa passava na
+  // prova anterior e mesmo assim metade da rota era cenario — o jogador via
+  // a praga andar meio minuto sem levar um tiro.
+  for (const m of MAPAS) {
+    const lajes = [...m.construivel].map(k => [k % LARGURA + 0.5, Math.floor(k / LARGURA) + 0.5]);
+    for (const r of m.rotas) {
+      let cobertas = 0;
+      let seguidasSemCobertura = 0;
+      let pior = 0;
+      for (const [cx, cy] of r.cels) {
+        const x = cx + 0.5;
+        const y = cy + 0.5;
+        const dentro = lajes.some(([lx, ly]) => Math.hypot(lx - x, ly - y) <= 5.4);
+        if (dentro) { cobertas++; seguidasSemCobertura = 0; }
+        else { seguidasSemCobertura++; pior = Math.max(pior, seguidasSemCobertura); }
+      }
+      const fracao = cobertas / r.cels.length;
+      ok(fracao >= 0.8, `${m.id}: so ${Math.round(fracao * 100)}% da rota pode ser defendida`);
+      ok(pior <= 12, `${m.id}: ${pior} celulas seguidas de rota sem nenhuma laje ao alcance`);
+    }
+  }
+});
+
 prova('os tres mapas pedem estrategias diferentes, nao sao o mesmo mapa pintado', () => {
   const ids = MAPAS.map(m => m.id);
   igual(new Set(ids).size, 3, 'mapas repetidos');

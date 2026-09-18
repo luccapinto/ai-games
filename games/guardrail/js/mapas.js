@@ -126,10 +126,15 @@ const DEFINICOES = [
       },
     ],
     lajes: [
+      // ilhas do norte: cobrem a entrada e o comeco da espiral
+      [4, 2, 8, 3], [13, 2, 17, 3],
+      // as duas ilhas centrais, que e onde a espiral passa tres vezes
       [3, 5, 18, 6],
       [7, 8, 18, 9],
-      [17, 11, 21, 12],
-      [3, 11, 5, 12],
+      // plataforma leste, sobre a descida
+      [20, 6, 21, 10],
+      // plataformas do sul, sobre a volta de baixo
+      [3, 11, 8, 12], [11, 11, 16, 12], [18, 11, 21, 12],
     ],
   },
 ];
