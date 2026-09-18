@@ -127,7 +127,13 @@ function laco(agora) {
       atualizarAmbiente(calorDaHora(jogo.hora), claridade(jogo.hora));
     }
   } else if (jogo && (estado === 'pausa' || estado === 'diario' || estado === 'loja')) {
-    render.desenhar(jogo, 0);
+    // A mesma tecla que abre fecha. Jogando trinta segundos, a primeira coisa
+    // que a mao faz no diario e apertar esc — e nao acontecia nada.
+    const sair = [entrada.consumir('pausa'), entrada.consumir('diario'),
+      entrada.consumir('loja')].some(Boolean);
+    entrada.consumir('mapa');
+    if (sair) mostrar('jogo');
+    else render.desenhar(jogo, 0);
   }
 
   if (avisoAte && performance.now() > avisoAte) {
