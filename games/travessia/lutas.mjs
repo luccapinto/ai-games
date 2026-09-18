@@ -99,6 +99,30 @@ function recuandoAndando(semente) {
   return resumo('recuando andando', jogo, onca, t);
 }
 
+// Fugir em linha reta so funciona em chao infinito. No sertao o jogador desvia:
+// a cada meio segundo ele escolhe, entre dezesseis rumos com vinte passos
+// limpos a frente, o que mais afasta da onca. Sem isso a simulacao batia no
+// relevo aos oitenta passos e a onca alcancava — o que reprovava a luta por
+// defeito da simulacao, e nao do jogo.
+function rumoDeFuga(jogo, onca) {
+  const j = jogo.jogador;
+  const fugindoDe = Math.atan2(j.y - onca.y, j.x - onca.x);
+  let melhor = null;
+  for (let k = 0; k < 16; k++) {
+    const ang = (k / 16) * Math.PI * 2;
+    const dx = Math.cos(ang);
+    const dy = Math.sin(ang);
+    let limpo = true;
+    for (let p = 2; p <= 20 && limpo; p += 2) {
+      limpo = livreEmVolta(jogo.mundo, Math.round(j.x + dx * p), Math.round(j.y + dy * p), 1);
+    }
+    if (!limpo) continue;
+    const nota = Math.cos(ang - fugindoDe);
+    if (!melhor || nota > melhor.nota) melhor = { dx, dy, nota };
+  }
+  return melhor;
+}
+
 // 3. correndo e voltando: corre ate a onca desistir, respira, volta e briga.
 function correndoEVoltando(semente) {
   const { jogo, onca, arena } = montar(semente);
@@ -106,6 +130,8 @@ function correndoEVoltando(semente) {
   let t = 0;
   let fase = 'fuga';
   let descanso = 0;
+  let rumo = { dx: arena.dx, dy: arena.dy };
+  let pensar = 0;
 
   while (t < 240 && j.vida > 0 && onca.vida > 0) {
     const e = entradaNula();
@@ -114,8 +140,13 @@ function correndoEVoltando(semente) {
     const d = Math.hypot(dx, dy) || 1;
 
     if (fase === 'fuga') {
-      e.x = arena.dx;
-      e.y = arena.dy;
+      pensar -= DT;
+      if (pensar <= 0) {
+        pensar = 0.5;
+        rumo = rumoDeFuga(jogo, onca) || rumo;
+      }
+      e.x = rumo.dx;
+      e.y = rumo.dy;
       e.correr = true;
       if (!onca.irritado) fase = 'respira';
     } else if (fase === 'respira') {
@@ -137,7 +168,11 @@ function correndoEVoltando(semente) {
 
 // --------------------------------------------------------------- saida
 
-const semente = Number(process.argv[2] || 1000);
+// Sem argumento, roda seis sementes: uma luta so nao prova equilibrio, porque
+// o chao em volta muda o quanto a fuga custa.
+const SEMENTES = process.argv.length > 2
+  ? process.argv.slice(2).map(Number)
+  : [1000, 1111, 1222, 2718, 3141, 1333];
 const faca = ARMAS.faca;
 const onca = BICHOS.onca;
 
@@ -159,19 +194,21 @@ const esperado = {
 };
 
 let falhou = 0;
-console.log(`semente ${semente}`);
-console.log('luta                   fim         vida    onca    cantil   tempo');
-for (const luta of [colado(semente), recuandoAndando(semente), correndoEVoltando(semente)]) {
-  const passou = esperado[luta.nome](luta);
-  if (!passou) falhou++;
-  const fim = luta.venceu ? 'VENCEU' : luta.morreu ? 'MORREU' : 'empatou';
-  console.log(
-    `${luta.nome.padEnd(23)}${fim.padEnd(12)}`
-    + `${`${luta.vidaPorCento.toFixed(0)}%`.padStart(5)}`
-    + `${luta.vidaDaOnca.toFixed(0).padStart(8)}`
-    + `${luta.sede.toFixed(0).padStart(10)}`
-    + `${`${luta.segundos.toFixed(1)}s`.padStart(8)}`
-    + `   ${passou ? 'ok' : 'FORA DO ESPERADO'}`);
+console.log('semente  luta                   fim         vida    onca    cantil   tempo');
+for (const semente of SEMENTES) {
+  for (const luta of [colado(semente), recuandoAndando(semente), correndoEVoltando(semente)]) {
+    const passou = esperado[luta.nome](luta);
+    if (!passou) falhou++;
+    const fim = luta.venceu ? 'VENCEU' : luta.morreu ? 'MORREU' : 'empatou';
+    console.log(
+      `${String(semente).padEnd(9)}${luta.nome.padEnd(23)}${fim.padEnd(12)}`
+      + `${`${luta.vidaPorCento.toFixed(0)}%`.padStart(5)}`
+      + `${luta.vidaDaOnca.toFixed(0).padStart(8)}`
+      + `${luta.sede.toFixed(0).padStart(10)}`
+      + `${`${luta.segundos.toFixed(1)}s`.padStart(8)}`
+      + `   ${passou ? 'ok' : 'FORA DO ESPERADO'}`);
+  }
 }
-console.log('');
+console.log(`\n${SEMENTES.length * 3 - falhou} de ${SEMENTES.length * 3} lutas `
+  + 'terminaram como o projeto manda.\n');
 if (falhou) process.exit(1);

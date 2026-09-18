@@ -202,11 +202,11 @@ void main() {
   // Distorcao de calor: so na faixa do horizonte, e so quando o sol castiga.
   // E o sinal visual de que andar aquela hora custa cantil.
   if (uCalor > 0.02) {
-    float faixa = exp(-pow((uv.y - 0.52) * 5.4, 2.0));
+    float faixa = exp(-pow((uv.y - 0.52) * 7.0, 2.0));
     float onda = sin(uv.y * 190.0 + uTempo * 7.0) * 0.5
       + sin(uv.y * 71.0 - uTempo * 4.3) * 0.5;
-    uv.x += onda * 0.0034 * uCalor * faixa;
-    uv.y += sin(uv.x * 120.0 + uTempo * 5.1) * 0.0012 * uCalor * faixa;
+    uv.x += onda * 0.0042 * uCalor * faixa;
+    uv.y += sin(uv.x * 120.0 + uTempo * 5.1) * 0.0014 * uCalor * faixa;
   }
 
   vec3 cor = texture(uCena, clamp(uv, 0.001, 0.999)).rgb;

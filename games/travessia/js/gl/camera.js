@@ -32,6 +32,7 @@ export function criarCamera(campo, obstaculos = []) {
   };
 
   function mirar(dx, dy) {
+    if (!Number.isFinite(dx) || !Number.isFinite(dy)) return;
     estado.giro += dx;
     estado.inclinacao = Math.min(LIMITE_DE_INCLINACAO[1],
       Math.max(LIMITE_DE_INCLINACAO[0], estado.inclinacao + dy));
