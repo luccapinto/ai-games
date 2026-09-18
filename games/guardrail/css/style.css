@@ -271,21 +271,35 @@ kbd { display: inline-block; padding: 1px 5px; margin-right: 3px; border: 1px so
 
 /* ----------------------------------------------------------------- celular */
 @media (max-width: 960px) {
-  :root { --topo-h: 52px; }
+  :root { --topo-h: auto; }
   #meio { flex-direction: column; }
-  #lado { width: 100%; flex: 0 0 40dvh; }
-  #tela-caixa { flex: 1; min-height: 0; }
-  #topo { gap: 8px; }
+  #lado { width: 100%; flex: 1 1 auto; min-height: 0; }
+  #tela-caixa { flex: 0 0 auto; }
+  #tela { cursor: pointer; width: 100%; height: auto; max-height: 46dvh; }
   .marca b { font-size: 12px; letter-spacing: 1.5px; }
   .medidor b { font-size: 13px; }
   #vram { min-width: 108px; }
-  .hab { min-width: 52px; font-size: 8px; padding: 4px 5px; }
-  .bt { padding: 6px 7px; font-size: 9px; }
   .mapa-cartao { width: 100%; max-width: 330px; }
-  #tela { cursor: pointer; }
+
+  /* No celular o topo quebra em duas linhas em vez de rolar para o lado.
+     Com barra rolavel, as tres habilidades, a pausa, a velocidade e o botao
+     de antecipar onda ficavam fora da tela e sem nenhuma pista de que
+     estavam la — ou seja, metade do controle de tempo do jogo era
+     inalcancavel no celular. */
+  #topo {
+    flex-wrap: wrap; overflow: visible; gap: 6px 10px; padding: 5px 8px;
+    align-items: center;
+  }
+  #habilidades { order: 3; width: 100%; gap: 4px; }
+  .hab { flex: 1; min-width: 0; font-size: 8px; padding: 6px 4px; }
+  #tempos { order: 4; width: 100%; margin-left: 0; gap: 4px; }
+  #tempos .bt { flex: 1; padding: 9px 4px; font-size: 9px; }
 }
 @media (max-width: 560px) {
   .cortina h1 { letter-spacing: 8px; }
   .numeros { grid-template-columns: 1fr; }
   .controles { font-size: 10px; }
+  .marca span { display: none; }
+  .medidor span { font-size: 8px; }
+  #vram { min-width: 92px; }
 }
