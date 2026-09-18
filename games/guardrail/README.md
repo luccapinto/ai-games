@@ -59,18 +59,18 @@ escrita ao lado dele no jogo:
 
 | modelo | custo | VRAM | dano | cadência | alcance | mira | erra | tipo |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| CHAMA 8B | 55 | 1 | 6 | 3,2/s | 2,6 | 0,15 s | 9,8% | TOKEN |
-| HAICAI 4.5 | 85 | 2 | 9 | 2,4/s | 3,2 | 0,35 s | 4,2% | TOKEN |
-| GEMINADO FLASH | 130 | 3 | 11 | 2,8/s | **5,4** | 0,28 s | 5,1% | VETOR |
-| QUEM-3 VL | 150 | 3 | 8 | 1,9/s | 3,6 | 0,50 s | 6,4% | FILTRO |
-| PROFUNDO R1 | 200 | 7 | 46 | 0,55/s | 3,0 | **2,40 s** | 7,9% | SEMÂNTICO |
-| SONETO 4.5 | 240 | 5 | 21 | 1,5/s | 3,4 | 0,60 s | 2,1% | SEMÂNTICO |
-| JOTA-5 | 360 | 8 | 30 | 1,7/s | 4,2 | 0,70 s | 2,8% | TOKEN |
-| OPUS 4.6 | 560 | 10 | 62 | 1,1/s | 4,8 | 1,10 s | **1,4%** | SEMÂNTICO |
+| Llama 8B | 55 | 1 | 6 | 3,2/s | 2,6 | 0,15 s | 9,8% | TOKEN |
+| Claude Haiku 4.5 | 85 | 2 | 9 | 2,4/s | 3,2 | 0,35 s | 4,2% | TOKEN |
+| Gemini Flash | 130 | 3 | 11 | 2,8/s | **5,4** | 0,28 s | 5,1% | VETOR |
+| Qwen 3 VL | 150 | 3 | 8 | 1,9/s | 3,6 | 0,50 s | 6,4% | FILTRO |
+| DeepSeek R1 | 200 | 7 | 46 | 0,55/s | 3,0 | **2,40 s** | 7,9% | SEMÂNTICO |
+| Claude Sonnet 4.5 | 240 | 5 | 21 | 1,5/s | 3,4 | 0,60 s | 2,1% | SEMÂNTICO |
+| GPT-5 | 360 | 8 | 30 | 1,7/s | 4,2 | 0,70 s | 2,8% | TOKEN |
+| Claude Opus 4.6 | 560 | 10 | 62 | 1,1/s | 4,8 | 1,10 s | **1,4%** | SEMÂNTICO |
 
-O PROFUNDO R1 pensa 2,4 segundos antes do primeiro tiro. Isso não é um número
-de equilíbrio: é o TTFT dele. O GEMINADO enxerga o mapa quase inteiro porque
-tem um milhão de tokens de contexto. O SONETO erra uma em cinquenta e **se
+O DeepSeek R1 pensa 2,4 segundos antes do primeiro tiro. Isso não é um número
+de equilíbrio: é o TTFT dele. O Gemini enxerga o mapa quase inteiro porque
+tem um milhão de tokens de contexto. O Claude Sonnet erra uma em cinquenta e **se
 recusa a atirar em quem ainda parece usuário legítimo** — o que faz dele a pior
 torre possível contra DEEPFAKE até você comprar a CONSTITUIÇÃO nível 3.
 
@@ -81,6 +81,38 @@ cadência em volta) e a **COBRANÇA** (US$ 26 por onda, e nada mais).
 **Cada torre encarece a próxima do mesmo tipo em 25%.** Variar sai mais barato
 que empilhar. Vender devolve 60%.
 
+### Onze silhuetas, porque onze siglas não bastavam
+
+No mapa a torre tem 32 px. Até aqui as onze eram o mesmo octógono com duas
+letras dentro — e duas letras a 32 px, num mapa com 26 torres, não se lê: você
+decorava a cor. Agora cada uma é uma silhueta própria, desenhada em caminho de
+canvas (`js/icones.js`, nenhum arquivo de imagem) e rasterizada uma vez em
+cache.
+
+Três regras seguram o conjunto, e foram conferidas em cinza e com desfoque
+antes de virar código:
+
+1. **A forma separa sozinha.** Sem cor e sem ler a sigla. O teste é brutal de
+   propósito: em cinza e com 2,5 px de desfoque, duas torres não podem virar a
+   mesma bolha. Foi ele que reprovou o nó hexagonal da OpenAI — a 32 px
+   desfocado ele vira o mesmo disco do Claude Opus — e o GPT-5 ficou com o
+   portal, a única forma das onze com um vão vazado no meio.
+2. **Quem não atira se declara.** A SEGURA, o ORQUESTRADOR e a COBRANÇA
+   dividem a cor de aço e a barra de base com pés. São exatamente 3 dos 11:
+   "esta torre não atira" se lê de longe, antes de qualquer texto.
+3. **A casa se lê na contagem.** Claude Haiku, Sonnet e Opus são o mesmo
+   asterisco com 3, 6 e 12 raios, e ganhando massa e luminância nessa ordem.
+   O degrau é a forma, não a legenda.
+
+A sigla de duas letras continua dentro do ícone, menor. Ela funciona na loja e
+na ficha, e some no mapa — e isso é o esperado: lá quem fala é a forma.
+
+Nível e proteção ficam **fora** do corpo, porque não há mais um octógono comum
+onde encostar: são traços radiais no topo (caminho 0 para a esquerda, caminho 1
+para a direita) e um aro fino verde quando A SEGURA cobre a torre. A torre
+selecionada é marcada por cantos nos quatro vértices da célula, e não por um
+contorno branco por cima — o GPT-5 é quase branco e desapareceria dentro dele.
+
 ## Caminhos de upgrade: escolher um fecha o outro
 
 Cada uma das onze construções tem **dois caminhos de três níveis**. Você pode
@@ -88,7 +120,7 @@ pegar nível 1 nos dois, mas no instante em que um chega ao 2, o outro tranca
 em 1 para sempre. É onde o jogo deixa de ser "comprei mais um nível" e passa a
 ser "escolhi ser o quê".
 
-O CHAMA 8B é o exemplo mais curto: pelo **FINE-TUNE** ele vira uma torre de dano
+O Llama 8B é o exemplo mais curto: pelo **FINE-TUNE** ele vira uma torre de dano
 SEMÂNTICO que quase não erra; pelo **ENXAME LOCAL** ele vira 12,6 tiros por
 segundo de RUÍDO que deixa lento e marca o alvo. São duas torres diferentes com
 o mesmo nome, e você não tem as duas.
@@ -106,7 +138,7 @@ o mesmo nome, e você não tem as duas.
 Duas pragas quebram esse esquema de propósito. O **VIÉS** só recebe dano de um
 tipo sorteado, escrito no corpo dele. O **OVERFITTING** decora o tipo que mais
 levou e fica imune a ele, até três tipos. Contra os dois, a saída é **furar
-resistência** — que é uma regra só, e vale para tudo: JOTA-5 no RACIOCÍNIO ALTO,
+resistência** — que é uma regra só, e vale para tudo: GPT-5 no RACIOCÍNIO ALTO,
 a aura do ORQUESTRADOR e o RELEASE DE EMERGÊNCIA.
 
 ## As pragas
@@ -130,7 +162,7 @@ HP". Estreiam uma por vez até a onda 20; depois o jogo passa a combinar.
 | 12 | ESCUDO SEMÂNTICO | TOKEN entra a 10%; só SEMÂNTICO entra inteiro |
 | 13 | DEEPFAKE | entra disfarçado de usuário e se revela na metade do caminho |
 | 14 | CURADOR RLHF | cura 16 HP/s em todo mundo em volta |
-| 15 | O METAVERSO | 4 segundos visível, 3 em realidade aumentada |
+| 15 | O REPTILIANO | 4 segundos visível, 3 segundos camuflado fora do espectro |
 | 16 | CHECKPOINT | se demorar 9 segundos para morrer, volta 6 células e se cura |
 | 17 | VIÉS | só recebe dano de um tipo, sorteado e escrito no corpo |
 | 19 | OVERFITTING | decora o tipo que mais levou e fica imune a ele |
@@ -138,7 +170,7 @@ HP". Estreiam uma por vez até a onda 20; depois o jogo passa a combinar.
 | 25 | O FOGUETEIRO | derruba um veículo na sua laje a cada 5,5 segundos |
 | 30 | SCROLL INFINITO | regenera 3,4% do HP por segundo: ou você concentra, ou ele nunca cai |
 | 34 | OOM KILLER | enquanto vive, sequestra 2,2 do teto do seu cluster |
-| 40 | O TROMBETA | ergue um muro de 700 de HP que barra todo tiro que tentar atravessar |
+| 40 | O LARANJA | ergue um muro de 700 de HP que barra todo tiro que tentar atravessar |
 
 ## Três mapas que pedem coisas diferentes
 
@@ -224,7 +256,7 @@ ilha        40 ondas  integridade 13/16  26 torres de 11 modelos  1304 pragas mo
 4. **MODEL COLLAPSE renascia no lugar onde morria**, com 35% mais velocidade e
    pouco caminho pela frente: chegava no cluster em todas as partidas. Renascer
    passou a ser voltar ao início da rota.
-5. **O muro do TROMBETA ficava no mapa depois que o dono morria** — no modo sem
+5. **O muro do LARANJA ficava no mapa depois que o dono morria** — no modo sem
    fim eles empilhavam até fechar o mapa.
 6. **Chefe soltava muro, veículo e pitch no quadro em que nascia**, antes de o
    jogador ver que ele chegou.
@@ -281,6 +313,7 @@ js/dados.js       modelos, tipos de dano, modos de servir, pragas, habilidades
 js/mapas.js       os três mapas e o corredor de voo
 js/ondas.js       as 40 ondas e o gerador do modo sem fim
 js/render.js      canvas 2D com fundo e selos em cache
+js/icones.js      as onze silhuetas das torres, em caminho de canvas e em cache
 js/noticias.js    o banco de manchetes do feed
 js/som.js         efeitos sintetizados em Web Áudio
 js/robo.js        o robô que joga sozinho

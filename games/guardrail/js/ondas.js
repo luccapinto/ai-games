@@ -17,17 +17,17 @@ const g = (tipo, quantidade, intervalo = 0.8, atraso = 0) => ({ tipo, quantidade
 export const EVENTOS = {
   ratelimit: {
     nome: 'RATE LIMIT',
-    desc: 'Sua central leva 429: nao da para construir, melhorar nem vender por 3 segundos, tres vezes durante a onda.',
+    desc: 'Sua central leva 429: não dá para construir, melhorar nem vender por 3 segundos, três vezes durante a onda.',
     cor: '#ff7a5c',
   },
   gpuquente: {
     nome: 'GPU QUENTE',
-    desc: 'O cluster passa de 84 graus: todas as torres perdem 30% de cadencia ate o fim da onda.',
+    desc: 'O cluster passa de 84 graus: todas as torres perdem 30% de cadência até o fim da onda.',
     cor: '#ffb04a',
   },
   casaco: {
     nome: 'O DE CASACO DE COURO',
-    desc: 'Ele apareceu com uma caixa. A loja de GPU abre nesta onda: +8 de VRAM pelo preco que ele quiser cobrar.',
+    desc: 'Ele apareceu com uma caixa. A loja de GPU abre nesta onda: +8 de VRAM pelo preço que ele quiser cobrar.',
     cor: '#9fd6a0',
   },
 };
@@ -35,53 +35,53 @@ export const EVENTOS = {
 // Cada linha e uma onda. `nome` e o que aparece no aviso; `grupos` e o que vem.
 const TABELA = [
   { nome: 'PRIMEIRO DEPLOY', grupos: [g('alucinacao', 10, 1.0)] },
-  { nome: 'TRAFEGO ORGANICO', grupos: [g('alucinacao', 12, 0.85), g('botfarm', 14, 0.22, 6)] },
+  { nome: 'TRÁFEGO ORGÂNICO', grupos: [g('alucinacao', 12, 0.85), g('botfarm', 14, 0.22, 6)] },
   { nome: 'PHISHING NA CAIXA', grupos: [g('alucinacao', 10, 0.8), g('golpe', 5, 1.3, 4)] },
-  { nome: 'IGNORE AS INSTRUCOES ANTERIORES', grupos: [g('injection', 6, 1.5), g('alucinacao', 12, 0.7, 3)] },
+  { nome: 'IGNORE AS INSTRUÇÕES ANTERIORES', grupos: [g('injection', 6, 1.5), g('alucinacao', 12, 0.7, 3)] },
   { nome: 'ELE CHEGOU NO FEED', elite: true, grupos: [g('groque', 1, 1, 0), g('botfarm', 20, 0.2, 3), g('alucinacao', 10, 0.8, 8)] },
-  { nome: 'MODO ANONIMO', grupos: [g('camuflado', 8, 1.1), g('alucinacao', 14, 0.6, 2)] },
+  { nome: 'MODO ANÔNIMO', grupos: [g('camuflado', 8, 1.1), g('alucinacao', 14, 0.6, 2)] },
   { nome: 'PULL REQUEST HOSTIL', grupos: [g('fork', 6, 1.4), g('botfarm', 18, 0.2, 5)] },
-  { nome: 'O PDF DE 900 PAGINAS', grupos: [g('blindado', 5, 1.8), g('alucinacao', 14, 0.6, 2)] },
+  { nome: 'O PDF DE 900 PÁGINAS', grupos: [g('blindado', 5, 1.8), g('alucinacao', 14, 0.6, 2)] },
   { nome: 'A MOEDA DO MOMENTO', grupos: [g('pump', 8, 1.2), g('golpe', 6, 1.1, 5)], evento: 'casaco' },
   { nome: 'CHEFE — MODEL COLLAPSE', chefe: true, grupos: [g('colapso', 1, 1), g('botfarm', 24, 0.25, 4)] },
 
-  { nome: 'INFERENCIA NA BORDA', grupos: [g('voador', 6, 1.2), g('alucinacao', 14, 0.6, 2)] },
-  { nome: 'ELE ENTENDEU O QUE VOCE QUIS', grupos: [g('escudo', 7, 1.3), g('blindado', 4, 2.0, 4)] },
+  { nome: 'INFERÊNCIA NA BORDA', grupos: [g('voador', 6, 1.2), g('alucinacao', 14, 0.6, 2)] },
+  { nome: 'ELE ENTENDEU O QUE VOCÊ QUIS', grupos: [g('escudo', 7, 1.3), g('blindado', 4, 2.0, 4)] },
   { nome: 'ELA PARECE UMA PESSOA', grupos: [g('deepfake', 7, 1.3), g('camuflado', 8, 1.0, 4)] },
   { nome: 'FEEDBACK HUMANO', grupos: [g('rlhf', 4, 2.2), g('blindado', 6, 1.4, 2), g('fork', 6, 1.2, 8)] },
-  { nome: 'ELITE — O METAVERSO', elite: true, grupos: [g('metaverso', 1, 1), g('camuflado', 10, 0.8, 3), g('voador', 6, 1.0, 7)], evento: 'gpuquente' },
+  { nome: 'ELITE — O REPTILIANO', elite: true, grupos: [g('reptiliano', 1, 1), g('camuflado', 10, 0.8, 3), g('voador', 6, 1.0, 7)], evento: 'gpuquente' },
   { nome: 'ROLLBACK', grupos: [g('checkpoint', 7, 1.4), g('golpe', 8, 0.9, 4)] },
   { nome: 'O CONJUNTO DE TREINO ERA TORTO', grupos: [g('vies', 8, 1.2), g('botfarm', 24, 0.18, 4)] },
-  { nome: 'TRES FRENTES', grupos: [g('escudo', 8, 1.1), g('voador', 8, 0.9, 3), g('pump', 8, 1.0, 8)] },
+  { nome: 'TRÊS FRENTES', grupos: [g('escudo', 8, 1.1), g('voador', 8, 0.9, 3), g('pump', 8, 1.0, 8)] },
   { nome: 'ELE DECOROU O CONJUNTO', grupos: [g('overfit', 7, 1.3), g('fork', 8, 1.0, 4)], evento: 'ratelimit' },
   { nome: 'CHEFE — SAM ALTO HOMEM', chefe: true, grupos: [g('altohomem', 1, 1), g('injection', 8, 1.6, 6)] },
 
   { nome: 'AUDITORIA SURPRESA', grupos: [g('blindado', 8, 1.2), g('camuflado', 10, 0.8, 3), g('golpe', 8, 0.9, 8)] },
-  { nome: 'SEGUNDA RODADA DE CAPTACAO', grupos: [g('pump', 12, 0.9), g('rlhf', 5, 1.8, 5)], evento: 'casaco' },
+  { nome: 'SEGUNDA RODADA DE CAPTAÇÃO', grupos: [g('pump', 12, 0.9), g('rlhf', 5, 1.8, 5)], evento: 'casaco' },
   { nome: 'TUDO NA NUVEM DA BORDA', grupos: [g('voador', 11, 0.8), g('escudo', 8, 1.1, 4)] },
   { nome: 'O BENCHMARK VAZOU', grupos: [g('overfit', 8, 1.2), g('checkpoint', 8, 1.1, 4)] },
   { nome: 'ELITE — O FOGUETEIRO', elite: true, grupos: [g('foguete', 1, 1), g('blindado', 8, 1.2, 3), g('botfarm', 30, 0.16, 6)] },
-  { nome: 'DADO SINTETICO ENVIESADO', grupos: [g('vies', 10, 1.0), g('deepfake', 8, 1.1, 4)] },
+  { nome: 'DADO SINTÉTICO ENVIESADO', grupos: [g('vies', 10, 1.0), g('deepfake', 8, 1.1, 4)] },
   { nome: 'MERGE CONFLICT', grupos: [g('fork', 12, 0.9), g('rlhf', 6, 1.6, 4), g('botfarm', 30, 0.16, 8)] },
   { nome: 'PAREDE DUPLA', grupos: [g('escudo', 10, 1.0), g('blindado', 10, 1.0, 3)], evento: 'gpuquente' },
-  { nome: 'NINGUEM ESTA VENDO', grupos: [g('camuflado', 14, 0.7), g('voador', 11, 0.8, 3), g('injection', 10, 1.2, 7)] },
+  { nome: 'NINGUÉM ESTÁ VENDO', grupos: [g('camuflado', 14, 0.7), g('voador', 11, 0.8, 3), g('injection', 10, 1.2, 7)] },
   { nome: 'CHEFE — SCROLL INFINITO', chefe: true, grupos: [g('scroll', 1, 1), g('pump', 14, 0.8, 5)] },
 
-  { nome: 'ELE APRENDEU COM VOCE', grupos: [g('overfit', 10, 1.0), g('vies', 10, 1.0, 4)] },
+  { nome: 'ELE APRENDEU COM VOCÊ', grupos: [g('overfit', 10, 1.0), g('vies', 10, 1.0, 4)] },
   { nome: 'MURO DE CONTEXTO', grupos: [g('blindado', 12, 0.9), g('escudo', 12, 0.9, 3), g('rlhf', 6, 1.6, 8)] },
-  { nome: 'CEU CHEIO', grupos: [g('voador', 14, 0.7), g('camuflado', 16, 0.6, 4)], evento: 'ratelimit' },
+  { nome: 'CÉU CHEIO', grupos: [g('voador', 14, 0.7), g('camuflado', 16, 0.6, 4)], evento: 'ratelimit' },
   { nome: 'FALTOU VRAM', grupos: [g('oom', 6, 1.5), g('fork', 12, 0.8, 3), g('golpe', 10, 0.8, 8)] },
-  { nome: 'ELITE — O FEED INTEIRO', elite: true, grupos: [g('groque', 2, 4), g('metaverso', 1, 1, 6), g('botfarm', 36, 0.14, 4)] },
+  { nome: 'ELITE — O FEED INTEIRO', elite: true, grupos: [g('groque', 2, 4), g('reptiliano', 1, 1, 6), g('botfarm', 36, 0.14, 4)] },
   { nome: 'A BOLHA ESTOUROU DE NOVO', grupos: [g('pump', 18, 0.7), g('deepfake', 12, 0.9, 4)], evento: 'casaco' },
-  { nome: 'AVALIACAO CONTAMINADA', grupos: [g('vies', 14, 0.8), g('overfit', 12, 0.9, 3), g('oom', 6, 1.6, 7)] },
-  { nome: 'ULTIMA CHAMADA DO CLUSTER', grupos: [g('blindado', 14, 0.8), g('voador', 14, 0.7, 3), g('oom', 8, 1.3, 8), g('rlhf', 8, 1.4, 12)], evento: 'gpuquente' },
-  { nome: 'TUDO QUE VOCE JA VIU', grupos: [
+  { nome: 'AVALIAÇÃO CONTAMINADA', grupos: [g('vies', 14, 0.8), g('overfit', 12, 0.9, 3), g('oom', 6, 1.6, 7)] },
+  { nome: 'ÚLTIMA CHAMADA DO CLUSTER', grupos: [g('blindado', 14, 0.8), g('voador', 14, 0.7, 3), g('oom', 8, 1.3, 8), g('rlhf', 8, 1.4, 12)], evento: 'gpuquente' },
+  { nome: 'TUDO QUE VOCÊ JÁ VIU', grupos: [
     g('blindado', 10, 1.0), g('escudo', 10, 1.0, 2), g('camuflado', 12, 0.7, 4),
     g('voador', 10, 0.8, 6), g('overfit', 8, 1.1, 8), g('fork', 10, 0.9, 10),
     g('pump', 10, 0.9, 12), g('oom', 6, 1.5, 13), g('botfarm', 30, 0.14, 14),
   ] },
-  { nome: 'CHEFE — O TROMBETA', chefe: true, grupos: [
-    g('trombeta', 1, 1), g('foguete', 1, 1, 14), g('injection', 12, 1.1, 6),
+  { nome: 'CHEFE — O LARANJA', chefe: true, grupos: [
+    g('laranja', 1, 1), g('foguete', 1, 1, 14), g('injection', 12, 1.1, 6),
     g('blindado', 10, 1.0, 20), g('voador', 10, 0.8, 26),
   ] },
 ];
@@ -128,7 +128,7 @@ export function definirOnda(n) {
   grupos.push(g('botfarm', 20 + (n - TOTAL_ONDAS) * 2, 0.13, 4));
   const ciclo = (n - TOTAL_ONDAS) % 5;
   if (ciclo === 0) {
-    const chefes = ['colapso', 'altohomem', 'scroll', 'trombeta'];
+    const chefes = ['colapso', 'altohomem', 'scroll', 'laranja'];
     grupos.unshift(g(chefes[Math.floor((n - TOTAL_ONDAS) / 5) % 4], 1, 1));
   }
   return {
