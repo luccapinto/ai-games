@@ -1,12 +1,19 @@
-// Teclado e toque virando o mesmo objeto de entrada que o robo de provas.mjs
-// monta a mao. Oito direcoes, correr, atacar, conversar, beber.
+// Teclado, mouse e toque virando o mesmo objeto de entrada que o robo de
+// provas.mjs monta a mao. Oito direcoes, correr, atacar, conversar, beber.
+//
+// A mira e separada do andar de proposito: `ler` devolve a entrada do jogo,
+// que e a mesma que o robo usa e nao sabe o que e camera; `lerVisao` devolve
+// o quanto a camera girou desde o quadro anterior. E main.js que gira a
+// direcao de andar pelo angulo da camera antes de entregar para o jogo.
 
 import { entradaNula } from './jogo.js';
 
-export function criarEntrada(palco) {
+export function criarEntrada(palco, tela) {
   const teclas = new Set();
-  const pulsos = { pausa: false, mapa: false, diario: false };
+  const pulsos = { pausa: false, mapa: false, diario: false, loja: false };
   const toque = { x: 0, y: 0, atacar: false, interagir: false, beber: false, correr: false };
+  const visao = { dx: 0, dy: 0, zoom: 0 };
+  let arrastando = false;
 
   window.addEventListener('keydown', (ev) => {
     if (ev.repeat) return;
@@ -14,6 +21,7 @@ export function criarEntrada(palco) {
     if (ev.code === 'KeyP' || ev.code === 'Escape') pulsos.pausa = true;
     if (ev.code === 'KeyM') pulsos.mapa = true;
     if (ev.code === 'KeyJ') pulsos.diario = true;
+    if (ev.code === 'KeyL') pulsos.loja = true;
     if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(ev.code)) {
       ev.preventDefault();
     }
@@ -54,6 +62,52 @@ export function criarEntrada(palco) {
     area.addEventListener('touchcancel', soltar, { passive: false });
   }
 
+  // Mira: no computador e o mouse (com trava de ponteiro quando o navegador
+  // deixa, e arrasto quando nao deixa); no celular e o polegar direito.
+  if (tela) {
+    tela.addEventListener('mousedown', (ev) => {
+      if (ev.button !== 0) return;
+      arrastando = true;
+      if (!document.pointerLockElement && tela.requestPointerLock) {
+        try { tela.requestPointerLock(); } catch { /* sem trava de ponteiro */ }
+      }
+    });
+    window.addEventListener('mouseup', () => { arrastando = false; });
+    window.addEventListener('mousemove', (ev) => {
+      if (!arrastando && document.pointerLockElement !== tela) return;
+      visao.dx += ev.movementX || 0;
+      visao.dy += ev.movementY || 0;
+    });
+    tela.addEventListener('wheel', (ev) => {
+      visao.zoom += ev.deltaY;
+      ev.preventDefault();
+    }, { passive: false });
+    tela.addEventListener('contextmenu', ev => ev.preventDefault());
+  }
+
+  const areaDeMira = palco.querySelector('#olhar');
+  if (areaDeMira) {
+    let ultimo = null;
+    const comecar = (ev) => {
+      const t = ev.changedTouches[0];
+      ultimo = { x: t.clientX, y: t.clientY };
+      ev.preventDefault();
+    };
+    const mover = (ev) => {
+      if (!ultimo) return;
+      const t = ev.changedTouches[0];
+      visao.dx += t.clientX - ultimo.x;
+      visao.dy += t.clientY - ultimo.y;
+      ultimo = { x: t.clientX, y: t.clientY };
+      ev.preventDefault();
+    };
+    const soltar = (ev) => { ultimo = null; ev.preventDefault(); };
+    areaDeMira.addEventListener('touchstart', comecar, { passive: false });
+    areaDeMira.addEventListener('touchmove', mover, { passive: false });
+    areaDeMira.addEventListener('touchend', soltar, { passive: false });
+    areaDeMira.addEventListener('touchcancel', soltar, { passive: false });
+  }
+
   for (const botao of palco.querySelectorAll('[data-acao]')) {
     const acao = botao.dataset.acao;
     const apertar = (ev) => {
@@ -91,5 +145,19 @@ export function criarEntrada(palco) {
     return valor;
   }
 
-  return { ler, consumir, limpar: () => teclas.clear() };
+  // Consome a mira acumulada desde o quadro anterior.
+  function lerVisao() {
+    const saida = { dx: visao.dx, dy: visao.dy, zoom: visao.zoom };
+    visao.dx = 0;
+    visao.dy = 0;
+    visao.zoom = 0;
+    return saida;
+  }
+
+  return {
+    ler,
+    lerVisao,
+    consumir,
+    limpar: () => { teclas.clear(); arrastando = false; },
+  };
 }

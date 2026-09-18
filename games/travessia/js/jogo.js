@@ -28,13 +28,20 @@ export const ARMAS = {
 };
 
 export const BICHOS = {
+  // O cangaceiro nao desiste: ele e alvo de missao e cobra pedagio onde esta,
+  // inclusive dentro de vila. Quem foge dele foge andando — ele e mais lento.
   cangaceiro: {
     nome: 'CANGACEIRO', vida: 46, dano: 9, cadencia: 1.1,
-    velocidade: 2.9, alcance: 1.3, percepcao: 14, cor: '#8a5a3a',
+    velocidade: 2.9, alcance: 1.3, percepcao: 14, desiste: false, cor: '#8a5a3a',
   },
+  // A onca era 16 de dano a cada 1,3 s (12,3 por segundo) e corria a 4,4: o
+  // jogador morria em 8,1 s e nem andando escapava. Agora sao 7,5 por segundo
+  // — 13,3 s de sobrevida — e 4,0 de velocidade: andar (3,4) ainda nao foge,
+  // correr (5,6) foge. E bicho do mato: perde o jogador de vista e nao entra
+  // em vila.
   onca: {
-    nome: 'ONÇA', vida: 70, dano: 16, cadencia: 1.3,
-    velocidade: 4.4, alcance: 1.4, percepcao: 17, cor: '#c8923a',
+    nome: 'ONÇA', vida: 70, dano: 12, cadencia: 1.6,
+    velocidade: 4.0, alcance: 1.4, percepcao: 17, desiste: true, cor: '#c8923a',
   },
 };
 
@@ -56,6 +63,7 @@ export function criarJogo(semente, opcoes = {}) {
     inventario: {},
     recarga: 0,
     dor: 0,
+    invulneravel: 0,
     andou: 0,
   };
 
@@ -78,6 +86,7 @@ export function criarJogo(semente, opcoes = {}) {
   jogo.concluir = (id) => concluir(jogo, id);
   jogo.aceitar = (id) => aceitar(jogo, id);
   jogo.soltarInimigo = (tipo, x, y) => soltarInimigo(jogo, tipo, x, y);
+  jogo.comprar = (id) => comprar(jogo, id);
   abrirDisponiveis(jogo);
   return jogo;
 }
@@ -94,6 +103,7 @@ export function passo(jogo, entrada, dt = DT) {
   const j = jogo.jogador;
   j.recarga = Math.max(0, j.recarga - dt);
   j.dor = Math.max(0, j.dor - dt * 2);
+  j.invulneravel = Math.max(0, j.invulneravel - dt);
 
   andar(jogo, entrada, dt);
   gastarSede(jogo, entrada, dt);
@@ -198,30 +208,106 @@ function beber(jogo) {
   jogo.eventos.push({ tipo: 'bebeu' });
 }
 
+// ------------------------------------------------------------------- loja
+//
+// As moedas so viravam placar: o HUD anunciava mil reis em destaque e nao
+// havia o que comprar. Os precos saem da propria tabela de recompensas — a
+// linha principal paga 156 mil reis e as missoes de lado outros 87.
+
+export const LOJA = [
+  { id: 'rapadura', nome: 'RAPADURA', preco: 8, texto: 'volta 35 de vida na hora' },
+  { id: 'cantil', nome: 'CANTIL GRANDE', preco: 30, texto: 'mais 40 de água no cinto' },
+  { id: 'facao', nome: 'FACÃO', preco: 45, texto: 'dano 20, alcance de braço e meio' },
+  { id: 'rifle', nome: 'RIFLE', preco: 70, texto: 'dano 34, acerta a sete passos' },
+];
+
+export function vendedorPerto(jogo) {
+  const j = jogo.jogador;
+  let melhor = null;
+  for (const vila of jogo.mundo.vilas) {
+    for (const npc of vila.npcs) {
+      if (npc.papel !== 'vendedor') continue;
+      const d = Math.hypot(npc.x - j.x, npc.y - j.y);
+      if (d > CONFIG.alcanceFala) continue;
+      if (!melhor || d < melhor.d) melhor = { npc, d };
+    }
+  }
+  return melhor ? melhor.npc : null;
+}
+
+function comprar(jogo, id) {
+  const item = LOJA.find(i => i.id === id);
+  if (!item) return { ok: false, motivo: 'nao-vende' };
+  const vendedor = vendedorPerto(jogo);
+  if (!vendedor) return { ok: false, motivo: 'sem-vendedor' };
+  const j = jogo.jogador;
+  if (ARMAS[id] && j.armas[id]) return { ok: false, motivo: 'ja-tem', item };
+  if (id === 'cantil' && j.sedeMaxima >= 200) return { ok: false, motivo: 'ja-tem', item };
+  if (id === 'rapadura' && j.vida >= CONFIG.vidaMaxima) return { ok: false, motivo: 'ja-tem', item };
+  if (j.moedas < item.preco) return { ok: false, motivo: 'sem-dinheiro', item };
+
+  j.moedas -= item.preco;
+  if (ARMAS[id]) {
+    j.armas[id] = true;
+    j.arma = id;
+  } else if (id === 'cantil') {
+    j.sedeMaxima = Math.min(200, j.sedeMaxima + 40);
+    j.sede = j.sedeMaxima;
+  } else {
+    j.vida = Math.min(CONFIG.vidaMaxima, j.vida + 35);
+  }
+  return { ok: true, item, vendedor };
+}
+
 // --------------------------------------------------------------- combate
+
+// Arco curto: o golpe pega o bicho mais perto inteiro e, se houver um segundo
+// na mesma direcao, metade nele. Com um alvo so por golpe, dois bichos em cima
+// significavam apanhar dos dois enquanto se bate em um.
+const ARCO_DO_GOLPE = Math.PI / 3;
 
 function atacar(jogo) {
   const j = jogo.jogador;
   if (j.recarga > 0) return;
   const arma = ARMAS[j.arma] || ARMAS.maos;
   j.recarga = arma.cadencia;
-  jogo.eventos.push({ tipo: 'golpe', arma: j.arma });
 
-  let alvo = null;
+  const naMira = [];
   for (const bicho of jogo.inimigos) {
     if (bicho.vida <= 0) continue;
     const d = Math.hypot(bicho.x - j.x, bicho.y - j.y);
     if (d > arma.alcance + 0.4) continue;
-    if (!alvo || d < alvo.d) alvo = { bicho, d };
+    naMira.push({ bicho, d });
   }
-  if (!alvo) return;
-  alvo.bicho.vida -= arma.dano;
-  alvo.bicho.irritado = true;
-  jogo.eventos.push({ tipo: 'acerto', x: alvo.bicho.x, y: alvo.bicho.y, tipo_bicho: alvo.bicho.tipo });
-  if (alvo.bicho.vida <= 0) {
-    jogo.abatidos++;
-    jogo.eventos.push({ tipo: 'abate', tipo_bicho: alvo.bicho.tipo, x: alvo.bicho.x, y: alvo.bicho.y });
-    contarAbate(jogo, alvo.bicho.tipo);
+  naMira.sort((a, b) => a.d - b.d);
+  // O evento diz se o golpe pegou alguma coisa: sem isso o golpe no vazio
+  // saia com o mesmo som e a mesma resposta do golpe que acerta.
+  jogo.eventos.push({ tipo: 'golpe', arma: j.arma, acertou: naMira.length > 0 });
+  if (!naMira.length) return;
+
+  const alvo = naMira[0].bicho;
+  const direcao = Math.atan2(alvo.y - j.y, alvo.x - j.x);
+  const atingidos = [{ bicho: alvo, dano: arma.dano }];
+  for (const { bicho } of naMira.slice(1)) {
+    const bruto = Math.atan2(bicho.y - j.y, bicho.x - j.x) - direcao;
+    const desvio = Math.abs(Math.atan2(Math.sin(bruto), Math.cos(bruto)));
+    if (desvio > ARCO_DO_GOLPE) continue;
+    atingidos.push({ bicho, dano: arma.dano * 0.5 });
+    break;
+  }
+
+  for (const { bicho, dano } of atingidos) {
+    bicho.vida -= dano;
+    bicho.irritado = true;
+    bicho.piscar = 0.2;
+    jogo.eventos.push({
+      tipo: 'acerto', x: bicho.x, y: bicho.y, tipo_bicho: bicho.tipo, dano,
+    });
+    if (bicho.vida <= 0) {
+      jogo.abatidos++;
+      jogo.eventos.push({ tipo: 'abate', tipo_bicho: bicho.tipo, x: bicho.x, y: bicho.y });
+      contarAbate(jogo, bicho.tipo);
+    }
   }
 }
 
@@ -261,22 +347,44 @@ function cuidarDosBichos(jogo, dt) {
     }
   }
 
+  // Vila e abrigo e quarenta passos e o fim da perseguicao — para quem desiste.
+  // E o que faz correr ser fuga de verdade em vez de adiar a mordida.
+  const emVila = jogo.mundo.vilas.some(v =>
+    Math.hypot(v.x + 0.5 - j.x, v.y + 0.5 - j.y) < CONFIG.raioDeVila);
+
   for (const bicho of jogo.inimigos) {
     if (bicho.vida <= 0) continue;
     const modelo = BICHOS[bicho.tipo];
     bicho.recarga = Math.max(0, bicho.recarga - dt);
+    bicho.piscar = Math.max(0, (bicho.piscar || 0) - dt);
     const dx = j.x - bicho.x;
     const dy = j.y - bicho.y;
     const d = Math.hypot(dx, dy) || 1;
-    if (d < modelo.percepcao) bicho.irritado = true;
+    if (modelo.desiste && (d > CONFIG.desistencia || emVila)) {
+      if (bicho.irritado) jogo.eventos.push({ tipo: 'desistiu', tipo_bicho: bicho.tipo });
+      bicho.irritado = false;
+      continue;
+    }
+    if (d < modelo.percepcao && !bicho.irritado) {
+      bicho.irritado = true;
+      jogo.eventos.push({
+        tipo: 'percebeu', tipo_bicho: bicho.tipo, x: bicho.x, y: bicho.y,
+      });
+    }
     if (!bicho.irritado) continue;
     bicho.ang = Math.atan2(dy, dx);
     if (d <= modelo.alcance) {
       if (bicho.recarga <= 0) {
         bicho.recarga = modelo.cadencia;
-        j.vida -= modelo.dano;
-        j.dor = 1;
-        jogo.eventos.push({ tipo: 'dano', dano: modelo.dano, de: bicho.tipo });
+        if (j.invulneravel <= 0) {
+          j.vida -= modelo.dano;
+          j.dor = 1;
+          j.invulneravel = CONFIG.invulneravel;
+          jogo.eventos.push({
+            tipo: 'dano', dano: modelo.dano, de: bicho.tipo,
+            angulo: Math.atan2(bicho.y - j.y, bicho.x - j.x),
+          });
+        }
       }
       continue;
     }

@@ -15,10 +15,19 @@ export const CONFIG = {
   sedeMaxima: 100,
   sedePorSegundo: 0.62,
   sedeAndando: 0.3,
-  sedeCorrendo: 0.78,
+  // Correr custava 0.78/s: fugir de onca matava de sede antes de a onca
+  // alcancar. A 0.50 a fuga continua cara e deixa de ser suicidio.
+  sedeCorrendo: 0.50,
   sedeDeCalor: 0.55,
   danoDeSede: 1.4,
   cura: 0.9,
+
+  // Meio segundo de carencia depois de levar pancada. Sem isso dois bichos
+  // encaixavam golpe em sequencia e o jogador morria sem janela de reacao.
+  invulneravel: 0.5,
+  // O bicho desiste alem disto, ou quando o jogador entra em vila.
+  desistencia: 40,
+  raioDeVila: 8,
 
   velocidade: 3.4,
   velocidadeCorrendo: 5.6,

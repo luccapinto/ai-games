@@ -9,13 +9,14 @@
 </head>
 <body>
 <div id="palco">
-  <canvas id="tela" width="960" height="600" aria-label="TRAVESSIA, mundo aberto visto de cima"></canvas>
+  <canvas id="tela" width="960" height="600" aria-label="TRAVESSIA, sertão em três dimensões"></canvas>
 
   <div id="hud" aria-hidden="true">
     <div class="bloco medidores">
       <div class="medida"><span>VIDA</span><div class="barra"><i id="hud-vida"></i></div></div>
       <div class="medida"><span>CANTIL</span><div class="barra"><i id="hud-sede"></i></div></div>
       <div class="relogio"><b id="hud-hora">06:30</b><span id="hud-agua">água a 3 passos</span></div>
+      <div class="relogio"><b id="hud-fps">60 fps</b><span id="hud-lugar"></span></div>
     </div>
 
     <div class="bloco recado" id="hud-missao"></div>
@@ -24,9 +25,11 @@
       <div class="linha-bolsa"><span>ARMA</span><b id="hud-arma">FACA</b></div>
       <div class="linha-bolsa"><span>MIL RÉIS</span><b id="hud-moedas">12</b></div>
       <ul id="hud-bolsa"></ul>
+      <div id="hud-loja" class="dica-loja oculto">bodega aberta — <kbd>L</kbd></div>
     </div>
 
     <canvas id="mapa" width="256" height="256"></canvas>
+    <div id="perigo" aria-hidden="true"></div>
     <div id="aviso" class="oculto"></div>
     <div id="recado" class="oculto"></div>
   </div>
@@ -39,11 +42,14 @@
 
     <div class="colunas">
       <table class="controles">
-        <tr><th>andar</th><td><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> ou setas</td></tr>
+        <tr><th>andar</th><td><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> — relativo à câmera</td></tr>
+        <tr><th>olhar</th><td>mouse (arraste ou clique para travar)</td></tr>
+        <tr><th>aproximar</th><td>roda do mouse</td></tr>
         <tr><th>correr</th><td><kbd>shift</kbd> — gasta mais água</td></tr>
         <tr><th>golpear</th><td><kbd>espaço</kbd></td></tr>
         <tr><th>conversar</th><td><kbd>E</kbd></td></tr>
         <tr><th>beber</th><td><kbd>Q</kbd> — perto de água</td></tr>
+        <tr><th>bodega</th><td><kbd>L</kbd> — perto de quem vende</td></tr>
         <tr><th>diário</th><td><kbd>J</kbd></td></tr>
         <tr><th>mapa grande</th><td><kbd>M</kbd></td></tr>
         <tr><th>pausar</th><td><kbd>P</kbd> ou <kbd>esc</kbd></td></tr>
@@ -78,6 +84,14 @@
     <button id="diario-voltar" class="botao">FECHAR</button>
   </section>
 
+  <section id="loja" class="cortina oculto">
+    <h2>BODEGA</h2>
+    <p class="linha" id="loja-vendedor"></p>
+    <ul id="loja-lista" class="loja"></ul>
+    <p class="rodape" id="loja-recado"></p>
+    <button id="loja-voltar" class="botao">FECHAR</button>
+  </section>
+
   <section id="fim" class="cortina oculto">
     <h2 id="fim-titulo">A ÁGUA DESCEU</h2>
     <p class="linha" id="fim-resumo"></p>
@@ -87,10 +101,12 @@
 
   <div id="toque" aria-hidden="true">
     <div id="manche"></div>
+    <div id="olhar"></div>
     <button class="acao" data-acao="atacar">GOLPE</button>
     <button class="acao" data-acao="interagir">FALAR</button>
     <button class="acao" data-acao="beber">BEBER</button>
     <button class="acao" data-acao="diario">DIÁRIO</button>
+    <button class="acao" data-acao="loja">BODEGA</button>
   </div>
 </div>
 <script type="module" src="js/main.js"></script>

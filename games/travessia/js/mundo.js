@@ -578,11 +578,17 @@ class Monte {
 // Devolve de onde se BEBE, e nao onde esta a agua: a celula de agua nao e
 // andavel, e pedir rota para dentro do rio devolvia rota nenhuma. O robo ficava
 // parado na beira do nada, com zero goles, ate morrer de sede.
+//
+// E devolve so margem que esta na regiao andavel de quem joga. A margem do
+// outro lado da serra e mais perto em linha reta e nao tem rota: quem pedisse
+// caminho para ela recebia nulo depois de o A* varrer a regiao inteira, e
+// ficava parado olhando para agua que nunca ia alcancar.
 export function aguaMaisProxima(mundo, x, y) {
   const cx = Math.floor(x);
   const cy = Math.floor(y);
   let melhor = null;
   for (const vila of mundo.vilas) {
+    if (!daParaChegar(mundo, vila.agua.x, vila.agua.y)) continue;
     const d = Math.hypot(vila.agua.x - cx, vila.agua.y - cy);
     if (!melhor || d < melhor.d) melhor = { d, x: vila.agua.x, y: vila.agua.y, tipo: 'cacimba' };
   }
@@ -594,6 +600,7 @@ export function aguaMaisProxima(mundo, x, y) {
         if (tile(mundo, cx + dx, cy + dy) !== TERRENOS.agua) continue;
         const margem = margemDe(mundo, cx + dx, cy + dy);
         if (!margem) continue;
+        if (!daParaChegar(mundo, margem.x, margem.y)) continue;
         const d = Math.hypot(margem.x - cx, margem.y - cy);
         if (!achou || d < achou.d) achou = { d, x: margem.x, y: margem.y, tipo: 'rio' };
       }

@@ -2,14 +2,14 @@
   "esquema": 1,
   "slug": "travessia",
   "titulo": "TRAVESSIA",
-  "subtitulo": "Mundo aberto no sertão, gerado por semente e provado em trinta deles",
+  "subtitulo": "Mundo aberto no sertão em 3D, gerado por semente e provado em trinta deles",
   "genero": "Mundo aberto",
   "plataforma": "Navegador, desktop e celular",
   "estado": "jogavel",
   "criado": "2026-09-17",
   "licenca": "MIT",
   "capa": "capa.jpg",
-  "resumo": "A adutora velha secou e cinco vilas estão bebendo do fundo da cacimba. O sertão é gerado por semente — relevo, rios, biomas, vilas, estradas e gente — e a sede é que manda no caminho: ao meio-dia o cantil dura um minuto e meio andando, de madrugada quase o dobro. Sete missões em grafo de dependência, treze no total.",
+  "resumo": "A adutora velha secou e cinco vilas estão bebendo do fundo da cacimba. O sertão é gerado por semente — relevo, rios, biomas, vilas, estradas e gente — e desenhado em WebGL2 escrito à mão, sem um único arquivo de textura, modelo, fonte ou som. A sede é que manda no caminho: o sol anda o arco do dia em oito minutos, a sombra gira com ele, e ao meio-dia o cantil dura um minuto e meio andando contra quase o dobro de madrugada. Sete missões em grafo de dependência, treze no total.",
   "autores": [
     {
       "nome": "Lucca Pinto",
@@ -22,7 +22,7 @@
       "modelo": "claude-opus-5",
       "provider": "Anthropic",
       "agente": "Oh My Pi",
-      "papel": "o jogo inteiro: gerador de mundo, grafo de missões, sede e combate, render e o arranjo de provas",
+      "papel": "o jogo inteiro: gerador de mundo, grafo de missões, sede e combate, o render 3D em WebGL2 e o arranjo de provas",
       "chamadas_api": 74,
       "tokens": {
         "entrada": 74000,
@@ -37,25 +37,28 @@
     "confianca": "estimado",
     "metodo": "diferença do contador de tokens da sessão do agente entre o início e o fim deste jogo; custo pela mesma taxa cega de US$ 15 por milhão de tokens novos usada nos outros jogos claude-opus-5 deste repositório",
     "medido_em": "2026-09-17",
-    "nota": "O total (103 mil tokens novos) é a diferença do contador da sessão e é a parte confiável; a divisão entre entrada e saída é estimativa minha. Saiu mais barato que o jogo de corrida porque o padrão já estava estabelecido: gerar, provar em trinta sementes, consertar o que a prova acha. O cache está zerado porque não foi medido, não porque não houve."
+    "nota": "O total (103 mil tokens novos) é a diferença do contador da sessão na primeira construção e é a parte confiável; a divisão entre entrada e saída é estimativa minha. A segunda passada — o render 3D em WebGL2, o equilíbrio do combate e a bodega — não foi medida, e os números acima cobrem só a primeira. O cache está zerado porque não foi medido, não porque não houve."
   },
   "stack": [
     "JavaScript (ES modules nativos)",
-    "Canvas 2D",
+    "WebGL2 escrito à mão, sem biblioteca",
+    "Canvas 2D (só o minimapa e o atlas de letra)",
     "Web Áudio API"
   ],
   "tamanho": {
-    "linhas_proprias": 3299,
-    "mb": 0.22,
-    "modulos_js": 9
+    "linhas_proprias": 6960,
+    "mb": 0.42,
+    "modulos_js": 19
   },
   "destaques": [
+    "O sertão inteiro em WebGL2 escrito à mão: nenhum arquivo de textura, modelo, fonte ou som. Mandacaru, casa de taipa, onça, letra e rugido saem de código, e o relevo que o gerador já calculava vira malha facetada com nível de detalhe por pedaço",
+    "A luz é a regra do jogo ficando visível: o sol anda o arco do dia em oito minutos e a sombra de tudo gira com ele; ao meio-dia o horizonte ferve, que é justo a hora em que o cantil dura um minuto e meio, e de madrugada há névoa baixa e lampião",
     "Mundo gerado por semente e provado em trinta sementes de uma vez: vila em chão andável, vila alcançável a pé de qualquer outra, estrada inteira caminhável e os cinco terrenos em proporção de sertão — a primeira semente sempre parece boa, a décima é que tem a vila cercada de rio",
     "A garantia de projeto que sustenta o jogo: todo alvo de missão, todo recurso coletável e todo ponto de estrada tem água a menos de meio cantil de distância, medida num campo de distância da água calculado por busca em largura",
-    "Um robô atravessa a linha principal inteira em três sementes diferentes usando a mesma caminhada, a mesma sede, o mesmo combate e as mesmas missões do navegador — hoje termina em 5 a 7 minutos com vida cheia",
+    "Um robô atravessa a linha principal inteira em três sementes diferentes usando a mesma caminhada, a mesma sede, o mesmo combate e as mesmas missões do navegador — hoje termina em 5 a 6 minutos com vida cheia",
+    "A onça virou decisão: ficar e bater vence com 79% de vida, recuar andando mata, correr e voltar vence. As três lutas são simuladas por lutas.mjs, com o resultado que cada uma tem de dar",
     "As missões são um grafo de dependência, não uma lista: dá para provar que não há ciclo, que todo alvo existe naquele mundo e que dá para chegar nele vivo",
-    "O corte entre água, caatinga e serra é um quantil do próprio relevo de cada semente, e não um número fixo: com corte fixo a proporção de água ia de 0,5% a 22% entre sementes",
-    "As provas acharam sete defeitos que jogar uma semente boa não acharia, incluindo pedir rota para dentro do rio (a célula de água não é andável, então o robô ficava parado na margem até morrer de sede)"
+    "As provas acharam oito defeitos que jogar uma semente boa não acharia, incluindo margem de rio do outro lado da serra: mais perto em linha reta e sem rota, com o robô parado pedindo um A* impossível a 144 ms por quadro"
   ],
   "arquivos_chave": [
     {
@@ -75,8 +78,20 @@
       "papel": "O robô que atravessa o sertão — a prova principal do jogo"
     },
     {
+      "caminho": "js/render.js",
+      "papel": "O render 3D: sombra do sol, cena, pós-processo, gente, bicho e partícula"
+    },
+    {
+      "caminho": "js/gl/ceu.js",
+      "papel": "A luz da hora: direção do sol, cor do céu, névoa e o céu com serra em camadas"
+    },
+    {
       "caminho": "provas.mjs",
       "papel": "As 21 provas, rodadas em trinta mundos, e o relatório da travessia"
+    },
+    {
+      "caminho": "lutas.mjs",
+      "papel": "As três lutas de referência contra a onça, com o resultado que cada uma tem de dar"
     }
   ]
 }

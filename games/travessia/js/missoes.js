@@ -137,7 +137,9 @@ export const MISSOES = [
     quantidade: 1,
     texto: 'Uma onça pintada fez ponto perto da agua. Enquanto ela estiver lá, '
       + 'ninguem enche cantil de noite.',
-    recompensa: { moedas: 20, item: 'rifle' },
+    // Sem o rifle: premiar quem mata onca com a arma de matar onca era
+    // circular. Quem quiser rifle compra na bodega, com moeda de missao.
+    recompensa: { moedas: 34 },
   },
   {
     id: 'a-carta-atrasada',
