@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ai-games — jogos feitos com IA</title>
-<meta name="description" content="Vitrine de jogos feitos com IA: cada um roda no navegador, com o modelo que escreveu e quanto custou ao lado.">
+<title>GUARDRAIL — ai-games</title>
+<meta name="description" content="Você defende o pipeline e as torres são os modelos: o preço por milhão de tokens vira o custo de compra, o benchmark vira o dano, os tokens por segundo viram a ">
 <style>
   :root {
     --bg: #05070d; --painel: #0a1018; --linha: #1b2c38; --ink: #d8e6e4;
@@ -211,139 +211,41 @@
 <body>
 <div class="envelope">
   <header class="topo">
-    <div class="marca">AI-GAMES</div>
-    <h1>O que a IA está construindo</h1>
-    <p class="sub">Repositório coletivo de jogos feitos conversando com modelos. Todos abrem no
-      navegador, sem instalar nada. Ao lado de cada um está quem escreveu e quanto custou —
-      porque um jogo bom por dez dólares e um jogo bom por um dólar não são a mesma coisa.</p>
-    <div class="numeros"><div><span>JOGOS</span><strong>10</strong></div><div><span>MODELOS</span><strong>2</strong></div><div><span>CUSTO DE API</span><strong>US$ 24,62</strong></div></div>
-    <nav class="navegacao">
-      <a class="destaque" href="https://github.com/luccapinto/ai-games/blob/main/CONTRIBUTING.md">MANDAR O SEU JOGO</a>
-      <a href="benchmark.html">VER O BENCHMARK</a>
-      <a href="dados/benchmark.csv">BAIXAR OS DADOS</a>
-      <a href="https://github.com/luccapinto/ai-games">CÓDIGO</a>
-    </nav>
+    <div class="marca"><a href="../index.html">AI-GAMES</a> / DEFESA DE TORRE</div>
+    <h1>GUARDRAIL</h1>
+    <p class="sub">Defesa de torre onde as torres são modelos e o cluster tem VRAM contada</p>
+    <p class="autoria">por <a href="https://github.com/luccapinto">Lucca Pinto</a> · 2026-09-17</p>
   </header>
 
-  <div class="grade">
-      <article class="cartao">
-        <div class="midia"><img src="games/travessia/capa.jpg" alt="captura de TRAVESSIA" loading="lazy"></div>
-        <div class="cartao-corpo">
-          <h3><a href="jogos/travessia.html">TRAVESSIA</a></h3>
-          <span class="genero">Mundo aberto</span>
-          <p class="autoria">por <a href="https://github.com/luccapinto">Lucca Pinto</a></p>
-          <div class="chips"><span class="chip modelo">claude-opus-5</span><span class="chip custo">US$ 1,54</span></div>
-          <div class="empurra"></div>
-          <a class="jogar" href="games/travessia/">JOGAR</a>
-        </div>
-      </article>
-      <article class="cartao">
-        <div class="midia"><img src="games/subsolo/capa.jpg" alt="captura de SUBSOLO" loading="lazy"></div>
-        <div class="cartao-corpo">
-          <h3><a href="jogos/subsolo.html">SUBSOLO</a></h3>
-          <span class="genero">FPS de rodadas</span>
-          <p class="autoria">por <a href="https://github.com/luccapinto">Lucca Pinto</a></p>
-          <div class="chips"><span class="chip modelo">claude-opus-5</span><span class="chip custo">US$ 8,30</span></div>
-          <div class="empurra"></div>
-          <a class="jogar" href="games/subsolo/">JOGAR</a>
-        </div>
-      </article>
-      <article class="cartao">
-        <div class="midia"><img src="games/guardrail/capa.jpg" alt="captura de GUARDRAIL" loading="lazy"></div>
-        <div class="cartao-corpo">
-          <h3><a href="jogos/guardrail.html">GUARDRAIL</a></h3>
-          <span class="genero">Defesa de torre</span>
-          <p class="autoria">por <a href="https://github.com/luccapinto">Lucca Pinto</a></p>
-          <div class="chips"><span class="chip modelo">claude-opus-5</span><span class="chip custo">US$ 2,48</span></div>
-          <div class="empurra"></div>
-          <a class="jogar" href="games/guardrail/">JOGAR</a>
-        </div>
-      </article>
-      <article class="cartao">
-        <div class="midia"><img src="games/curva/capa.jpg" alt="captura de CURVA" loading="lazy"></div>
-        <div class="cartao-corpo">
-          <h3><a href="jogos/curva.html">CURVA</a></h3>
-          <span class="genero">Kart 3D</span>
-          <p class="autoria">por <a href="https://github.com/luccapinto">Lucca Pinto</a></p>
-          <div class="chips"><span class="chip modelo">claude-opus-5</span><span class="chip custo">US$ 5,31</span></div>
-          <div class="empurra"></div>
-          <a class="jogar" href="games/curva/">JOGAR</a>
-        </div>
-      </article>
-      <article class="cartao">
-        <div class="midia"><img src="games/seiva/capa.jpg" alt="captura de SEIVA" loading="lazy"></div>
-        <div class="cartao-corpo">
-          <h3><a href="jogos/seiva.html">SEIVA</a></h3>
-          <span class="genero">Defesa de torre</span>
-          <p class="autoria">por <a href="https://github.com/luccapinto">Lucca Pinto</a></p>
-          <div class="chips"><span class="chip modelo">claude-opus-5</span><span class="chip custo">US$ 1,05</span></div>
-          <div class="empurra"></div>
-          <a class="jogar" href="games/seiva/">JOGAR</a>
-        </div>
-      </article>
-      <article class="cartao">
-        <div class="midia"><img src="games/processo/capa.jpg" alt="captura de PROCESSO" loading="lazy"></div>
-        <div class="cartao-corpo">
-          <h3><a href="jogos/processo.html">PROCESSO</a></h3>
-          <span class="genero">Cartas com construção de baralho</span>
-          <p class="autoria">por <a href="https://github.com/luccapinto">Lucca Pinto</a></p>
-          <div class="chips"><span class="chip modelo">claude-opus-5</span><span class="chip custo">US$ 0,66</span></div>
-          <div class="empurra"></div>
-          <a class="jogar" href="games/processo/">JOGAR</a>
-        </div>
-      </article>
-      <article class="cartao">
-        <div class="midia"><img src="games/cripta/capa.jpg" alt="captura de CRIPTA" loading="lazy"></div>
-        <div class="cartao-corpo">
-          <h3><a href="jogos/cripta.html">CRIPTA</a></h3>
-          <span class="genero">Puzzle</span>
-          <p class="autoria">por <a href="https://github.com/luccapinto">Lucca Pinto</a></p>
-          <div class="chips"><span class="chip modelo">claude-opus-5</span><span class="chip custo">US$ 1,30</span></div>
-          <div class="empurra"></div>
-          <a class="jogar" href="games/cripta/">JOGAR</a>
-        </div>
-      </article>
-      <article class="cartao">
-        <div class="midia"><img src="games/ceia/capa.jpg" alt="captura de A CEIA" loading="lazy"></div>
-        <div class="cartao-corpo">
-          <h3><a href="jogos/ceia.html">A CEIA</a></h3>
-          <span class="genero">Dedução lógica</span>
-          <p class="autoria">por <a href="https://github.com/luccapinto">Lucca Pinto</a></p>
-          <div class="chips"><span class="chip modelo">claude-opus-5</span><span class="chip custo">US$ 0,47</span></div>
-          <div class="empurra"></div>
-          <a class="jogar" href="games/ceia/">JOGAR</a>
-        </div>
-      </article>
-      <article class="cartao">
-        <div class="midia"><img src="games/antena/capa.jpg" alt="captura de ANTENA" loading="lazy"></div>
-        <div class="cartao-corpo">
-          <h3><a href="jogos/antena.html">ANTENA</a></h3>
-          <span class="genero">Plataforma de precisão</span>
-          <p class="autoria">por <a href="https://github.com/luccapinto">Lucca Pinto</a></p>
-          <div class="chips"><span class="chip modelo">claude-opus-5</span><span class="chip custo">US$ 2,48</span></div>
-          <div class="empurra"></div>
-          <a class="jogar" href="games/antena/">JOGAR</a>
-        </div>
-      </article>
-      <article class="cartao">
-        <div class="midia"><img src="games/attention-is-all-you-kill/capa.jpg" alt="captura de ATTENTION IS ALL YOU KILL" loading="lazy"></div>
-        <div class="cartao-corpo">
-          <h3><a href="jogos/attention-is-all-you-kill.html">ATTENTION IS ALL YOU KILL</a></h3>
-          <span class="genero">FPS roguelike</span>
-          <p class="autoria">por <a href="https://github.com/luccapinto">Lucca Pinto</a></p>
-          <div class="chips"><span class="chip modelo">deepseek-flash</span><span class="chip custo">US$ 1,03</span></div>
-          <div class="empurra"></div>
-          <a class="jogar" href="games/attention-is-all-you-kill/">JOGAR</a>
-        </div>
-      </article>
-      <article class="cartao convite">
-        <h3>O próximo jogo pode ser o seu</h3>
-        <p>Faça um jogo conversando com qualquer modelo, em qualquer ferramenta.
-          Rode <code>python3 tools/novo_jogo.py meu-jogo</code>, preencha o
-          <code>meta.json</code> com o que o modelo gastou e abra um PR.</p>
-        <a class="jogar" href="https://github.com/luccapinto/ai-games/blob/main/CONTRIBUTING.md">MANDAR O MEU</a>
-      </article>
+  <div class="jogo-topo">
+    <div class="midia"><img src="../games/guardrail/capa.jpg" alt="captura de GUARDRAIL" loading="eager"></div>
+    <div class="jogo-acoes">
+      <a class="jogar" href="../games/guardrail/">JOGAR</a>
+      <a class="secundario" href="https://github.com/luccapinto/ai-games/blob/main/games/guardrail/README.md">como foi feito</a>
+      
+    </div>
   </div>
+
+  <div class="colunas">
+    <div>
+      <p class="sub" style="max-width:none">Você defende o pipeline e as torres são os modelos: o preço por milhão de tokens vira o custo de compra, o benchmark vira o dano, os tokens por segundo viram a cadência, a janela de contexto vira o alcance e a taxa de alucinação vira a chance de errar o tiro. Cada modelo come VRAM de um cluster de tamanho fixo — estourar o orçamento deixa todas as suas torres mais lentas, e a pergunta do jogo deixa de ser quanta torre cabe no mapa para ser quantos modelos cabem no cluster. Vinte e três pragas, quarenta ondas, três mapas e um robô que atravessa tudo.</p>
+      <h2 class="secao">O que tem dentro</h2>
+      <ul class="destaques"><li>As torres são modelos e nenhum atributo é inventado: preço por milhão de tokens vira custo, benchmark vira dano, tokens por segundo viram cadência, janela de contexto vira alcance, latência do primeiro token vira tempo de mira e taxa de alucinação vira chance de errar — o PROFUNDO R1 pensa 2,4 segundos antes do primeiro tiro porque é isso que ele faz na vida real</li><li>O orçamento de compute é a mecânica central: cada modelo ocupa VRAM de um cluster de tamanho fixo e estourar o teto deixa todas as torres mais lentas, o que transforma quantizar, servir em batch, fazer offload e rotear MoE em decisões de partida e não em enfeite temático</li><li>Onze torres com dois caminhos de upgrade de três níveis cada, e subir um acima do nível 1 fecha o outro para sempre: o CHAMA 8B vira dano semântico pelo fine-tune ou metralhadora de RUÍDO pelo enxame local, e não dá para ter os dois</li><li>Cinco tipos de dano que se resolvem de formas diferentes, provado par a par: ARMADURA DE VOLUME só cai para área, ESCUDO SEMÂNTICO só para semântico, MODO ANÔNIMO precisa de detecção, GOLPE é burro demais para o modelo sofisticado levar a sério e só o TOKEN cru entra inteiro, e o DEEPFAKE só quebra com RUÍDO adversarial</li><li>Um robô de estratégia deliberadamente simples atravessa as 40 ondas nos três mapas com 11, 13 e 13 de integridade, e foi ele que achou os sete defeitos que jogar uma partida boa não acharia — inclusive dois estados invencíveis: um VIÉS sorteado num tipo de dano que nenhuma torre produzia e um OVERFITTING que decorava os cinco tipos</li><li>A prova que mais rendeu olha da trilha para a laje em vez de olhar da laje para a trilha: a ILHA CENTRAL passava na verificação antiga e mesmo assim tinha 55% da espiral fora do alcance de qualquer torre possível — meio minuto por onda vendo a praga andar sem levar um tiro</li></ul>
+      <h2 class="secao">Por onde começar a ler</h2>
+      <ul class="arquivos"><li><code>js/dados.js</code><span>Onze torres com caminhos de upgrade, cinco tipos de dano, cinco modos de servir e vinte e três pragas — e a conversão de cada dado real de modelo em atributo de jogo</span></li><li><code>js/jogo.js</code><span>A simulação inteira sem uma linha de DOM: ondas, mira, dano, resistência, orçamento de compute, auras, chefes e economia, em passo fixo de 1/60</span></li><li><code>js/mapas.js</code><span>Os três mapas como cantos ortogonais e retângulos de laje, mais o corredor de voo que o INFERÊNCIA NA BORDA usa</span></li><li><code>js/render.js</code><span>Canvas 2D com fundo pré-renderizado, selos de torre e de praga em cache e nenhum shadowBlur no laço quente</span></li><li><code>js/robo.js</code><span>O robô que joga sozinho as 40 ondas — a prova principal do jogo</span></li><li><code>provas.mjs</code><span>As 61 provas, o relatório das três travessias e a medição de custo por quadro com a tela cheia</span></li></ul>
+    </div>
+    <div>
+      <h2 class="secao" style="margin-top:0">A ficha</h2>
+      <dl class="ficha"><div><dt>Escreveu</dt><dd>claude-opus-5</dd></div><div><dt>Agente</dt><dd>Oh My Pi</dd></div><div><dt>Tokens novos</dt><dd class="destaque">165,0 k</dd></div><div><dt>Tokens de cache</dt><dd>0</dd></div><div><dt>Custo de API</dt><dd class="destaque">US$ 2,48</dd></div><div><dt>Linhas próprias</dt><dd>6.243</dd></div><div><dt>Licença</dt><dd>MIT</dd></div><div><dt>Estado</dt><dd>jogavel</dd></div></dl>
+      <div class="chips"><span class="chip">JavaScript (ES modules nativos)</span><span class="chip">Canvas 2D</span><span class="chip">Web Áudio API</span></div>
+      <p class="nota">O total (165 mil tokens novos) é a diferença do contador da sessão e é a parte confiável; a divisão entre entrada e saída é estimativa minha. Saiu mais caro que o jogo de mundo aberto porque metade do trabalho foi equilíbrio: o robô rodou as 40 ondas dezenas de vezes e cada vez que ele morria era um defeito de projeto para consertar, não um número para subir. O cache está zerado porque não foi medido, não porque não houve.</p>
+    </div>
+  </div>
+
+  <nav class="navegacao" style="margin-top:44px">
+    <a href="../index.html">VOLTAR AO HUB</a>
+    <a href="../benchmark.html">VER O BENCHMARK</a>
+  </nav>
   <script>
   (function () {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { return; }

@@ -9,8 +9,8 @@ registrados ao lado.
 costs. Each game is a self-contained, playable folder that records the model that
 wrote it, the agent that drove it, and the tokens it burned.*
 
-**9 jogos** de **1 pessoa**, 30.921 linhas de código,
-3,5 M tokens novos e US$ 22,14 de API no total.
+**10 jogos** de **1 pessoa**, 37.164 linhas de código,
+3,7 M tokens novos e US$ 24,62 de API no total.
 
 👉 **[Jogar tudo](https://luccapinto.github.io/ai-games/)** · **[Ver o benchmark](https://luccapinto.github.io/ai-games/benchmark.html)** · **[Mandar o seu jogo](CONTRIBUTING.md)**
 
@@ -20,6 +20,7 @@ wrote it, the agent that drove it, and the tokens it burned.*
 | --- | --- | --- | --- | --- | --- | --- |
 | **TRAVESSIA** [`travessia`](games/travessia/README.md) | Mundo aberto | Lucca Pinto | claude-opus-5 | 103,0 k | US$ 1,54 | [jogar](https://luccapinto.github.io/ai-games/games/travessia/) |
 | **SUBSOLO** [`subsolo`](games/subsolo/README.md) | FPS de rodadas | Lucca Pinto | claude-opus-5 | 705,0 k | US$ 8,30 | [jogar](https://luccapinto.github.io/ai-games/games/subsolo/) |
+| **GUARDRAIL** [`guardrail`](games/guardrail/README.md) | Defesa de torre | Lucca Pinto | claude-opus-5 | 165,0 k | US$ 2,48 | [jogar](https://luccapinto.github.io/ai-games/games/guardrail/) |
 | **CURVA** [`curva`](games/curva/README.md) | Kart 3D | Lucca Pinto | claude-opus-5 | 441,0 k | US$ 5,31 | [jogar](https://luccapinto.github.io/ai-games/games/curva/) |
 | **SEIVA** [`seiva`](games/seiva/README.md) | Defesa de torre | Lucca Pinto | claude-opus-5 | 70,0 k | US$ 1,05 | [jogar](https://luccapinto.github.io/ai-games/games/seiva/) |
 | **PROCESSO** [`processo`](games/processo/README.md) | Cartas com construção de baralho | Lucca Pinto | claude-opus-5 | 44,0 k | US$ 0,66 | [jogar](https://luccapinto.github.io/ai-games/games/processo/) |
@@ -32,7 +33,7 @@ wrote it, the agent that drove it, and the tokens it burned.*
 
 | Modelo | Jogos | Tokens novos | Cache | Custo | Linhas |
 | --- | --- | --- | --- | --- | --- |
-| claude-opus-5 | 8 | 1,6 M | 0 | US$ 21,11 | 20.212 |
+| claude-opus-5 | 9 | 1,8 M | 0 | US$ 23,59 | 26.455 |
 | deepseek-flash | 1 | 1,9 M | 159,1 M | US$ 1,03 | 10.709 |
 
 Tokens novos são entrada + saída. Cache aparece em coluna separada de propósito:
@@ -140,6 +141,25 @@ O que tem dentro:
 - **Custo total:** US$ 8,30 (estimado)
 - **Tamanho:** 6.568 linhas de código próprio, 0,4 MB
 - **Pasta:** [`games/subsolo/`](games/subsolo/README.md)
+
+### GUARDRAIL
+
+Você defende o pipeline e as torres são os modelos: o preço por milhão de tokens vira o custo de compra, o benchmark vira o dano, os tokens por segundo viram a cadência, a janela de contexto vira o alcance e a taxa de alucinação vira a chance de errar o tiro. Cada modelo come VRAM de um cluster de tamanho fixo — estourar o orçamento deixa todas as suas torres mais lentas, e a pergunta do jogo deixa de ser quanta torre cabe no mapa para ser quantos modelos cabem no cluster. Vinte e três pragas, quarenta ondas, três mapas e um robô que atravessa tudo.
+
+O que tem dentro:
+
+- As torres são modelos e nenhum atributo é inventado: preço por milhão de tokens vira custo, benchmark vira dano, tokens por segundo viram cadência, janela de contexto vira alcance, latência do primeiro token vira tempo de mira e taxa de alucinação vira chance de errar — o PROFUNDO R1 pensa 2,4 segundos antes do primeiro tiro porque é isso que ele faz na vida real
+- O orçamento de compute é a mecânica central: cada modelo ocupa VRAM de um cluster de tamanho fixo e estourar o teto deixa todas as torres mais lentas, o que transforma quantizar, servir em batch, fazer offload e rotear MoE em decisões de partida e não em enfeite temático
+- Onze torres com dois caminhos de upgrade de três níveis cada, e subir um acima do nível 1 fecha o outro para sempre: o CHAMA 8B vira dano semântico pelo fine-tune ou metralhadora de RUÍDO pelo enxame local, e não dá para ter os dois
+- Cinco tipos de dano que se resolvem de formas diferentes, provado par a par: ARMADURA DE VOLUME só cai para área, ESCUDO SEMÂNTICO só para semântico, MODO ANÔNIMO precisa de detecção, GOLPE é burro demais para o modelo sofisticado levar a sério e só o TOKEN cru entra inteiro, e o DEEPFAKE só quebra com RUÍDO adversarial
+- Um robô de estratégia deliberadamente simples atravessa as 40 ondas nos três mapas com 11, 13 e 13 de integridade, e foi ele que achou os sete defeitos que jogar uma partida boa não acharia — inclusive dois estados invencíveis: um VIÉS sorteado num tipo de dano que nenhuma torre produzia e um OVERFITTING que decorava os cinco tipos
+- A prova que mais rendeu olha da trilha para a laje em vez de olhar da laje para a trilha: a ILHA CENTRAL passava na verificação antiga e mesmo assim tinha 55% da espiral fora do alcance de qualquer torre possível — meio minuto por onda vendo a praga andar sem levar um tiro
+
+- **Quem fez:** Lucca Pinto
+- **Modelo:** claude-opus-5 via Anthropic, dirigido por Oh My Pi — 165,0 k tokens novos, 0 de cache, 96 chamadas, US$ 2,48
+- **Custo total:** US$ 2,48 (estimado)
+- **Tamanho:** 6.243 linhas de código próprio, 0,2 MB
+- **Pasta:** [`games/guardrail/`](games/guardrail/README.md)
 
 ### CURVA
 

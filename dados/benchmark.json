@@ -1,14 +1,14 @@
 {
   "esquema": 1,
   "resumo": {
-    "jogos": 9,
+    "jogos": 10,
     "autores": 1,
     "modelos": 2,
-    "linhas": 30921,
-    "usd": 22.14,
-    "tokens_novos": 3538978,
+    "linhas": 37164,
+    "usd": 24.62,
+    "tokens_novos": 3703978,
     "tokens_cache": 159076224,
-    "chamadas": 1706
+    "chamadas": 1802
   },
   "jogos": [
     {
@@ -108,6 +108,55 @@
         "tem_custo": true
       },
       "url": "games/subsolo/"
+    },
+    {
+      "slug": "guardrail",
+      "titulo": "GUARDRAIL",
+      "genero": "Defesa de torre",
+      "criado": "2026-09-17",
+      "estado": "jogavel",
+      "licenca": "MIT",
+      "autores": [
+        {
+          "nome": "Lucca Pinto",
+          "github": "luccapinto",
+          "site": "https://luccabuilds.com"
+        }
+      ],
+      "ia": [
+        {
+          "modelo": "claude-opus-5",
+          "provider": "Anthropic",
+          "agente": "Oh My Pi",
+          "papel": "o jogo inteiro: os três mapas, os onze modelos com caminhos de upgrade, as vinte e três pragas, o orçamento de compute, o render em canvas, o robô e as 61 provas",
+          "chamadas_api": 96,
+          "tokens": {
+            "entrada": 104000,
+            "saida": 61000,
+            "cache_leitura": 0,
+            "cache_escrita": 0
+          },
+          "usd_estimado": 2.48
+        }
+      ],
+      "medicao": {
+        "metodo": "diferença do contador de tokens da sessão do agente entre o início e o fim deste jogo; custo pela mesma taxa cega de US$ 15 por milhão de tokens novos usada nos outros jogos claude-opus-5 deste repositório",
+        "confianca": "estimado",
+        "medido_em": "2026-09-17",
+        "nota": "O total (165 mil tokens novos) é a diferença do contador da sessão e é a parte confiável; a divisão entre entrada e saída é estimativa minha. Saiu mais caro que o jogo de mundo aberto porque metade do trabalho foi equilíbrio: o robô rodou as 40 ondas dezenas de vezes e cada vez que ele morria era um defeito de projeto para consertar, não um número para subir. O cache está zerado porque não foi medido, não porque não houve."
+      },
+      "totais": {
+        "tokens_entrada": 104000,
+        "tokens_saida": 61000,
+        "tokens_novos": 165000,
+        "tokens_cache": 0,
+        "tokens_totais": 165000,
+        "usd": 2.48,
+        "chamadas_api": 96,
+        "linhas": 6243,
+        "tem_custo": true
+      },
+      "url": "games/guardrail/"
     },
     {
       "slug": "curva",
@@ -461,19 +510,20 @@
         "ceia",
         "cripta",
         "curva",
+        "guardrail",
         "processo",
         "seiva",
         "subsolo",
         "travessia"
       ],
-      "n_jogos": 8,
-      "tokens_novos": 1645000,
+      "n_jogos": 9,
+      "tokens_novos": 1810000,
       "tokens_cache": 0,
-      "chamadas_api": 1050,
-      "usd": 21.11,
-      "linhas": 20212,
-      "tokens_por_linha": 81.39,
-      "linhas_por_dolar": 957.46
+      "chamadas_api": 1146,
+      "usd": 23.59,
+      "linhas": 26455,
+      "tokens_por_linha": 68.42,
+      "linhas_por_dolar": 1121.45
     },
     {
       "nome": "deepseek-flash",
@@ -513,17 +563,18 @@
       "nome": "Oh My Pi",
       "jogos": [
         "curva",
+        "guardrail",
         "subsolo",
         "travessia"
       ],
-      "n_jogos": 3,
-      "tokens_novos": 1249000,
+      "n_jogos": 4,
+      "tokens_novos": 1414000,
       "tokens_cache": 0,
-      "chamadas_api": 914,
-      "usd": 15.15,
-      "linhas": 14777,
-      "tokens_por_linha": 84.52,
-      "linhas_por_dolar": 975.38
+      "chamadas_api": 1010,
+      "usd": 17.63,
+      "linhas": 21020,
+      "tokens_por_linha": 67.27,
+      "linhas_por_dolar": 1192.29
     },
     {
       "nome": "Hermes Agent (Talos)",
@@ -548,19 +599,20 @@
         "ceia",
         "cripta",
         "curva",
+        "guardrail",
         "processo",
         "seiva",
         "subsolo",
         "travessia"
       ],
-      "n_jogos": 8,
-      "tokens_novos": 1645000,
+      "n_jogos": 9,
+      "tokens_novos": 1810000,
       "tokens_cache": 0,
-      "chamadas_api": 1050,
-      "usd": 21.11,
-      "linhas": 20212,
-      "tokens_por_linha": 81.39,
-      "linhas_por_dolar": 957.46
+      "chamadas_api": 1146,
+      "usd": 23.59,
+      "linhas": 26455,
+      "tokens_por_linha": 68.42,
+      "linhas_por_dolar": 1121.45
     },
     {
       "nome": "DeepSeek",
