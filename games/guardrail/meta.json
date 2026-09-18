@@ -46,14 +46,14 @@
     "Web Áudio API"
   ],
   "tamanho": {
-    "linhas_proprias": 6243,
-    "mb": 0.25,
-    "modulos_js": 9
+    "linhas_proprias": 6681,
+    "mb": 0.26,
+    "modulos_js": 10
   },
   "destaques": [
-    "As torres são modelos e nenhum atributo é inventado: preço por milhão de tokens vira custo, benchmark vira dano, tokens por segundo viram cadência, janela de contexto vira alcance, latência do primeiro token vira tempo de mira e taxa de alucinação vira chance de errar — o PROFUNDO R1 pensa 2,4 segundos antes do primeiro tiro porque é isso que ele faz na vida real",
+    "As torres são modelos e nenhum atributo é inventado: preço por milhão de tokens vira custo, benchmark vira dano, tokens por segundo viram cadência, janela de contexto vira alcance, latência do primeiro token vira tempo de mira e taxa de alucinação vira chance de errar — o DeepSeek R1 pensa 2,4 segundos antes do primeiro tiro porque é isso que ele faz na vida real",
     "O orçamento de compute é a mecânica central: cada modelo ocupa VRAM de um cluster de tamanho fixo e estourar o teto deixa todas as torres mais lentas, o que transforma quantizar, servir em batch, fazer offload e rotear MoE em decisões de partida e não em enfeite temático",
-    "Onze torres com dois caminhos de upgrade de três níveis cada, e subir um acima do nível 1 fecha o outro para sempre: o CHAMA 8B vira dano semântico pelo fine-tune ou metralhadora de RUÍDO pelo enxame local, e não dá para ter os dois",
+    "Onze torres com dois caminhos de upgrade de três níveis cada, e subir um acima do nível 1 fecha o outro para sempre: o Llama 8B vira dano semântico pelo fine-tune ou metralhadora de RUÍDO pelo enxame local, e não dá para ter os dois",
     "Cinco tipos de dano que se resolvem de formas diferentes, provado par a par: ARMADURA DE VOLUME só cai para área, ESCUDO SEMÂNTICO só para semântico, MODO ANÔNIMO precisa de detecção, GOLPE é burro demais para o modelo sofisticado levar a sério e só o TOKEN cru entra inteiro, e o DEEPFAKE só quebra com RUÍDO adversarial",
     "Um robô de estratégia deliberadamente simples atravessa as 40 ondas nos três mapas com 11, 13 e 13 de integridade, e foi ele que achou os sete defeitos que jogar uma partida boa não acharia — inclusive dois estados invencíveis: um VIÉS sorteado num tipo de dano que nenhuma torre produzia e um OVERFITTING que decorava os cinco tipos",
     "A prova que mais rendeu olha da trilha para a laje em vez de olhar da laje para a trilha: a ILHA CENTRAL passava na verificação antiga e mesmo assim tinha 55% da espiral fora do alcance de qualquer torre possível — meio minuto por onda vendo a praga andar sem levar um tiro"
@@ -74,6 +74,10 @@
     {
       "caminho": "js/render.js",
       "papel": "Canvas 2D com fundo pré-renderizado, selos de torre e de praga em cache e nenhum shadowBlur no laço quente"
+    },
+    {
+      "caminho": "js/icones.js",
+      "papel": "As onze silhuetas das torres em caminho de canvas, sem nenhum arquivo de imagem: a forma separa as onze em cinza e com desfoque, as três que não atiram dividem a cor de aço e a barra de base, e as três da mesma casa se separam por 3, 6 e 12 raios"
     },
     {
       "caminho": "js/robo.js",

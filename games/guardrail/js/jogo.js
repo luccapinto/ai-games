@@ -534,7 +534,7 @@ function nascer(jogo, tipo, rotaIdx, hpMult, opcoes = {}) {
   else if (def.muro) p.tProx = def.muro.intervalo;
   else if (def.despeja) p.tProx = def.despeja.intervalo;
   else if (def.atiraDeVolta) p.tProx = def.atiraDeVolta.intervalo;
-  else if (def.piscaAR) p.tProx = def.piscaAR.visivel;
+  else if (def.pisca) p.tProx = def.pisca.visivel;
   if (p.estrutura) { p.x = p.cx; p.y = p.cy; }
   else posicionar(jogo, p);
   jogo.pragas.push(p);
@@ -573,7 +573,7 @@ function visivel(p) {
 // imunidade decorada e o vies. Sem isso o jogo tem estado invencivel — um VIES
 // sorteado em RUIDO contra quem nao tem torre de RUIDO nunca morre, e um
 // OVERFITTING que decorou tudo tambem nao. Quem quiser resposta universal paga
-// por ela: JOTA-5 no RACIOCINIO ALTO, a aura do ORQUESTRADOR e o RELEASE DE
+// por ela: GPT-5 no RACIOCINIO ALTO, a aura do ORQUESTRADOR e o RELEASE DE
 // EMERGENCIA sao as unicas fontes de `fura`.
 function resistencia(p, tipo, fura) {
   let v;
@@ -905,12 +905,12 @@ function moverPragas(jogo, dt) {
       evento(jogo, 'revelou', { x: p.x, y: p.y });
     }
 
-    if (p.def.piscaAR) {
+    if (p.def.pisca) {
       p.tProx -= dt;
       if (p.tProx <= 0) {
         p.oculto = !p.oculto;
-        p.tProx = p.oculto ? p.def.piscaAR.oculto : p.def.piscaAR.visivel;
-        if (p.oculto) noticia(jogo, 'metaverso', {});
+        p.tProx = p.oculto ? p.def.pisca.oculto : p.def.pisca.visivel;
+        if (p.oculto) noticia(jogo, 'reptiliano', {});
       }
     }
 
@@ -983,7 +983,7 @@ function moverPragas(jogo, dt) {
             estrutura: true, cx: livre.x + 0.5, cy: livre.y + 0.5,
             hp: p.def.despeja.hp, raio: 0.45, escala: 1.1, premioMult: 0,
           });
-          d.def = { ...PRAGAS.botfarm, nome: 'DESTROCO', cor: '#c8c8d4', cargaVram: 0 };
+          d.def = { ...PRAGAS.botfarm, nome: 'DESTROÇO', cor: '#c8c8d4', cargaVram: 0 };
           d.tipo = 'destroco';
           d.premio = 0;
           noticia(jogo, 'foguete', {});
@@ -1058,7 +1058,7 @@ function ergerMuro(jogo, chefe) {
   p.premio = 0;
   p.dono = chefe.uid;
   p.escala = 1;
-  noticia(jogo, 'trombeta', {});
+  noticia(jogo, 'laranja', {});
   evento(jogo, 'muro', { x, y: y0 });
 }
 
@@ -1237,7 +1237,7 @@ function moverTiros(jogo, dt) {
 
     if (b.x < -2 || b.x > LARGURA + 2 || b.y < -2 || b.y > ALTURA + 2) continue;
 
-    // muro do TROMBETA: todo tiro que tentar atravessar bate nele
+    // muro do LARANJA: todo tiro que tentar atravessar bate nele
     let barrado = false;
     for (const p of jogo.pragas) {
       if (p.morta || !p.muro) continue;
@@ -1386,7 +1386,7 @@ export function fichaTorre(jogo, t) {
       t.corrompida > 0 ? `CORROMPIDA por ${t.corrompida.toFixed(1)} s` : null,
       t.desligada > 0 ? `DESLIGADA por ${t.desligada.toFixed(1)} s` : null,
       t.aquecendo > 0 ? `SUBINDO PESOS, ${t.aquecendo.toFixed(1)} s` : null,
-      a.protegida ? 'PROTEGIDA: nao sofre estrangulamento' : null,
+      a.protegida ? 'PROTEGIDA: não sofre estrangulamento' : null,
       a.imuneInjection ? 'AUDITADA: imune a prompt injection' : null,
     ].filter(Boolean),
   };
@@ -1398,12 +1398,12 @@ export function fichaPraga(jogo, p) {
   if (p.marca > 0) efeitos.push(`MARCADO: recebe +${Math.round(p.marcaFator * 100)}% de dano por mais ${p.marca.toFixed(1)} s`);
   if (p.lento > 0) efeitos.push(`LENTO: -${Math.round(p.lentoFator * 100)}% de velocidade por mais ${p.lento.toFixed(1)} s`);
   if (p.congelado > 0) efeitos.push(`CONGELADO por mais ${p.congelado.toFixed(1)} s`);
-  if (p.invuln > 0) efeitos.push('INVULNERAVEL agora');
+  if (p.invuln > 0) efeitos.push('INVULNERÁVEL agora');
   if (p.pitch > 0) efeitos.push(`EM PITCH por mais ${p.pitch.toFixed(1)} s`);
-  if (p.disfarcado) efeitos.push('DISFARCADO: modelo alinhado se recusa a atirar');
-  if (p.oculto && p.revelado <= 0) efeitos.push('OCULTO: so quem tem deteccao mira');
+  if (p.disfarcado) efeitos.push('DISFARÇADO: modelo alinhado se recusa a atirar');
+  if (p.oculto && p.revelado <= 0) efeitos.push('OCULTO: só quem tem detecção mira');
   if (p.revelado > 0) efeitos.push(`REVELADO por mais ${p.revelado.toFixed(1)} s`);
-  if (p.renascimentos) efeitos.push(`JA RENASCEU ${p.renascimentos} vez(es)`);
+  if (p.renascimentos) efeitos.push(`JÁ RENASCEU ${p.renascimentos} vez(es)`);
 
   const resist = {};
   for (const tipo of ORDEM_DANOS) resist[tipo] = resistencia(p, tipo, 0);

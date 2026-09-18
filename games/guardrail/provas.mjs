@@ -206,7 +206,7 @@ prova('toda torre tem dois caminhos de upgrade com tres niveis cada', () => {
 prova('subir um caminho acima do nivel 1 fecha o outro, e fechado e fechado', () => {
   const jogo = criarJogo({ mapa: 'datacenter' });
   jogo.dinheiro = 99999;
-  const t = construir(jogo, 10, 1, 'chama');
+  const t = construir(jogo, 10, 1, 'llama');
   ok(podeMelhorar(t, 0) && podeMelhorar(t, 1), 'no nivel zero os dois caminhos deviam estar abertos');
   melhorar(jogo, t, 0);
   ok(podeMelhorar(t, 1), 'com 1 de um lado, o outro ainda pode chegar ao 1');
@@ -260,11 +260,11 @@ prova('cada tipo de dano resolve alguma coisa que outro nao resolve', () => {
 prova('cada torre de cada tipo encarece a proxima, e variar sai mais barato', () => {
   const jogo = criarJogo({ mapa: 'datacenter' });
   jogo.dinheiro = 99999;
-  const base = custoDe(jogo, 'chama');
-  construir(jogo, 10, 1, 'chama');
-  const segunda = custoDe(jogo, 'chama');
+  const base = custoDe(jogo, 'llama');
+  construir(jogo, 10, 1, 'llama');
+  const segunda = custoDe(jogo, 'llama');
   igual(segunda, Math.round(base * INFLACAO), 'inflacao da segunda torre do mesmo tipo');
-  igual(custoDe(jogo, 'haicai'), TORRE_POR_ID.haicai.custo, 'um tipo diferente nao devia ter encarecido');
+  igual(custoDe(jogo, 'haiku'), TORRE_POR_ID.haiku.custo, 'um tipo diferente nao devia ter encarecido');
   // cinco do mesmo tipo tem que custar mais que cinco tipos diferentes
   let mesmo = 0;
   for (let i = 0; i < 5; i++) mesmo += Math.round(TORRES[0].custo * Math.pow(INFLACAO, i));
@@ -275,7 +275,7 @@ prova('cada torre de cada tipo encarece a proxima, e variar sai mais barato', ()
 prova('vender devolve 60% do investido, inclusive dos upgrades', () => {
   const jogo = criarJogo({ mapa: 'datacenter' });
   jogo.dinheiro = 99999;
-  const t = construir(jogo, 10, 1, 'chama');
+  const t = construir(jogo, 10, 1, 'llama');
   melhorar(jogo, t, 0);
   const investido = t.investido;
   igual(valorDeVenda(t), Math.round(investido * RETORNO_VENDA), 'valor de venda');
@@ -283,23 +283,23 @@ prova('vender devolve 60% do investido, inclusive dos upgrades', () => {
   vender(jogo, t);
   igual(jogo.dinheiro - antes, Math.round(investido * RETORNO_VENDA), 'dinheiro devolvido');
   igual(jogo.torres.length, 0, 'a torre continuou no mapa depois de vendida');
-  igual(custoDe(jogo, 'chama'), TORRES[0].custo, 'vender nao devolveu a contagem de inflacao');
+  igual(custoDe(jogo, 'llama'), TORRES[0].custo, 'vender nao devolveu a contagem de inflacao');
 });
 
 prova('nao da para construir em cima da trilha, fora da laje nem em cima de outra torre', () => {
   const jogo = criarJogo({ mapa: 'datacenter' });
   jogo.dinheiro = 99999;
   const [tx, ty] = jogo.mapa.rotas[0].cels[30];
-  igual(construir(jogo, tx, ty, 'chama'), null, 'construiu em cima da trilha');
-  igual(construir(jogo, -3, -3, 'chama'), null, 'construiu fora do mapa');
-  ok(construir(jogo, 10, 1, 'chama'), 'nao construiu numa laje valida');
-  igual(construir(jogo, 10, 1, 'haicai'), null, 'construiu duas torres na mesma laje');
+  igual(construir(jogo, tx, ty, 'llama'), null, 'construiu em cima da trilha');
+  igual(construir(jogo, -3, -3, 'llama'), null, 'construiu fora do mapa');
+  ok(construir(jogo, 10, 1, 'llama'), 'nao construiu numa laje valida');
+  igual(construir(jogo, 10, 1, 'haiku'), null, 'construiu duas torres na mesma laje');
 });
 
 prova('a ficha da torre bate com o que a torre faz, e mostra numero absoluto', () => {
   const jogo = criarJogo({ mapa: 'datacenter' });
   jogo.dinheiro = 99999;
-  const t = construir(jogo, 10, 1, 'chama');
+  const t = construir(jogo, 10, 1, 'llama');
   const f = fichaTorre(jogo, t);
   igual(f.dano, TORRES[0].dano, 'dano da ficha');
   igual(f.alcance, TORRES[0].alcance, 'alcance da ficha');
@@ -320,7 +320,7 @@ prova('estourar a VRAM deixa todas as torres mais lentas, e isso aparece na tela
   for (const k of lajes) construir(jogo, k % LARGURA, Math.floor(k / LARGURA), 'opus');
   passo(jogo, DT);
   const v = estadoVram(jogo);
-  ok(v.uso > v.capacidade, `seis OPUS (${v.uso}) nao estouraram o cluster de ${v.capacidade}`);
+  ok(v.uso > v.capacidade, `seis Opus (${v.uso}) nao estouraram o cluster de ${v.capacidade}`);
   ok(v.estourado, 'estado de VRAM nao se declara estourado');
   ok(v.estrangulamento < 1, 'estourou mas nao estrangulou');
   ok(v.perda > 0, 'a tela nao teria numero de perda para mostrar');
@@ -357,8 +357,8 @@ prova('A SEGURA aumenta o teto do cluster e protege quem esta no raio dela', () 
   const capAntes = jogo.capacidadeVram;
   const s = construir(jogo, 10, 1, 'segura');
   igual(jogo.capacidadeVram, capAntes + TORRE_POR_ID.segura.capacidade, 'capacidade depois da SEGURA');
-  const perto = construir(jogo, 11, 1, 'chama');
-  const longe = construir(jogo, 22, 14, 'chama');
+  const perto = construir(jogo, 11, 1, 'llama');
+  const longe = construir(jogo, 22, 14, 'llama');
   ok(perto.at.protegida, 'torre colada na SEGURA nao ficou protegida');
   ok(!longe.at.protegida, 'torre do outro lado do mapa ficou protegida');
   ok(s.at.naoAtira, 'A SEGURA atirou em alguma coisa');
@@ -504,10 +504,10 @@ prova('SAM ALTO HOMEM fica invulneravel so enquanto fala, e chama plateia', () =
   ok(jogo.pragas.length >= 10, `o pitch nao invocou plateia (${jogo.pragas.length} na tela)`);
 });
 
-prova('O TROMBETA ergue muro que barra tiro, e o muro cai junto com ele', () => {
+prova('O LARANJA ergue muro que barra tiro, e o muro cai junto com ele', () => {
   const jogo = criarJogo({ mapa: 'datacenter' });
   jogo.dinheiro = 99999;
-  jogo.fila = [{ t: 0, tipo: 'trombeta', rota: 0, hpMult: 1 }];
+  jogo.fila = [{ t: 0, tipo: 'laranja', rota: 0, hpMult: 1 }];
   jogo.emOnda = true; jogo.onda = 40; jogo.ondaAtual = definirOnda(40);
   passo(jogo, DT);
   const chefe = jogo.pragas[0];
@@ -532,7 +532,7 @@ prova('PROMPT INJECTION corrompe torre, e a AUDITORIA da SEGURA impede', () => {
   const jogo = criarJogo({ mapa: 'datacenter' });
   jogo.dinheiro = 99999;
   const [px, py] = jogo.mapa.rotas[0].cels[10];
-  const t = construir(jogo, px, py - 1, 'chama') || construir(jogo, px, py + 1, 'chama');
+  const t = construir(jogo, px, py - 1, 'llama') || construir(jogo, px, py + 1, 'llama');
   ok(t, 'nao consegui por torre ao lado da trilha');
   jogo.fila = [{ t: 0, tipo: 'injection', rota: 0, hpMult: 1 }];
   jogo.emOnda = true; jogo.onda = 4; jogo.ondaAtual = definirOnda(4);
@@ -588,11 +588,11 @@ prova('camuflado so e mirado por quem tem deteccao, e dano de FILTRO revela', ()
   // As duas torres ficam coladas na mesma curva da trilha, para o camuflado
   // passar dentro do alcance das duas. Empurrar a praga na mao nao funciona:
   // o passo seguinte recalcula a posicao dela pela distancia andada.
-  const cego = construir(jogo, 19, 3, 'chama') || construir(jogo, 18, 3, 'chama');
-  const vidente = construir(jogo, 18, 3, 'quem') || construir(jogo, 17, 3, 'quem');
+  const cego = construir(jogo, 19, 3, 'llama') || construir(jogo, 18, 3, 'llama');
+  const vidente = construir(jogo, 18, 3, 'qwen') || construir(jogo, 17, 3, 'qwen');
   ok(cego && vidente, 'nao consegui por as duas torres na curva');
-  ok(!cego.at.deteccao, 'CHAMA nasceu com deteccao');
-  ok(vidente.at.deteccao, 'QUEM-3 VL nao tem deteccao');
+  ok(!cego.at.deteccao, 'Llama nasceu com deteccao');
+  ok(vidente.at.deteccao, 'Qwen 3 VL nao tem deteccao');
 
   let viuCego = false;
   for (let i = 0; i < 60 * 30 && !p.morta; i++) {
@@ -601,7 +601,7 @@ prova('camuflado so e mirado por quem tem deteccao, e dano de FILTRO revela', ()
     if (p.hp < p.hpMax) break;
   }
   igual(viuCego, false, 'torre sem deteccao mirou um camuflado');
-  ok(p.morta || p.hp < p.hpMax, 'o QUEM-3 VL nunca acertou o camuflado que passou no alcance dele');
+  ok(p.morta || p.hp < p.hpMax, 'o Qwen 3 VL nunca acertou o camuflado que passou no alcance dele');
   ok(p.morta || p.revelado > 0, 'o dano de FILTRO nao revelou o camuflado');
 });
 
@@ -823,7 +823,7 @@ prova('a economia fecha: da para pagar a onda 1 e a conta nunca fica negativa', 
     const jogo = criarJogo({ mapa: m.id });
     const maisBarata = Math.min(...TORRES.map(d => d.custo));
     ok(jogo.dinheiro >= maisBarata * 3, `${m.id}: nao da para comprar tres torres baratas no inicio`);
-    ok(jogo.dinheiro < TORRE_POR_ID.opus.custo, `${m.id}: da para comprar um OPUS na onda 1`);
+    ok(jogo.dinheiro < TORRE_POR_ID.opus.custo, `${m.id}: da para comprar um Opus na onda 1`);
   }
   // rodar uma partida inteira e conferir que dinheiro nunca ficou negativo
   const r = robo({ mapa: 'datacenter', ondas: 20 });
@@ -834,14 +834,14 @@ prova('a economia fecha: da para pagar a onda 1 e a conta nunca fica negativa', 
 prova('a central travada bloqueia construir, melhorar e vender — e destrava sozinha', () => {
   const jogo = criarJogo({ mapa: 'datacenter' });
   jogo.dinheiro = 99999;
-  const t = construir(jogo, 10, 1, 'chama');
+  const t = construir(jogo, 10, 1, 'llama');
   jogo.centralTravada = 3;
-  igual(construir(jogo, 12, 1, 'chama'), null, 'construiu com a central travada');
+  igual(construir(jogo, 12, 1, 'llama'), null, 'construiu com a central travada');
   igual(melhorar(jogo, t, 0), false, 'melhorou com a central travada');
   igual(vender(jogo, t), false, 'vendeu com a central travada');
   rodar(jogo, 3.2);
   ok(jogo.centralTravada <= 0, 'a central nao destravou sozinha');
-  ok(construir(jogo, 12, 1, 'chama'), 'nao voltou a construir depois de destravar');
+  ok(construir(jogo, 12, 1, 'llama'), 'nao voltou a construir depois de destravar');
 });
 
 // =====================================================================
@@ -851,8 +851,8 @@ prova('a central travada bloqueia construir, melhorar e vender — e destrava so
 prova('o ORQUESTRADOR acelera quem esta no raio e nao acelera quem esta fora', () => {
   const jogo = criarJogo({ mapa: 'datacenter' });
   jogo.dinheiro = 99999;
-  const perto = construir(jogo, 10, 1, 'chama');
-  const longe = construir(jogo, 22, 14, 'chama');
+  const perto = construir(jogo, 10, 1, 'llama');
+  const longe = construir(jogo, 22, 14, 'llama');
   const semAura = perto.at.cadencia;
   construir(jogo, 11, 1, 'orquestrador');
   ok(perto.at.cadencia > semAura * 1.25, 'a aura do orquestrador nao acelerou o vizinho');
@@ -862,7 +862,7 @@ prova('o ORQUESTRADOR acelera quem esta no raio e nao acelera quem esta fora', (
 prova('a aura nao se realimenta: dois orquestradores nao viram cadencia infinita', () => {
   const jogo = criarJogo({ mapa: 'datacenter' });
   jogo.dinheiro = 99999;
-  const t = construir(jogo, 10, 1, 'chama');
+  const t = construir(jogo, 10, 1, 'llama');
   const base = t.at.cadencia;
   construir(jogo, 11, 1, 'orquestrador');
   construir(jogo, 9, 1, 'orquestrador');
@@ -982,7 +982,7 @@ prova('cento e vinte pragas na tela ao mesmo tempo continuam sendo simuladas', (
   jogo.dinheiro = 99999;
   let i = 0;
   for (const k of [...jogo.mapa.construivel].slice(0, 24)) {
-    construir(jogo, k % LARGURA, Math.floor(k / LARGURA), i++ % 2 ? 'geminado' : 'haicai');
+    construir(jogo, k % LARGURA, Math.floor(k / LARGURA), i++ % 2 ? 'gemini' : 'haiku');
   }
   jogo.onda = 30; jogo.ondaAtual = definirOnda(30); jogo.emOnda = true;
   for (let n = 0; n < 130; n++) jogo.fila.push({ t: 0, tipo: 'blindado', rota: 0, hpMult: 3 });

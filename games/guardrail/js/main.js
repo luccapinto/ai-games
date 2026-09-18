@@ -19,6 +19,7 @@ import {
 } from './jogo.js';
 import { Render } from './render.js';
 import { Som } from './som.js';
+import { urlIcone } from './icones.js';
 
 const $ = s => document.querySelector(s);
 const el = (tag, cls, txt) => {
@@ -29,6 +30,17 @@ const el = (tag, cls, txt) => {
 };
 const n1 = v => (Math.round(v * 10) / 10).toLocaleString('pt-BR');
 const n0 = v => Math.round(v).toLocaleString('pt-BR');
+
+// O icone da torre no DOM — a mesma imagem que o mapa desenha, so que maior.
+// A cor da moldura e a do detalhe quando a torre tem um: as tres de
+// infraestrutura dividem a mesma cor de aco de proposito, e sem isso os tres
+// cartoes da loja ficariam identicos no canto do olho.
+const iconeTorre = (def, cls) => {
+  const e = el('div', cls);
+  e.style.color = def.detalhe || def.cor;
+  e.style.backgroundImage = `url("${urlIcone(def)}")`;
+  return e;
+};
 
 const tela = $('#tela');
 const render = new Render(tela);
@@ -167,17 +179,16 @@ function montarLoja() {
   for (const classe of ['modelo', 'infra']) {
     p.append(el('div', 'grupo-titulo', classe === 'modelo'
       ? 'MODELOS — as torres que atiram'
-      : 'INFRAESTRUTURA — nao atiram, sustentam'));
+      : 'INFRAESTRUTURA — não atiram, sustentam'));
     for (const d of TORRES.filter(t => t.classe === classe)) {
       const b = el('button', 'cartao');
-      const gl = el('div', 'glifo', d.glifo);
-      gl.style.color = d.cor;
+      const gl = iconeTorre(d, 'glifo');
       const meio = el('div');
       meio.append(el('div', 'nome', d.nome));
       const sub = d.naoAtira
         ? (d.capacidade ? `+${d.capacidade} de VRAM, raio ${n1(d.alcance)}`
           : d.rendaOnda ? `US$ ${d.rendaOnda} por onda, raio ${n1(d.alcance)}`
-            : `aura de cadencia, raio ${n1(d.alcance)}`)
+            : `aura de cadência, raio ${n1(d.alcance)}`)
         : `${DANOS[d.tipoDano].nome} ${d.dano} x ${n1(d.cadencia)}/s, alcance ${n1(d.alcance)}`;
       meio.append(el('div', 'sub', sub));
       const preco = el('div', 'preco');
@@ -198,7 +209,7 @@ function montarLoja() {
 
   const caixa = el('div', 'loja-gpu');
   caixa.append(el('b', null, 'O DE CASACO DE COURO'));
-  caixa.append(el('p', null, 'A mais nova e sempre a mais barata por FLOP, ele diz. Mais 8 de VRAM no cluster. Cada compra encarece a proxima em 62%.'));
+  caixa.append(el('p', null, 'A mais nova é sempre a mais barata por FLOP, ele diz. Mais 8 de VRAM no cluster. Cada compra encarece a próxima em 62%.'));
   btGpu = el('button', 'bt destaque');
   btGpu.onclick = () => { if (comprarGpu(jogo)) { som.gpu(); pintarTudo(); } else som.negado(); };
   caixa.append(btGpu);
@@ -229,7 +240,7 @@ function pintarFicha() {
   if (ui.selecionada && jogo.torres.includes(ui.selecionada)) fichaDeTorre(p, ui.selecionada);
   else if (ui.pragaSelecionada && !ui.pragaSelecionada.morta) fichaDePraga(p, ui.pragaSelecionada);
   else {
-    p.append(el('p', 'vazio', 'Clique numa torre ou numa praga do mapa para ver os numeros exatos dela: dano por segundo, alcance em celulas, cadencia, HP, resistencias e cada efeito ativo com o tempo que falta.'));
+    p.append(el('p', 'vazio', 'Clique numa torre ou numa praga do mapa para ver os números exatos dela: dano por segundo, alcance em células, cadência, HP, resistências e cada efeito ativo com o tempo que falta.'));
   }
 }
 
@@ -243,8 +254,7 @@ function linhaNum(pai, rotulo, valor, classe) {
 function fichaDeTorre(p, t) {
   const f = fichaTorre(jogo, t);
   const topo = el('div', 'ficha-topo');
-  const gl = el('div', 'glifo', f.glifo);
-  gl.style.color = f.cor;
+  const gl = iconeTorre(TORRE_POR_ID[t.tipo], 'glifo');
   const tit = el('div');
   tit.append(el('h3', null, f.nome), el('p', null, `${f.familia} — ${f.classe === 'modelo' ? 'modelo' : 'infraestrutura'}`));
   topo.append(gl, tit);
@@ -266,22 +276,22 @@ function fichaDeTorre(p, t) {
   linhaNum(g, 'DANO/S', n1(f.dps), 'largo bom');
   linhaNum(g, 'DANO', n1(f.dano));
   linhaNum(g, 'TIPO', f.roteador ? 'ROTEADOR' : DANOS[f.tipoDano].nome);
-  linhaNum(g, 'CADENCIA', n1(f.cadencia) + '/s');
+  linhaNum(g, 'CADÊNCIA', n1(f.cadencia) + '/s');
   linhaNum(g, 'ALCANCE', n1(f.alcance) + ' cel');
   linhaNum(g, 'MIRA', n1(f.mira) + ' s');
   linhaNum(g, 'ERRA', (f.erro * 100).toFixed(1) + '%');
   linhaNum(g, 'VRAM', n1(f.vram), f.vram > 6 ? 'ruim' : '');
   linhaNum(g, 'ALVOS', String(f.alvos));
-  if (f.area) linhaNum(g, 'AREA', 'raio ' + n1(f.area));
+  if (f.area) linhaNum(g, 'ÁREA', 'raio ' + n1(f.area));
   if (f.perfura) linhaNum(g, 'ATRAVESSA', String(f.perfura));
-  if (f.dot) linhaNum(g, 'CONTINUO', n1(f.dot) + '/s');
+  if (f.dot) linhaNum(g, 'CONTÍNUO', n1(f.dot) + '/s');
   if (f.marca) linhaNum(g, 'MARCA', '+' + Math.round(f.marca * 100) + '% recebido');
-  if (f.lentidao) linhaNum(g, 'LENTIDAO', '-' + Math.round(f.lentidao * 100) + '%');
+  if (f.lentidao) linhaNum(g, 'LENTIDÃO', '-' + Math.round(f.lentidao * 100) + '%');
   if (f.furaResist) linhaNum(g, 'FURA RESIST', Math.round(f.furaResist * 100) + '%');
-  if (f.capacidade) linhaNum(g, 'DA DE VRAM', '+' + n1(f.capacidade), 'bom');
+  if (f.capacidade) linhaNum(g, 'DÁ DE VRAM', '+' + n1(f.capacidade), 'bom');
   if (f.rendaOnda) linhaNum(g, 'POR ONDA', 'US$ ' + n0(f.rendaOnda), 'bom');
   if (f.rendaMorte) linhaNum(g, 'POR MORTE', 'US$ ' + n0(f.rendaMorte), 'bom');
-  if (f.auraCadencia) linhaNum(g, 'AURA CADENCIA', '+' + Math.round(f.auraCadencia * 100) + '%');
+  if (f.auraCadencia) linhaNum(g, 'AURA CADÊNCIA', '+' + Math.round(f.auraCadencia * 100) + '%');
   if (f.auraDano) linhaNum(g, 'AURA DANO', '+' + Math.round(f.auraDano * 100) + '%');
   if (f.auraErro) linhaNum(g, 'AURA ERRO', '-' + Math.round(f.auraErro * 100) + '%');
   if (f.auraCadencia || f.auraDano || f.auraErro || f.capacidade) linhaNum(g, 'RAIO DA AURA', n1(f.auraRaio) + ' cel');
@@ -291,20 +301,20 @@ function fichaDeTorre(p, t) {
   p.append(g);
 
   const tags = el('div', 'etiquetas');
-  if (f.deteccao) { const x = el('span', 'etiqueta', 'DETECCAO'); x.style.color = '#6ef0a8'; tags.append(x); }
-  if (f.antiaereo) { const x = el('span', 'etiqueta', 'ANTIAEREO'); x.style.color = '#7ee2ff'; tags.append(x); }
-  if (f.recusa) { const x = el('span', 'etiqueta', 'RECUSA ALVO DISFARCADO'); x.style.color = '#ffd166'; tags.append(x); }
+  if (f.deteccao) { const x = el('span', 'etiqueta', 'DETECÇÃO'); x.style.color = '#6ef0a8'; tags.append(x); }
+  if (f.antiaereo) { const x = el('span', 'etiqueta', 'ANTIAÉREO'); x.style.color = '#7ee2ff'; tags.append(x); }
+  if (f.recusa) { const x = el('span', 'etiqueta', 'RECUSA ALVO DISFARÇADO'); x.style.color = '#ffd166'; tags.append(x); }
   if (f.roteador) { const x = el('span', 'etiqueta', 'ROTEIA: ' + f.roteador.map(r => DANOS[r].curto).join(' ')); x.style.color = '#5fe0d0'; tags.append(x); }
   if (tags.children.length) p.append(tags);
 
-  p.append(el('div', 'secao', 'FICHA TECNICA REAL DO MODELO'));
+  p.append(el('div', 'secao', 'FICHA TÉCNICA REAL DO MODELO'));
   const r = el('div', 'numeros');
-  linhaNum(r, 'PRECO', f.real.preco, 'largo');
+  linhaNum(r, 'PREÇO', f.real.preco, 'largo');
   linhaNum(r, 'BENCHMARK', f.real.bench);
   linhaNum(r, 'VELOCIDADE', f.real.tps);
   linhaNum(r, 'CONTEXTO', f.real.ctx);
   linhaNum(r, 'PRIMEIRO TOKEN', f.real.ttft);
-  linhaNum(r, 'ALUCINACAO', f.real.aluc);
+  linhaNum(r, 'ALUCINAÇÃO', f.real.aluc);
   linhaNum(r, 'TAMANHO', f.real.peso);
   p.append(r);
 
@@ -330,10 +340,10 @@ function fichaDeTorre(p, t) {
     caixa.append(topo2);
     caixa.append(el('p', null, c.desc));
     for (const comp of c.comprados) caixa.append(el('p', 'comprado', 'OK  ' + comp));
-    if (c.proximo) caixa.append(el('p', null, 'PROXIMO  ' + c.proximo));
+    if (c.proximo) caixa.append(el('p', null, 'PRÓXIMO  ' + c.proximo));
     const b = el('button');
     if (c.nivel >= 3) { b.textContent = 'CAMINHO COMPLETO'; b.disabled = true; }
-    else if (c.travado) { b.textContent = 'FECHADO — o outro caminho passou do nivel 1'; b.disabled = true; }
+    else if (c.travado) { b.textContent = 'FECHADO — o outro caminho passou do nível 1'; b.disabled = true; }
     else {
       b.textContent = `SUBIR PARA ${c.nivel + 1} — US$ ${n0(c.custo)}`;
       b.disabled = jogo.dinheiro < c.custo;
@@ -371,7 +381,7 @@ function fichaDePraga(p, praga) {
   const g = el('div', 'numeros');
   linhaNum(g, 'HP', `${n0(f.hp)} / ${n0(f.hpMax)}`, 'largo');
   linhaNum(g, 'VELOCIDADE', f.vel + ' cel/s');
-  linhaNum(g, 'PREMIO', 'US$ ' + n0(f.premio));
+  linhaNum(g, 'PRÊMIO', 'US$ ' + n0(f.premio));
   linhaNum(g, 'TIRA', f.danoNaBase + ' de integridade');
   linhaNum(g, 'FALTAM', n1(f.faltam) + ' cel');
   linhaNum(g, 'PERCURSO', Math.round(f.progresso * 100) + '%', f.progresso > 0.7 ? 'ruim' : '');
@@ -388,8 +398,8 @@ function fichaDePraga(p, praga) {
     res.append(d);
   }
   p.append(res);
-  if (f.viesTipo) p.append(el('p', 'frase', `Este so recebe dano de ${DANOS[f.viesTipo].nome}. Qualquer outro tipo passa reto.`));
-  if (f.imunes.length) p.append(el('p', 'frase', 'Ja ficou imune a: ' + f.imunes.map(x => DANOS[x].nome).join(', ') + '.'));
+  if (f.viesTipo) p.append(el('p', 'frase', `Este só recebe dano de ${DANOS[f.viesTipo].nome}. Qualquer outro tipo passa reto.`));
+  if (f.imunes.length) p.append(el('p', 'frase', 'Já ficou imune a: ' + f.imunes.map(x => DANOS[x].nome).join(', ') + '.'));
 
   if (f.efeitos.length) {
     p.append(el('div', 'secao', 'EFEITOS ATIVOS'));
@@ -415,12 +425,12 @@ function pintarOnda() {
     p.append(c);
   }
 
-  if (!temProx) { p.append(el('p', 'vazio', 'Nao ha mais ondas. Sobreviveu.')); return; }
+  if (!temProx) { p.append(el('p', 'vazio', 'Não há mais ondas. Sobreviveu.')); return; }
 
   const d = descreverOnda(proxima);
   const c = el('div', 'onda-cabeca' + (d.chefe ? ' chefe' : ''));
-  c.append(el('h3', null, `PROXIMA — ONDA ${d.numero}: ${d.nome}`));
-  const espera = jogo.emOnda ? 'comeca quando voce chamar, ou ao fim desta' : `comeca sozinha em ${Math.max(0, jogo.preparo).toFixed(0)} s`;
+  c.append(el('h3', null, `PRÓXIMA — ONDA ${d.numero}: ${d.nome}`));
+  const espera = jogo.emOnda ? 'começa quando você chamar, ou ao fim desta' : `começa sozinha em ${Math.max(0, jogo.preparo).toFixed(0)} s`;
   c.append(el('p', null, `${d.totalPragas} pragas, HP x${d.hpMult.toFixed(2)}, paga US$ ${d.recompensa} no fim. ${espera}`));
   p.append(c);
 
@@ -444,7 +454,7 @@ function pintarOnda() {
 
   p.append(el('div', 'secao', 'O QUE AINDA VAI APARECER'));
   const futuras = estreias().filter(e => e.onda > proxima).slice(0, 5);
-  if (!futuras.length) p.append(el('p', 'vazio', 'Todos os tipos ja apareceram. Agora e combinacao.'));
+  if (!futuras.length) p.append(el('p', 'vazio', 'Todos os tipos já apareceram. Agora é combinação.'));
   for (const e of futuras) {
     const linha = el('div', 'praga-linha');
     const m = el('div', 'marcador');
@@ -463,8 +473,8 @@ const CLASSE_FEED = {
   vazou: 'alerta', estourou: 'alerta', roubo: 'alerta', corrompida: 'alerta',
   ratelimit: 'alerta', derrota: 'alerta',
   ondaLimpa: 'bom', vitoria: 'bom', normalizou: 'bom', chefeMorreu: 'bom',
-  groque: 'meme', altohomem: 'meme', foguete: 'meme', metaverso: 'meme',
-  trombeta: 'meme', colapso: 'meme', scroll: 'meme', gpu: 'meme', gpuLoja: 'meme',
+  groque: 'meme', altohomem: 'meme', foguete: 'meme', reptiliano: 'meme',
+  laranja: 'meme', colapso: 'meme', scroll: 'meme', gpu: 'meme', gpuLoja: 'meme',
   falsa: 'meme', recusou: 'meme',
 };
 
@@ -520,7 +530,7 @@ function pintarTopo() {
   const v = estadoVram(jogo);
   escrever('vramNum', no['vram-num'], `${n1(v.uso)} / ${n1(v.capacidade)}`);
   escrever('vramAviso', no['vram-aviso'], v.estourado
-    ? `ESTOURADO: -${v.perda}% de cadencia`
+    ? `ESTOURADO: -${v.perda}% de cadência`
     : v.capturada > 0 ? `OOM KILLER levou ${n1(v.capturada)} do teto` : '');
   if (visto.estourado !== v.estourado) {
     visto.estourado = v.estourado;
@@ -695,10 +705,10 @@ function pintarManual(qual) {
       linhas.push(r);
     }
     const nota = el('p', 'linha');
-    nota.textContent = 'Resistencia e multiplicador: 25% quer dizer que o alvo recebe um quarto do dano. Clique numa praga no mapa para ver a tabela dela dos cinco tipos.';
+    nota.textContent = 'Resistência é multiplicador: 25% quer dizer que o alvo recebe um quarto do dano. Clique numa praga no mapa para ver a tabela dela dos cinco tipos.';
     c.append(nota);
   } else if (qual === 'torres') {
-    ['MODELO', 'CUSTO', 'VRAM', 'DANO', 'CADENCIA', 'ALCANCE', 'MIRA', 'ERRA', 'TIPO', 'CAMINHOS'].forEach(h => cab.append(el('th', null, h)));
+    ['MODELO', 'CUSTO', 'VRAM', 'DANO', 'CADÊNCIA', 'ALCANCE', 'MIRA', 'ERRA', 'TIPO', 'CAMINHOS'].forEach(h => cab.append(el('th', null, h)));
     for (const d of TORRES) {
       const r = el('tr');
       const a = el('td', 'destaque', d.nome);
@@ -716,7 +726,7 @@ function pintarManual(qual) {
       linhas.push(r);
     }
   } else if (qual === 'modos') {
-    ['MODO', 'VRAM', 'DANO', 'CADENCIA', 'MIRA', 'O QUE E'].forEach(h => cab.append(el('th', null, h)));
+    ['MODO', 'VRAM', 'DANO', 'CADÊNCIA', 'MIRA', 'O QUE É'].forEach(h => cab.append(el('th', null, h)));
     for (const [id, m] of Object.entries(MODOS)) {
       const r = el('tr');
       r.append(el('td', 'destaque', m.nome));

@@ -112,7 +112,7 @@ button { font-family: var(--mono); }
 }
 .grupo-titulo:first-child { margin-top: 0; }
 .cartao {
-  display: grid; grid-template-columns: 30px 1fr auto; gap: 6px; align-items: center;
+  display: grid; grid-template-columns: 32px 1fr auto; gap: 6px; align-items: center;
   width: 100%; text-align: left; padding: 6px; margin-bottom: 4px; cursor: pointer;
   background: var(--painel2); border: 1px solid var(--linha); color: var(--texto);
 }
@@ -120,8 +120,9 @@ button { font-family: var(--mono); }
 .cartao.ligada { border-color: var(--ok); background: #16251d; }
 .cartao.cara { opacity: .42; }
 .cartao .glifo {
-  display: grid; place-items: center; width: 28px; height: 28px; font-size: 11px; font-weight: 700;
+  display: grid; place-items: center; width: 32px; height: 32px; font-size: 11px; font-weight: 700;
   border: 1px solid currentColor; border-radius: 3px;
+  background-repeat: no-repeat; background-position: center; background-size: 30px 30px;
 }
 .cartao .nome { font-size: 11px; letter-spacing: .5px; }
 .cartao .sub { font-size: 9px; color: var(--fraco); line-height: 1.35; }
@@ -138,7 +139,11 @@ button { font-family: var(--mono); }
 
 /* ------------------------------------------------------------------ ficha */
 .ficha-topo { display: flex; gap: 8px; align-items: flex-start; margin-bottom: 8px; }
-.ficha-topo .glifo { width: 36px; height: 36px; display: grid; place-items: center; font-weight: 700; font-size: 13px; border: 1px solid currentColor; border-radius: 3px; }
+.ficha-topo .glifo {
+  width: 40px; height: 40px; display: grid; place-items: center; font-weight: 700; font-size: 13px;
+  border: 1px solid currentColor; border-radius: 3px;
+  background-repeat: no-repeat; background-position: center; background-size: 38px 38px;
+}
 .ficha-topo h3 { margin: 0; font-size: 13px; letter-spacing: 1px; }
 .ficha-topo p { margin: 2px 0 0; font-size: 9px; color: var(--fraco); }
 .frase { font-size: 10px; line-height: 1.55; color: #a8b8cc; margin: 0 0 8px; font-style: italic; }

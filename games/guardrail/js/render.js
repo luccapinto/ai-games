@@ -9,6 +9,7 @@
 import { CELULA, LARGURA, ALTURA } from './mapas.js';
 import { DANOS, TORRE_POR_ID, MODOS } from './dados.js';
 import { progresso } from './jogo.js';
+import { seloTorre, CAIXA } from './icones.js';
 
 export const LARGURA_PX = LARGURA * CELULA;
 export const ALTURA_PX = ALTURA * CELULA;
@@ -330,45 +331,119 @@ export class Render {
     }
   }
 
-  // O corpo da torre e sempre o mesmo desenho: placa escura, octogono na cor
-  // da familia, recorte interno e glifo. Redesenhar isso a cada quadro custava
-  // 110 microssegundos por torre — com 24 torres, 2,7 ms so em coisa que nao
-  // muda. Agora cada tipo e rasterizado uma vez num canvas de 44 px e o quadro
-  // so copia. O que muda (cano, pips, etiqueta, estado) continua por cima.
-  _selo(def) {
-    if (!this.selos) this.selos = new Map();
-    let s = this.selos.get(def.id);
+  // O corpo da torre nao muda: mesma silhueta, mesma cor, mesmo tamanho. Quem
+  // rasteriza (uma vez por torre e por estado) e icones.js; aqui o quadro so
+  // copia. O que muda por quadro — cano, etiqueta de modo, pulso da corrompida
+  // — continua sendo desenhado por cima.
+  //
+  // Corrompida e desligada tambem sao selo, e nao um octogono chapado por
+  // cima: a silhueta continua sendo a da torre, so que numa cor so e sem os
+  // detalhes coloridos. Uma torre quebrada tem que continuar dizendo qual ela
+  // e — e nela que voce precisa decidir se vale usar o RELEASE.
+
+  // A marca de nivel e de protecao: fora da silhueta, e nunca encostando na
+  // torre do lado.
+  //
+  // Antes os pips de nivel eram bolinhas em volta do octogono, que existia uma
+  // vez so. Com onze formas diferentes nao ha mais "em volta do octogono": ou a
+  // marca vira geometria por forma (onze desenhos a manter no lugar) ou vira
+  // uma marca neutra igual para as onze, fora do corpo. E a marca neutra.
+  //
+  // Sao tracos radiais, e nao um anel: a laje tem 40 px e a celula do lado
+  // comeca a 20 do centro. Um anel de raio 19,2 fecha em 20,5 e os aneis de
+  // duas torres vizinhas se tocam — na primeira tentativa, onze torres em fila
+  // viraram uma corrente de circulos. O traco radial mais externo para em 19,8
+  // e sobra vao entre vizinhas.
+  //
+  // Caminho 0 cresce para a esquerda, caminho 1 para a direita, os dois a
+  // partir do topo: da para contar 1, 2 ou 3 sem ler numero.
+  _seloAnel(n0, n1, protegida) {
+    if (!n0 && !n1 && !protegida) return null;
+    if (!this.aneis) this.aneis = new Map();
+    const chave = (n0 * 4 + n1) * 2 + (protegida ? 1 : 0);
+    let s = this.aneis.get(chave);
     if (s) return s;
+
     const lado = 44;
     s = document.createElement('canvas');
     s.width = lado;
     s.height = lado;
     const g = s.getContext('2d');
     g.translate(lado / 2, lado / 2);
-    const r = 15;
-    g.beginPath(); octo(g, 0, 0, r + 3); g.fillStyle = 'rgba(8,11,17,.9)'; g.fill();
-    g.beginPath(); octo(g, 0, 0, r); g.fillStyle = def.cor; g.fill();
-    g.lineWidth = 1.4; g.strokeStyle = 'rgba(6,9,14,.75)'; g.stroke();
-    g.beginPath(); octo(g, 0, 0, r - 4.5); g.fillStyle = sombra(def.cor); g.fill();
-    g.fillStyle = def.cor;
-    g.font = '700 11px ui-monospace, monospace';
-    g.textAlign = 'center';
-    g.textBaseline = 'middle';
-    g.fillText(def.glifo, 0, 1);
-    this.selos.set(def.id, s);
+    g.lineCap = 'butt';
+
+    // a protecao da SEGURA: aro fino, dentro do alcance dos tracos de nivel
+    if (protegida) {
+      g.beginPath();
+      g.arc(0, 0, 18.6, 0, TAU);
+      g.lineWidth = 1;
+      g.strokeStyle = 'rgba(111,240,168,.45)';
+      g.stroke();
+    }
+
+    const PASSO = 0.38;   // 21,8 graus entre tracos
+    for (let c = 0; c < 2; c++) {
+      const n = c === 0 ? n0 : n1;
+      if (!n) continue;
+      const sentido = c === 0 ? -1 : 1;
+      for (let i = 0; i < n; i++) {
+        const a = -Math.PI / 2 + sentido * PASSO * (i + 1);
+        const cx = Math.cos(a), cy = Math.sin(a);
+        for (const [cor, lw] of [['rgba(6,9,14,.85)', 4.6], [c === 0 ? '#7ee2ff' : '#ffb04a', 2.8]]) {
+          g.strokeStyle = cor;
+          g.lineWidth = lw;
+          g.beginPath();
+          g.moveTo(cx * 16.8, cy * 16.8);
+          g.lineTo(cx * 20.2, cy * 20.2);
+          g.stroke();
+        }
+      }
+    }
+
+    this.aneis.set(chave, s);
+    return s;
+  }
+
+  // A marca de selecao nao pode ser um traco por cima do icone: o GPT-5 e quase
+  // branco e um contorno branco em cima dele desaparece. Ela vai para os quatro
+  // cantos da celula, onde nenhuma das onze formas chega, e leva um traco
+  // escuro por baixo para se ler tambem sobre a laje clara.
+  _seloSelecao() {
+    if (this.selecao) return this.selecao;
+    const lado = 44;
+    const s = document.createElement('canvas');
+    s.width = lado;
+    s.height = lado;
+    const g = s.getContext('2d');
+    g.translate(lado / 2, lado / 2);
+    g.lineCap = 'round';
+    g.lineJoin = 'round';
+    const k = 17.6, braco = 5.8;
+    for (const [cor, lw] of [['rgba(6,9,14,.85)', 4.2], ['#eaf6ff', 2.2]]) {
+      g.strokeStyle = cor;
+      g.lineWidth = lw;
+      g.beginPath();
+      for (const sx of [-1, 1]) {
+        for (const sy of [-1, 1]) {
+          g.moveTo(sx * k, sy * (k - braco));
+          g.lineTo(sx * k, sy * k);
+          g.lineTo(sx * (k - braco), sy * k);
+        }
+      }
+      g.stroke();
+    }
+    this.selecao = s;
     return s;
   }
 
   _torres(jogo, ui) {
     const ctx = this.ctx;
-    const r = 15;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     for (const t of jogo.torres) {
       const def = TORRE_POR_ID[t.tipo];
       const x = t.cx * CELULA + this.offX;
       const y = t.cy * CELULA + this.offY;
-      const sel = ui.selecionada === t;
       const corrompida = t.corrompida > 0;
       const desligada = t.desligada > 0 || t.aquecendo > 0;
 
@@ -381,58 +456,31 @@ export class Render {
         ctx.setTransform(1, 0, 0, 1, this.offX, this.offY);
       }
 
-      if (corrompida || desligada) {
-        ctx.beginPath(); octo(ctx, x - this.offX, y - this.offY, r + 3);
-        ctx.fillStyle = 'rgba(8,11,17,.9)'; ctx.fill();
-        ctx.beginPath(); octo(ctx, x - this.offX, y - this.offY, r);
-        ctx.fillStyle = corrompida ? '#ff5ca8' : '#5a5a68'; ctx.fill();
-        ctx.fillStyle = corrompida ? '#3a0a22' : '#14141a';
-        ctx.font = '700 11px ui-monospace, monospace';
-        ctx.fillText(def.glifo, x - this.offX, y - this.offY + 1);
-      } else {
-        ctx.drawImage(this._selo(def), x - this.offX - 22, y - this.offY - 22);
-      }
-
       const px = x - this.offX;
       const py = y - this.offY;
-      if (sel) {
-        ctx.beginPath(); octo(ctx, px, py, r);
-        ctx.lineWidth = 3; ctx.strokeStyle = '#ffffff'; ctx.stroke();
-      }
 
-      // pips de nivel, um arco por caminho
-      for (let c = 0; c < 2; c++) {
-        if (!t.niveis[c]) continue;
-        ctx.fillStyle = c === 0 ? '#7ee2ff' : '#ffb04a';
-        for (let n = 0; n < t.niveis[c]; n++) {
-          const a = (c === 0 ? -1 : 1) * (0.62 + n * 0.34);
-          ctx.beginPath();
-          ctx.arc(px + Math.sin(a) * (r + 5), py - Math.cos(a) * (r + 5), 2.4, 0, TAU);
-          ctx.fill();
-        }
-      }
+      const estado = corrompida ? 'corrompida' : desligada ? 'desligada' : '';
+      ctx.drawImage(seloTorre(def, CAIXA, estado), px - CAIXA / 2, py - CAIXA / 2);
+
+      const anel = this._seloAnel(t.niveis[0], t.niveis[1], !!t.at.protegida);
+      if (anel) ctx.drawImage(anel, px - 22, py - 22);
+
+      if (ui.selecionada === t) ctx.drawImage(this._seloSelecao(), px - 22, py - 22);
 
       // etiqueta do modo de servir quando nao e o padrao
       if (t.modoServir !== 'padrao') {
         ctx.fillStyle = 'rgba(0,0,0,.66)';
-        ctx.fillRect(px - 15, py + r + 1, 30, 9);
+        ctx.fillRect(px - 15, py + 16, 30, 9);
         ctx.fillStyle = '#9fd6a0';
         ctx.font = '700 7px ui-monospace, monospace';
-        ctx.fillText(MODOS[t.modoServir].nome.slice(0, 5), px, py + r + 6);
+        ctx.fillText(MODOS[t.modoServir].nome.slice(0, 5), px, py + 21);
       }
 
       if (corrompida) {
         ctx.strokeStyle = '#ff5ca8';
         ctx.lineWidth = 2;
         ctx.beginPath();
-        ctx.arc(px, py, r + 6 + Math.sin(this.pulso * 14) * 2, 0, TAU);
-        ctx.stroke();
-      }
-      if (t.at.protegida) {
-        ctx.strokeStyle = 'rgba(159,214,160,.5)';
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.arc(px, py, r + 3, 0, TAU);
+        ctx.arc(px, py, 21.5 + Math.sin(this.pulso * 14) * 1.6, 0, TAU);
         ctx.stroke();
       }
     }
@@ -646,16 +694,6 @@ function tracar(g, cels) {
   g.stroke();
 }
 
-function octo(ctx, x, y, r) {
-  for (let i = 0; i < 8; i++) {
-    const a = i / 8 * TAU + Math.PI / 8;
-    const px = x + Math.cos(a) * r;
-    const py = y + Math.sin(a) * r;
-    if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
-  }
-  ctx.closePath();
-}
-
 function poligono(ctx, n, r, giro = 0) {
   ctx.beginPath();
   for (let i = 0; i < n; i++) {
@@ -849,10 +887,4 @@ function hexA(hex, a) {
   const h = hex.replace('#', '');
   const n = parseInt(h.length === 3 ? h.split('').map(c => c + c).join('') : h, 16);
   return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`;
-}
-
-function sombra(hex) {
-  const h = hex.replace('#', '');
-  const n = parseInt(h.length === 3 ? h.split('').map(c => c + c).join('') : h, 16);
-  return `rgb(${Math.round(((n >> 16) & 255) * 0.22)},${Math.round(((n >> 8) & 255) * 0.22)},${Math.round((n & 255) * 0.22)})`;
 }

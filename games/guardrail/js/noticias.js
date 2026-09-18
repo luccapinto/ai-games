@@ -9,7 +9,7 @@
 
 export const BANCO = {
   abertura: [
-    'GUARDRAIL no ar. O pipeline esta de pe. Por enquanto.',
+    'GUARDRAIL no ar. O pipeline está de pé. Por enquanto.',
     'Sessão iniciada. Lembre-se: o cluster é finito e a internet não.',
     'Bom dia. Hoje o mundo vai tentar envenenar a sua base de dados.',
   ],
@@ -99,9 +99,10 @@ export const BANCO = {
     'Pouso não nominal em cima da sua laje. O destroço fica.',
     'O FOGUETEIRO transmitiu ao vivo a queda. Deu 40 milhões de views.',
   ],
-  metaverso: [
-    'O METAVERSO entrou em realidade aumentada. Ninguém pediu.',
-    'O METAVERSO sumiu de novo. Investiram 46 bilhões nisso.',
+  reptiliano: [
+    'O REPTILIANO saiu do espectro visível. Ele avisou que isso era teoria da conspiração.',
+    'O REPTILIANO sumiu de novo. Só detecção enxerga réptil camuflado.',
+    'O REPTILIANO piscou. Quem viu jura que a pupila era vertical.',
   ],
   altohomem: [
     'SAM ALTO HOMEM: "AGI em seis meses". Invulnerável enquanto fala.',
@@ -112,16 +113,17 @@ export const BANCO = {
   ],
   colapso: [
     'MODEL COLLAPSE renasceu. Treinaram ele na saída dele mesmo.',
-    'MODEL COLLAPSE voltou, mais rápido e mais burro. E imune a {dano}.',
+    'MODEL COLLAPSE voltou, mais rápido e mais burro. É imune a {dano}.',
   ],
   scroll: [
     'SCROLL INFINITO não acaba. Você já está aqui há 40 minutos.',
     'SCROLL INFINITO regenera. O algoritmo sabe o que você gosta.',
   ],
-  trombeta: [
-    'O TROMBETA ergueu um muro. Disse que o outro lado vai pagar.',
+  laranja: [
+    'O LARANJA ergueu um muro. Disse que o outro lado vai pagar.',
     'MURO no ar: 700 de HP e uma fala de 40 minutos.',
-    'O TROMBETA: "o maior muro, o melhor muro". Seus tiros batem nele.',
+    'O LARANJA: "o maior muro, o melhor muro". Seus tiros batem nele.',
+    'O muro saiu na cor dele. Seus tiros continuam batendo nele.',
   ],
   chefeMorreu: [
     '{nome} caiu. Alguém anota isso no changelog.',

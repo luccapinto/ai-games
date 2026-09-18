@@ -13,7 +13,7 @@
 // Defeitos que este robo achou e que jogar nao acharia:
 //  1. VIES sorteado em RUIDO era imortal: nenhuma torre produzia RUIDO.
 //  2. OVERFITTING decorava os cinco tipos e virava imortal.
-//  3. Muro do TROMBETA ficava no mapa depois que o chefe morria.
+//  3. Muro do LARANJA ficava no mapa depois que o chefe morria.
 //  4. Torre sem alvo legitimo mantinha o acumulo do AGENTE LONGO para sempre.
 
 import { LARGURA, ALTURA, podeConstruir } from './mapas.js';
@@ -29,23 +29,23 @@ import {
 // DE VOLUME (onda 8), ANTIAEREO antes do voador (onda 11) e SEMANTICO antes do
 // ESCUDO SEMANTICO (onda 12).
 const COMPRAS = [
-  'chama', 'chama', 'cobranca', 'haicai', 'quem', 'geminado', 'haicai',
-  'orquestrador', 'soneto', 'cobranca', 'geminado', 'segura', 'chama',
-  'profundo', 'jota', 'soneto', 'segura', 'opus', 'quem', 'jota',
-  'opus', 'geminado', 'orquestrador', 'opus', 'jota', 'opus',
+  'llama', 'llama', 'cobranca', 'haiku', 'qwen', 'gemini', 'haiku',
+  'orquestrador', 'sonnet', 'cobranca', 'gemini', 'segura', 'llama',
+  'deepseek', 'gpt', 'sonnet', 'segura', 'opus', 'qwen', 'gpt',
+  'opus', 'gemini', 'orquestrador', 'opus', 'gpt', 'opus',
 ];
 
 // Qual caminho subir em cada modelo. O robo escolhe um so e vai ate o fim, que
 // e exatamente o que a regra de bloqueio obriga.
 const CAMINHO = {
-  chama: 0, haicai: 1, geminado: 1, quem: 1, soneto: 0,
-  profundo: 1, jota: 0, opus: 1, segura: 0, orquestrador: 0, cobranca: 0,
+  llama: 0, haiku: 1, gemini: 1, qwen: 1, sonnet: 0,
+  deepseek: 1, gpt: 0, opus: 1, segura: 0, orquestrador: 0, cobranca: 0,
 };
 // O segundo exemplar de cada modelo sobe o outro caminho: e assim que o robo
 // cobre deteccao com um QUEM e dano continuo com o outro.
 const CAMINHO_ALT = {
-  chama: 1, haicai: 0, geminado: 0, quem: 0, soneto: 1,
-  profundo: 0, jota: 1, opus: 0, segura: 1, orquestrador: 1, cobranca: 1,
+  llama: 1, haiku: 0, gemini: 0, qwen: 0, sonnet: 1,
+  deepseek: 0, gpt: 1, opus: 0, segura: 1, orquestrador: 1, cobranca: 1,
 };
 
 // Quantas celulas de trilha cada laje cobre num dado raio. E o unico "mapa" que
@@ -222,7 +222,7 @@ function melhorarAlguma(jogo) {
       if (custo == null || custo > jogo.dinheiro - reserva) continue;
       // Infraestrutura nao abate, entao vale pelo que ela sustenta.
       // O peso mistura o que a torre ja fez com o que ela custou: so por
-      // abate, um CHAMA de 55 dolares com 70 mortes ganhava de um OPUS recem
+      // abate, um Llama de 55 dolares com 70 mortes ganhava de um Opus recem
       // comprado e o modelo caro ficava no nivel 0 a partida inteira.
       const peso = t.st.naoAtira
         ? 60 + t.investido * 0.2
