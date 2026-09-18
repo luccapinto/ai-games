@@ -4,7 +4,7 @@
     "jogos": 10,
     "autores": 1,
     "modelos": 2,
-    "linhas": 37164,
+    "linhas": 40825,
     "usd": 24.62,
     "tokens_novos": 3703978,
     "tokens_cache": 159076224,
@@ -30,7 +30,7 @@
           "modelo": "claude-opus-5",
           "provider": "Anthropic",
           "agente": "Oh My Pi",
-          "papel": "o jogo inteiro: gerador de mundo, grafo de missões, sede e combate, render e o arranjo de provas",
+          "papel": "o jogo inteiro: gerador de mundo, grafo de missões, sede e combate, o render 3D em WebGL2 e o arranjo de provas",
           "chamadas_api": 74,
           "tokens": {
             "entrada": 74000,
@@ -45,7 +45,7 @@
         "metodo": "diferença do contador de tokens da sessão do agente entre o início e o fim deste jogo; custo pela mesma taxa cega de US$ 15 por milhão de tokens novos usada nos outros jogos claude-opus-5 deste repositório",
         "confianca": "estimado",
         "medido_em": "2026-09-17",
-        "nota": "O total (103 mil tokens novos) é a diferença do contador da sessão e é a parte confiável; a divisão entre entrada e saída é estimativa minha. Saiu mais barato que o jogo de corrida porque o padrão já estava estabelecido: gerar, provar em trinta sementes, consertar o que a prova acha. O cache está zerado porque não foi medido, não porque não houve."
+        "nota": "O total (103 mil tokens novos) é a diferença do contador da sessão na primeira construção e é a parte confiável; a divisão entre entrada e saída é estimativa minha. A segunda passada — o render 3D em WebGL2, o equilíbrio do combate e a bodega — não foi medida, e os números acima cobrem só a primeira. O cache está zerado porque não foi medido, não porque não houve."
       },
       "totais": {
         "tokens_entrada": 74000,
@@ -55,7 +55,7 @@
         "tokens_totais": 103000,
         "usd": 1.54,
         "chamadas_api": 74,
-        "linhas": 3299,
+        "linhas": 6960,
         "tem_custo": true
       },
       "url": "games/travessia/"
@@ -521,9 +521,9 @@
       "tokens_cache": 0,
       "chamadas_api": 1146,
       "usd": 23.59,
-      "linhas": 26455,
-      "tokens_por_linha": 68.42,
-      "linhas_por_dolar": 1121.45
+      "linhas": 30116,
+      "tokens_por_linha": 60.1,
+      "linhas_por_dolar": 1276.64
     },
     {
       "nome": "deepseek-flash",
@@ -572,9 +572,9 @@
       "tokens_cache": 0,
       "chamadas_api": 1010,
       "usd": 17.63,
-      "linhas": 21020,
-      "tokens_por_linha": 67.27,
-      "linhas_por_dolar": 1192.29
+      "linhas": 24681,
+      "tokens_por_linha": 57.29,
+      "linhas_por_dolar": 1399.94
     },
     {
       "nome": "Hermes Agent (Talos)",
@@ -610,9 +610,9 @@
       "tokens_cache": 0,
       "chamadas_api": 1146,
       "usd": 23.59,
-      "linhas": 26455,
-      "tokens_por_linha": 68.42,
-      "linhas_por_dolar": 1121.45
+      "linhas": 30116,
+      "tokens_por_linha": 60.1,
+      "linhas_por_dolar": 1276.64
     },
     {
       "nome": "DeepSeek",

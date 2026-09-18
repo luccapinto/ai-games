@@ -1,5 +1,5 @@
 slug,titulo,criado,genero,estado,autor,github,modelo,provider,agente,chamadas_api,tokens_entrada,tokens_saida,tokens_novos,tokens_cache,usd_estimado,linhas_do_jogo,confianca
-travessia,TRAVESSIA,2026-09-17,Mundo aberto,jogavel,Lucca Pinto,luccapinto,claude-opus-5,Anthropic,Oh My Pi,74,74000,29000,103000,0,1.5400,3299,estimado
+travessia,TRAVESSIA,2026-09-17,Mundo aberto,jogavel,Lucca Pinto,luccapinto,claude-opus-5,Anthropic,Oh My Pi,74,74000,29000,103000,0,1.5400,6960,estimado
 subsolo,SUBSOLO,2026-09-17,FPS de rodadas,jogavel,Lucca Pinto,luccapinto,claude-opus-5,Anthropic,Oh My Pi,524,515000,190000,705000,0,8.3000,6568,estimado
 guardrail,GUARDRAIL,2026-09-17,Defesa de torre,jogavel,Lucca Pinto,luccapinto,claude-opus-5,Anthropic,Oh My Pi,96,104000,61000,165000,0,2.4800,6243,estimado
 curva,CURVA,2026-09-17,Kart 3D,jogavel,Lucca Pinto,luccapinto,claude-opus-5,Anthropic,Oh My Pi,316,322000,119000,441000,0,5.3100,4910,estimado

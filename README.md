@@ -9,7 +9,7 @@ registrados ao lado.
 costs. Each game is a self-contained, playable folder that records the model that
 wrote it, the agent that drove it, and the tokens it burned.*
 
-**10 jogos** de **1 pessoa**, 37.164 linhas de código,
+**10 jogos** de **1 pessoa**, 40.825 linhas de código,
 3,7 M tokens novos e US$ 24,62 de API no total.
 
 👉 **[Jogar tudo](https://luccapinto.github.io/ai-games/)** · **[Ver o benchmark](https://luccapinto.github.io/ai-games/benchmark.html)** · **[Mandar o seu jogo](CONTRIBUTING.md)**
@@ -33,7 +33,7 @@ wrote it, the agent that drove it, and the tokens it burned.*
 
 | Modelo | Jogos | Tokens novos | Cache | Custo | Linhas |
 | --- | --- | --- | --- | --- | --- |
-| claude-opus-5 | 9 | 1,8 M | 0 | US$ 23,59 | 26.455 |
+| claude-opus-5 | 9 | 1,8 M | 0 | US$ 23,59 | 30.116 |
 | deepseek-flash | 1 | 1,9 M | 159,1 M | US$ 1,03 | 10.709 |
 
 Tokens novos são entrada + saída. Cache aparece em coluna separada de propósito:
@@ -102,21 +102,23 @@ ordem de grandeza maior.
 
 ### TRAVESSIA
 
-A adutora velha secou e cinco vilas estão bebendo do fundo da cacimba. O sertão é gerado por semente — relevo, rios, biomas, vilas, estradas e gente — e a sede é que manda no caminho: ao meio-dia o cantil dura um minuto e meio andando, de madrugada quase o dobro. Sete missões em grafo de dependência, treze no total.
+A adutora velha secou e cinco vilas estão bebendo do fundo da cacimba. O sertão é gerado por semente — relevo, rios, biomas, vilas, estradas e gente — e desenhado em WebGL2 escrito à mão, sem um único arquivo de textura, modelo, fonte ou som. A sede é que manda no caminho: o sol anda o arco do dia em oito minutos, a sombra gira com ele, e ao meio-dia o cantil dura um minuto e meio andando contra quase o dobro de madrugada. Sete missões em grafo de dependência, treze no total.
 
 O que tem dentro:
 
+- O sertão inteiro em WebGL2 escrito à mão: nenhum arquivo de textura, modelo, fonte ou som. Mandacaru, casa de taipa, onça, letra e rugido saem de código, e o relevo que o gerador já calculava vira malha facetada com nível de detalhe por pedaço
+- A luz é a regra do jogo ficando visível: o sol anda o arco do dia em oito minutos e a sombra de tudo gira com ele; ao meio-dia o horizonte ferve, que é justo a hora em que o cantil dura um minuto e meio, e de madrugada há névoa baixa e lampião
 - Mundo gerado por semente e provado em trinta sementes de uma vez: vila em chão andável, vila alcançável a pé de qualquer outra, estrada inteira caminhável e os cinco terrenos em proporção de sertão — a primeira semente sempre parece boa, a décima é que tem a vila cercada de rio
 - A garantia de projeto que sustenta o jogo: todo alvo de missão, todo recurso coletável e todo ponto de estrada tem água a menos de meio cantil de distância, medida num campo de distância da água calculado por busca em largura
-- Um robô atravessa a linha principal inteira em três sementes diferentes usando a mesma caminhada, a mesma sede, o mesmo combate e as mesmas missões do navegador — hoje termina em 5 a 7 minutos com vida cheia
+- Um robô atravessa a linha principal inteira em três sementes diferentes usando a mesma caminhada, a mesma sede, o mesmo combate e as mesmas missões do navegador — hoje termina em 5 a 6 minutos com vida cheia
+- A onça virou decisão: ficar e bater vence com 79% de vida, recuar andando mata, correr e voltar vence. As três lutas são simuladas por lutas.mjs, com o resultado que cada uma tem de dar
 - As missões são um grafo de dependência, não uma lista: dá para provar que não há ciclo, que todo alvo existe naquele mundo e que dá para chegar nele vivo
-- O corte entre água, caatinga e serra é um quantil do próprio relevo de cada semente, e não um número fixo: com corte fixo a proporção de água ia de 0,5% a 22% entre sementes
-- As provas acharam sete defeitos que jogar uma semente boa não acharia, incluindo pedir rota para dentro do rio (a célula de água não é andável, então o robô ficava parado na margem até morrer de sede)
+- As provas acharam oito defeitos que jogar uma semente boa não acharia, incluindo margem de rio do outro lado da serra: mais perto em linha reta e sem rota, com o robô parado pedindo um A* impossível a 144 ms por quadro
 
 - **Quem fez:** Lucca Pinto
 - **Modelo:** claude-opus-5 via Anthropic, dirigido por Oh My Pi — 103,0 k tokens novos, 0 de cache, 74 chamadas, US$ 1,54
 - **Custo total:** US$ 1,54 (estimado)
-- **Tamanho:** 3.299 linhas de código próprio, 0,2 MB
+- **Tamanho:** 6.960 linhas de código próprio, 0,4 MB
 - **Pasta:** [`games/travessia/`](games/travessia/README.md)
 
 ### SUBSOLO
