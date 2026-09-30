@@ -4,7 +4,7 @@ import { createHash, createHmac } from 'node:crypto';
 import { bloco, prova, ok, igual, perto, lanca, quiQuadrado, limiteQui, fonteDeterministica, geradorRapido } from './base.mjs';
 import { sha256hex, hmacSha256hex, deHex, hex } from '../js/nucleo/sha256.js';
 import { criarGerador, criarJusto, estadoJustoInicial, conferirHash } from '../js/nucleo/justo.js';
-import { criarCarteira, estadoCarteiraInicial, SALDO_INICIAL, CREDITO } from '../js/nucleo/carteira.js';
+import { criarCarteira, estadoCarteiraInicial, SALDO_INICIAL, CREDITO, JUROS_POR_RODADA } from '../js/nucleo/carteira.js';
 import { criarLivro, estadoLivroInicial } from '../js/nucleo/livro.js';
 import { criarCasa, armazemMemoria, CHAVE } from '../js/nucleo/casa.js';
 import { fichas, pct, numero, chance } from '../js/nucleo/formato.js';
@@ -156,7 +156,7 @@ prova('o crédito da casa entra no saldo e na dívida, e o juro arredonda para c
   igual(c.saldo, CREDITO, 'saldo depois do crédito');
   igual(c.divida, CREDITO, 'dívida');
   const j = c.jurosDaRodada();
-  igual(j, Math.ceil(CREDITO * 0.0025), 'juro da rodada');
+  igual(j, Math.ceil(CREDITO * JUROS_POR_RODADA), 'juro da rodada');
   igual(c.divida, CREDITO + j, 'dívida com juro');
   igual(c.quitar(10000), 10000, 'pagamento parcial');
   igual(c.divida, CREDITO + j - 10000, 'dívida depois do pagamento');
@@ -243,7 +243,7 @@ prova('fechar uma rodada com dívida cobra o juro e registra no Livro', () => {
   c.pedirCredito();
   const d0 = c.carteira.divida;
   const r = c.fecharRodada({ jogo: 'craps', apostado: 0, retorno: 0, perdaEsperada: 0, variancia: 0 });
-  igual(r.juros, Math.ceil(d0 * 0.0025), 'juro');
+  igual(r.juros, Math.ceil(d0 * JUROS_POR_RODADA), 'juro');
   igual(c.livro.estado.eventos[0].tipo, 'credito', 'evento de crédito');
 });
 

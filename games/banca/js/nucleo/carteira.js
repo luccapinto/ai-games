@@ -7,9 +7,9 @@
 export const CENTAVOS = 100;
 export const SALDO_INICIAL = 1000 * CENTAVOS;
 export const CREDITO = 500 * CENTAVOS;
-// 0,25% por rodada jogada com dívida aberta, composto. A casa arredonda o
-// centavo para cima, como toda casa.
-export const JUROS_POR_RODADA = 0.0025;
+// 0,10% por rodada jogada com dívida aberta, composto: parece pouco, e em mil
+// rodadas a dívida quase triplica. A casa arredonda o centavo para cima.
+export const JUROS_POR_RODADA = 0.001;
 
 export function estadoCarteiraInicial() {
   return { saldo: SALDO_INICIAL, divida: 0, emprestado: 0, juros: 0, pago: 0, emprestimos: 0 };

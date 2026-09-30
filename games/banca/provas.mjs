@@ -16,7 +16,7 @@ import { placar } from './provas/base.mjs';
 const t0 = performance.now();
 // Ordem fixa para os blocos conhecidos; arquivo novo em provas/ entra no fim
 // sozinho, e o robô roda por último porque usa todas as mesas.
-const ORDEM = ['nucleo', 'roleta', 'blackjack', 'niquel', 'videopoquer', 'bacara', 'craps', 'holdem', 'textos', 'robo'];
+const ORDEM = ['nucleo', 'roleta', 'blackjack', 'niquel', 'videopoquer', 'bacara', 'craps', 'dados', 'holdem', 'textos', 'robo'];
 const existentes = readdirSync(new URL('./provas/', import.meta.url))
   .filter(f => f.endsWith('.mjs') && f !== 'base.mjs')
   .map(f => f.slice(0, -4));

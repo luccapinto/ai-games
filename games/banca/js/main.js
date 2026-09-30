@@ -2,7 +2,8 @@
 // topo, o salão e o roteador das mesas (#/roleta, #/blackjack, ...).
 
 import { criarCasa, armazemNavegador } from './nucleo/casa.js';
-import { fichas } from './nucleo/formato.js';
+import { fichas, numero } from './nucleo/formato.js';
+import { JUROS_POR_RODADA } from './nucleo/carteira.js';
 import { instalarTexturasCss } from './visual/texturas.js';
 import { instalarCartas } from './visual/cartas.js';
 import { instalarFichas } from './visual/fichas.js';
@@ -197,14 +198,14 @@ addEventListener('hashchange', rota);
 
 function abrirCredito() {
   const c = casa.carteira;
-  const juros = (0.25).toFixed(2).replace('.', ',');
+  const juros = numero(JUROS_POR_RODADA * 100, 2);
   const p = abrirPainel('credito', `
     <h2>Crédito da casa</h2>
     <p class="sub">A casa sempre empresta. É o que ela tem de mais generoso, e de mais caro.</p>
     <div class="credito-conta">
       <div><span>Você recebe</span><b>${fichas(casa.CREDITO)}</b></div>
       <div><span>Juros</span><b>${juros}% por rodada, compostos</b></div>
-      <div><span>Em 100 rodadas, ${fichas(casa.CREDITO)} viram</span><b>${fichas(Math.round(casa.CREDITO * Math.pow(1.0025, 100)))}</b></div>
+      <div><span>Em 500 rodadas, ${fichas(casa.CREDITO)} viram</span><b>${fichas(Math.round(casa.CREDITO * Math.pow(1 + JUROS_POR_RODADA, 500)))}</b></div>
       <div><span>Dívida atual</span><b>${fichas(c.divida)}</b></div>
     </div>
     <div class="acoes-painel">
