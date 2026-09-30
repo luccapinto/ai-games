@@ -1,0 +1,101 @@
+/* BANCA: máquina de vídeo pôquer */
+
+.vp-palco { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; overflow: auto; }
+
+.gabinete {
+  position: relative; width: min(100%, 940px); padding: 16px 18px 18px; border-radius: 30px 30px 16px 16px;
+  background:
+    linear-gradient(180deg, rgba(255, 240, 200, .06), transparent 18%),
+    linear-gradient(160deg, #1c0d14, #0d060a 60%, #150810);
+  box-shadow:
+    inset 0 0 0 2px #8f6f35, inset 0 0 0 5px #1a0c12, inset 0 0 0 6px rgba(232, 207, 143, .45),
+    0 30px 60px rgba(0, 0, 0, .7), 0 0 80px rgba(255, 61, 110, .08);
+}
+.letreiro {
+  display: flex; align-items: baseline; justify-content: center; gap: 14px; margin: -2px auto 12px;
+  font-family: var(--f-display); letter-spacing: .12em;
+}
+.letreiro span { font-size: 28px; color: #ffe3ec; text-shadow: 0 0 6px #ff3d6e, 0 0 18px #ff3d6e, 0 0 36px rgba(255, 61, 110, .6); }
+.letreiro em { font-style: normal; font-size: 22px; color: #dffffa; text-shadow: 0 0 6px #35f0d8, 0 0 18px #35f0d8; }
+
+.tela {
+  position: relative; overflow: hidden; border-radius: 16px; padding: 14px 16px 12px;
+  background: radial-gradient(ellipse 90% 80% at 50% 40%, #1b3fa8, #0b1f63 60%, #050d31);
+  box-shadow: inset 0 0 0 2px rgba(0, 0, 0, .6), inset 0 0 40px rgba(0, 0, 0, .6), 0 0 0 3px #c9a45c, 0 0 0 5px #3a2410;
+}
+.tela::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: repeating-linear-gradient(0deg, rgba(0, 0, 0, .12) 0 1px, transparent 1px 3px), radial-gradient(ellipse at 50% 0%, rgba(255, 255, 255, .08), transparent 60%);
+}
+
+.vp-tabela { width: 100%; border-collapse: collapse; font-weight: 600; font-size: 14px; color: #ffe14d; text-shadow: 0 1px 0 #000; margin-bottom: 8px; }
+.vp-tabela th { text-align: left; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; padding: 1px 6px; }
+.vp-tabela td { text-align: right; padding: 1px 10px; }
+.vp-tabela td.ativa { background: rgba(200, 24, 48, .72); color: #fff3a0; }
+.vp-tabela tr.saiu th, .vp-tabela tr.saiu td { animation: pisca .45s steps(2) 8; background: rgba(255, 225, 77, .25); }
+@keyframes pisca { 50% { color: #fff; background: rgba(255, 61, 110, .5); } }
+
+.vp-mensagem { text-align: center; min-height: 22px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; font-size: 14px; color: #ffe14d; margin: 2px 0 6px; }
+.vp-cartas { --vl: clamp(54px, 13.5vw, 142px); display: flex; justify-content: space-between; gap: 8px; padding: 18px 2px 8px; }
+.vp-lugar { position: relative; flex: 1; display: grid; place-items: center; border: 0; background: none; padding: 0; cursor: pointer; }
+.vp-lugar .carta { --l: var(--vl); position: relative; width: var(--l); height: calc(var(--l) * 1.4); transition: transform .18s var(--transicao); }
+.vp-lugar.segurada .carta { transform: translateY(-8px); }
+.vp-lugar .segura {
+  position: absolute; top: -17px; left: 50%; transform: translateX(-50%); font-weight: 700; font-size: 13px; letter-spacing: .16em;
+  color: #ffe14d; text-shadow: 0 0 8px rgba(255, 225, 77, .7); opacity: 0; transition: opacity .15s;
+}
+.vp-lugar.segurada .segura { opacity: 1; }
+.vp-lugar .otima { position: absolute; bottom: -18px; left: 50%; transform: translateX(-50%); font-size: 10.5px; letter-spacing: .18em; text-transform: uppercase; color: var(--neon-ciano); opacity: 0; }
+.vp-lugar.otimo .otima { opacity: 1; }
+.vp-lugar.otimo .carta .face { box-shadow: 0 0 0 2px var(--neon-ciano), 0 0 18px rgba(53, 240, 216, .6), 0 6px 16px rgba(0, 0, 0, .45); }
+
+.vp-painel { display: flex; justify-content: space-between; gap: 12px; margin-top: 18px; padding: 6px 4px 0; border-top: 1px solid rgba(255, 225, 77, .25); }
+.vp-painel div { display: flex; align-items: baseline; gap: 8px; }
+.vp-painel span { font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: rgba(255, 225, 77, .75); }
+.vp-painel b { font-size: 20px; color: #ffe14d; font-weight: 700; }
+
+.vp-botoes { display: grid; gap: 10px; margin-top: 14px; }
+.vp-seg { display: flex; justify-content: space-between; gap: 8px; }
+.vp-segurar { flex: 1; min-width: 0; padding: 0 4px; font-size: 12.5px; }
+.vp-segurar.ativo { color: #1a1206; background: linear-gradient(180deg, #fff2a8, #e8c24a); text-shadow: none; }
+.vp-linha { display: flex; gap: 10px; align-items: center; justify-content: flex-end; flex-wrap: wrap; }
+.vp-moeda { display: flex; align-items: center; gap: 4px; margin-right: auto; }
+.vp-moeda span { font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: var(--latao); margin-right: 4px; }
+.vp-moeda button {
+  min-width: 52px; min-height: 44px; border: 0; border-radius: 999px; cursor: pointer; font-weight: 600;
+  background: rgba(0, 0, 0, .45); color: var(--marfim-sujo); box-shadow: inset 0 0 0 1px rgba(201, 164, 92, .4);
+}
+.vp-moeda button.ativa { background: rgba(201, 164, 92, .25); color: var(--latao-claro); box-shadow: inset 0 0 0 1.5px var(--latao-claro); }
+.vp-moeda button:disabled { opacity: .5; }
+.vp-dar { min-width: 180px; }
+
+.vp-treinador { position: relative; right: auto; bottom: auto; width: min(100%, 940px); max-width: none; }
+.vp-treinador em.sua { color: var(--latao-claro); }
+.nc { display: inline-flex; align-items: center; gap: 1px; white-space: nowrap; }
+.nc svg { vertical-align: -1px; }
+.explica.aviso { color: #ffb3a6; }
+.vp-hist span { width: auto; padding: 0 7px; font-weight: 500; font-size: 11.5px; }
+.vp-hist span.bom { background: rgba(79, 214, 164, .18); color: var(--bom); }
+.vp-hist span.ruim { color: rgba(216, 204, 176, .6); }
+
+@media (max-width: 720px) {
+  .gabinete { padding: 10px 8px 10px; border-radius: 20px 20px 12px 12px; }
+  .letreiro span { font-size: 19px; }
+  .letreiro em { font-size: 16px; }
+  .letreiro { margin-bottom: 8px; }
+  .tela { padding: 8px 8px 8px; }
+  .vp-tabela { font-size: 10.5px; }
+  .vp-tabela td { padding: 0 4px; }
+  .vp-tabela th { padding: 0 3px; letter-spacing: 0; }
+  .vp-cartas { gap: 4px; --vl: calc((100vw - 80px) / 5); padding-top: 16px; }
+  .vp-painel b { font-size: 15px; }
+  .vp-painel span { font-size: 9.5px; letter-spacing: .1em; }
+  .vp-segurar { font-size: 10px; letter-spacing: .02em; padding: 0 2px; }
+  .vp-linha { gap: 6px; }
+  .vp-moeda { width: 100%; justify-content: space-between; margin: 0; }
+  .vp-moeda button { flex: 1; }
+  .vp-linha > .btn { flex: 1; min-width: 0; padding: 0 8px; font-size: 12px; letter-spacing: .06em; }
+  .vp-dar { min-width: 0; flex-basis: 100%; }
+  .vp-treinador { padding: 6px 10px; }
+  .vp-treinador em:not(.sua) { display: none; }
+}

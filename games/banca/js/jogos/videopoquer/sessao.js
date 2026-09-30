@@ -153,6 +153,7 @@ export function criarSessaoVideoPoquer(casa, { analisar } = {}) {
       final,
       categoria,
       pago: premio,
+      texto: TABELA[categoria].nome,
     });
     const contador = reg.contador;
     const hash = reg.hash;

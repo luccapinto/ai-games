@@ -158,5 +158,9 @@
     background: rgba(14, 12, 9, .88); color: var(--latao-claro); box-shadow: inset 0 0 0 1px rgba(201, 164, 92, .5);
     font-size: 11.5px; letter-spacing: .14em; text-transform: uppercase;
   }
-  .aba-conta svg { width: 18px; height: 18px; }
+  .aba-conta svg { width: 20px; height: 20px; }
+}
+@media (max-width: 720px) {
+  .aba-conta { padding: 0 10px; }
+  .aba-conta span { display: none; }
 }

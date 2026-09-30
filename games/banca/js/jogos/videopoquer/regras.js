@@ -8,7 +8,8 @@
 // Um baralho de 52 cartas por mão: as cinco primeiras são a mão dada, e as
 // cinco seguintes são as substitutas, na ordem das posições trocadas.
 
-import { baralhos, valorDe, naipeDe } from '../../nucleo/baralho.js';
+import { baralhos, valorDe, naipeDe, curto } from '../../nucleo/baralho.js';
+import { criarGerador } from '../../nucleo/justo.js';
 
 export const CATEGORIAS = [
   'royal', 'sequencia_de_cor', 'quadra', 'full_house', 'flush',
@@ -113,4 +114,22 @@ export function maoFinal(baralho, segurar) {
   let proxima = 5;
   for (let i = 0; i < 5; i++) if (!segurar[i]) mao[i] = baralho[proxima++];
   return mao;
+}
+
+export const REGRAS_TEXTO = [
+  'Um baralho de 52 cartas por mão, embaralhado pelo gerador verificável.',
+  'As cinco primeiras cartas são a mão; as trocas saem das seguintes, na ordem das posições.',
+  'Paga a partir de um par de valetes. Tabela 9/6: full house 9, flush 6 por moeda.',
+  'O royal flush paga 250 por moeda, ou 800 por moeda com as cinco moedas.',
+];
+
+// Conferir: refaz o baralho e as cinco cartas finais a partir do registro.
+export function conferir(registro) {
+  const baralho = derivar(criarGerador(registro.semente, registro.sementeJogador, registro.contador));
+  const r = registro.resultado ?? {};
+  if (r.abandonada) return { confere: true, descricao: 'mão abandonada antes da troca: nada foi pago' };
+  const mao = baralho.slice(0, 5);
+  const final = maoFinal(baralho, r.segurou ?? [false, false, false, false, false]);
+  const confere = mao.join() === (r.mao ?? []).join() && final.join() === (r.final ?? []).join() && classificar(final) === r.categoria;
+  return { confere, descricao: `a mão dada foi ${mao.map(curto).join(' ')} e a final ${final.map(curto).join(' ')} (${TABELA[classificar(final)].nome})` };
 }
