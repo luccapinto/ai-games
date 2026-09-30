@@ -273,6 +273,7 @@ export function montar(raiz, app) {
   async function varrer() {
     if (s.estado !== 'fim') return;
     if (cenaCartas.cartas.size) await cenaCartas.recolher(geo().descarte, { atraso: 22 });
+    if (!vivo) return;
     novaRodadaSilenciosa();
   }
 
@@ -307,6 +308,7 @@ export function montar(raiz, app) {
         ocupado = true;
         await varrer();
         ocupado = false;
+        if (!vivo) return;
         s.definirAposta(apostaMontada);
         const r = chamar(() => s.dar());
         ui.mostrarMaos = true;

@@ -203,6 +203,7 @@ export function montar(raiz, app) {
   async function aoApostar(id, el) {
     if (ocupado) return;
     if (s.estado === 'fim') await varrer();
+    if (!vivo) return;
     try { s.apostar(id, ficha); } catch (e) { som.negado(); avisar(e.message, { erro: true }); if (casa.carteira.saldo < REGRAS.minimo) app.oferecerCredito(REGRAS.minimo); return; }
     som.ficha(1);
     voarFichas({ de: $(`.rack .ficha[data-v="${ficha}"]`), para: el, valor: ficha, duracao: 380, tamanho: 34, somFinal: false });
@@ -230,6 +231,7 @@ export function montar(raiz, app) {
       if (a === 'repetir') { if (s.estado === 'fim') await varrer(); s.repetir(); som.ficha(4); }
       if (a === 'dar') return dar();
     } catch (err) { som.negado(); avisar(err.message, { erro: true }); }
+    if (!vivo) return;
     pintarFichas(APOSTAS); pintarRack(); app.atualizarSaldo(); pintarConta();
   });
 
@@ -237,12 +239,13 @@ export function montar(raiz, app) {
     if (s.estado !== 'fim') return;
     ocupado = true;
     if (cena.cartas.size) await cena.recolher(geo().descarte, { atraso: 30 });
+    ocupado = false;
+    if (!vivo) return;
     s.novaRodada();
     ui.jogador = []; ui.banca = [];
     pintarTotais(null, null);
     raiz.querySelectorAll('.bc-lado').forEach(l => l.classList.remove('venceu'));
     raiz.querySelectorAll('.bc-zona').forEach(z => z.classList.remove('venceu'));
-    ocupado = false;
   }
 
   function pintarTotais(j, b) {
@@ -257,6 +260,7 @@ export function montar(raiz, app) {
   async function dar() {
     if (ocupado) return;
     if (s.estado === 'fim') await varrer();
+    if (!vivo) return;
     app.congelarSaldo();
     let r;
     try { r = s.dar(); } catch (e) { app.liberarSaldo(); avisar(e.message, { erro: true }); return; }

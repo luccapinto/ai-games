@@ -3,7 +3,7 @@
 // estratégia, o simulador e as provas usam. Mudar uma linha aqui muda a
 // vantagem da casa, e a prova que confere a vantagem vai gritar.
 
-import { baralhos, valorDe, curto } from '../../nucleo/baralho.js';
+import { baralhos, valorDe, curto, nomeCarta } from '../../nucleo/baralho.js';
 import { criarGerador } from '../../nucleo/justo.js';
 import { sha256hex } from '../../nucleo/sha256.js';
 
@@ -149,5 +149,6 @@ export function conferir(registro) {
   const r = registro.resultado ?? {};
   const refeito = resumoDoSapato(cartas, r.usadas ?? 0);
   const confere = refeito.hashSequencia === r.hashSequencia && refeito.primeiras === r.primeiras;
-  return { confere, descricao: `o sapato refeito começa com ${refeito.primeiras} e as ${refeito.usadas} cartas usadas batem com o registro${confere ? '' : ' (não batem)'}` };
+  const inicio = cartas.slice(0, 5).map(nomeCarta).join(', ');
+  return { confere, descricao: `o sapato refeito começa com ${inicio}, e as ${refeito.usadas} cartas usadas batem com o registro${confere ? '' : ' (não batem)'}` };
 }

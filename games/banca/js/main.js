@@ -154,6 +154,7 @@ async function irPara(id) {
   fecharPainel();
   esconderDica();
   if (mesaAtual) { try { mesaAtual.desmontar?.(); } catch (e) { console.error(e); } mesaAtual = null; }
+  app.mesaAtual = null;
   elMesa.innerHTML = '';
   idAtual = id;
   if (!id) {

@@ -18,7 +18,18 @@ import { APOSTAS as APOSTAS_BACARA, fichas as fichasBacara } from '../js/jogos/b
 import { criarSessaoCraps } from '../js/jogos/craps/sessao.js';
 import { ZONAS, fichaDe as fichaCraps, PONTOS } from '../js/jogos/craps/regras.js';
 import { criarSessaoNiquel } from '../js/jogos/niquel/sessao.js';
-import { APOSTAS_LINHA, rtpExato } from '../js/jogos/niquel/regras.js';
+import { APOSTAS_LINHA, rtpExato, conferir as conferirNiquel } from '../js/jogos/niquel/regras.js';
+import { conferir as conferirRoleta } from '../js/jogos/roleta/regras.js';
+import { conferir as conferirBlackjack } from '../js/jogos/blackjack/regras.js';
+import { conferir as conferirVideoPoquer } from '../js/jogos/videopoquer/regras.js';
+import { conferir as conferirBacara } from '../js/jogos/bacara/regras.js';
+import { conferir as conferirCraps } from '../js/jogos/craps/regras.js';
+import { conferirHash } from '../js/nucleo/justo.js';
+
+const CONFERIR = {
+  roleta: conferirRoleta, blackjack: conferirBlackjack, videopoquer: conferirVideoPoquer,
+  bacara: conferirBacara, craps: conferirCraps, niquel: conferirNiquel,
+};
 
 const RODADAS = 200;
 let tabelasVP = null;
@@ -101,6 +112,8 @@ bloco('robô: 200 rodadas em cada mesa');
 const casa = criarCasa({ armazem: armazemDescartavel(), fonte: fonteDeterministica(2026) });
 const relatorio = {};
 const sessoes = {};
+// o arquivo da casa guarda só os 300 últimos; o robô copia os de cada mesa ao sair dela
+const revelados = [];
 let perdaDasRodadas = 0;
 casa.ouvir((tipo, r) => { if (tipo === 'rodada') perdaDasRodadas += r.perdaEsperada; });
 
@@ -110,6 +123,7 @@ for (const [nome, [criar, rodada]] of Object.entries(ROBOS)) {
     sessoes[nome] = sessao;
     relatorio[nome] = jogar(nome, casa, sessao, rodada);
     ok(relatorio[nome].rodadas >= RODADAS, `${nome}: só ${relatorio[nome].rodadas} rodadas`);
+    revelados.push(...casa.justo.revelados.filter(r => r.jogo === nome));
     // a mesa volta a aceitar aposta depois da última rodada
     if (nome === 'blackjack') ok(['aposta', 'fim'].includes(sessao.estado), `blackjack parado em ${sessao.estado}`);
     if (nome === 'videopoquer') ok(sessao.estado !== 'descarte', 'vídeo pôquer parado no descarte');
@@ -149,6 +163,29 @@ prova('o Livro fecha: a perda esperada total é a soma exata das rodadas', () =>
     const q = relatorio[j] ?? {};
     relatar(`  robô      ${j.padEnd(12)} ${String(r.n).padStart(4)} rodadas  apostado ${(r.apostado / 100).toFixed(0).padStart(7)}  esperado ${(-r.perdaEsperada / 100).toFixed(2).padStart(9)}  real ${(r.real / 100).toFixed(2).padStart(9)}  ${r.sorte >= 0 ? '+' : ''}${r.sorte.toFixed(2)} σ  créditos ${q.creditos ?? 0}`);
   }
+});
+
+prova('tudo o que a casa revelou nas 1.200 rodadas confere no painel Conferir, sapatos inclusive', () => {
+  const porJogo = {}, coincidem = {};
+  for (const r of revelados) {
+    const conferir = CONFERIR[r.jogo];
+    ok(conferir, `jogo sem Conferir: ${r.jogo}`);
+    ok(conferirHash(r.semente, r.hash), `${r.jogo} ${r.contador}: a semente não bate com o hash`);
+    ok(!conferirHash(r.semente.replace(/^./, x => x === '0' ? '1' : '0'), r.hash), `${r.jogo}: semente adulterada bateu com o hash`);
+    const c = conferir(r);
+    ok(c.confere, `${r.jogo} ${r.contador}: ${c.descricao}`);
+    porJogo[r.jogo] = (porJogo[r.jogo] ?? 0) + 1;
+    // com a semente do jogador trocada o sorteio muda; numa roleta de 37 casas
+    // ele ainda coincide 1 vez em 37, por puro acaso, e é só isso que se admite
+    if (conferir({ ...r, sementeJogador: r.sementeJogador + 'x' }).confere) coincidem[r.jogo] = (coincidem[r.jogo] ?? 0) + 1;
+  }
+  const ACASO = { roleta: 1 / 37, craps: 1 / 36, niquel: 0, videopoquer: 0, blackjack: 0, bacara: 0 };
+  for (const j of Object.keys(ACASO)) {
+    ok(porJogo[j] > 0, `nada revelado em ${j}`);
+    const n = porJogo[j], k = coincidem[j] ?? 0, p = ACASO[j];
+    ok(k <= n * p + 4 * Math.sqrt(n * p * (1 - p)) + 1e-9, `${j}: ${k} de ${n} registros adulterados passaram`);
+  }
+  relatar(`  conferir  ${Object.entries(porJogo).map(([j, n]) => `${j} ${n}`).join(', ')} revelados: todos conferem; com a semente do jogador trocada, só coincidem por acaso ${Object.entries(coincidem).map(([j, k]) => `${j} ${k}`).join(', ') || 'nenhum'}`);
 });
 
 bloco('a casa sempre ganha');

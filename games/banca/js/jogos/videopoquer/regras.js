@@ -8,7 +8,7 @@
 // Um baralho de 52 cartas por mão: as cinco primeiras são a mão dada, e as
 // cinco seguintes são as substitutas, na ordem das posições trocadas.
 
-import { baralhos, valorDe, naipeDe, curto } from '../../nucleo/baralho.js';
+import { baralhos, valorDe, naipeDe, nomeCarta } from '../../nucleo/baralho.js';
 import { criarGerador } from '../../nucleo/justo.js';
 
 export const CATEGORIAS = [
@@ -131,5 +131,6 @@ export function conferir(registro) {
   const mao = baralho.slice(0, 5);
   const final = maoFinal(baralho, r.segurou ?? [false, false, false, false, false]);
   const confere = mao.join() === (r.mao ?? []).join() && final.join() === (r.final ?? []).join() && classificar(final) === r.categoria;
-  return { confere, descricao: `a mão dada foi ${mao.map(curto).join(' ')} e a final ${final.map(curto).join(' ')} (${TABELA[classificar(final)].nome})` };
+  const nomes = cs => cs.map(nomeCarta).join(', ');
+  return { confere, descricao: `a mão dada foi ${nomes(mao)}; a final, ${nomes(final)} (${TABELA[classificar(final)].nome})` };
 }
