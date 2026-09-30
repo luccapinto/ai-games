@@ -137,7 +137,8 @@ export function montar(raiz, app) {
   }
 
   function atualizarTotais() {
-    const c = contaDaMesa(s.apostas);
+    // durante o giro as apostas já saíram da sessão, mas continuam no pano até a bola parar
+    const c = contaDaMesa(girando ? girando.r.apostas : s.apostas);
     $('.v-total').textContent = fichas(c.total);
     $('.v-pe').textContent = c.total ? '−' + fichasFrac(c.perdaEsperada, 2) : '0';
     $('.girar').disabled = girando || c.total === 0;
@@ -285,7 +286,7 @@ export function montar(raiz, app) {
     app.congelarSaldo();
     let r;
     try { r = s.girar(); } catch (e) { app.liberarSaldo(); avisar(e.message, { erro: true }); return; }
-    girando = true;
+    girando = { r, eventoIdx: 0 };
     raiz.querySelector('.roleta').classList.add('girando');
     atualizarTotais();
     $('.medalha').hidden = true;
@@ -301,7 +302,6 @@ export function montar(raiz, app) {
     while (alvo > rotorAng + alvoVel * dur * 0.55 + Math.PI * 2) alvo -= Math.PI * 2;
     subida = { de: rotorAng, v0: rotorVel, para: alvo, v1: alvoVel, dur, voltas: alvo - q[4], inicio: performance.now() };
     bolaParada = null;
-    girando = { r, eventoIdx: 0 };
     som.dadosNaMao?.();
     som.rodaLigar();
   }
@@ -434,7 +434,7 @@ export function montar(raiz, app) {
   // ---------------------------------------------------------------- a conta
 
   function pintarConta() {
-    const c = contaDaMesa(s.apostas);
+    const c = contaDaMesa(girando ? girando.r.apostas : s.apostas);
     const hist = s.historico.slice(girando && ultimoNumeroVisivel !== s.historico[0] ? 1 : 0, (girando && ultimoNumeroVisivel !== s.historico[0] ? 1 : 0) + 20);
     const qf = s.quentesEFrios(100);
     const comp = s.compromisso();

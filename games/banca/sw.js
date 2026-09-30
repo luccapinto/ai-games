@@ -6,7 +6,7 @@
 // A lista abaixo é conferida por provas/offline.mjs contra os arquivos do
 // disco: arquivo novo fora da lista faz a prova falhar.
 
-const VERSAO = 'banca-v1';
+const VERSAO = 'banca-v2';
 
 const ARQUIVOS = [
   './',
@@ -99,8 +99,11 @@ self.addEventListener('activate', evento => {
 self.addEventListener('fetch', evento => {
   const pedido = evento.request;
   if (pedido.method !== 'GET' || new URL(pedido.url).origin !== location.origin) return;
+  // cache: 'no-cache' pergunta ao servidor se mudou (um 304 custa quase nada);
+  // sem isso o cache HTTP do navegador entregaria um módulo velho mesmo online
+  const revalidar = pedido.mode === 'navigate' ? new Request(pedido.url, { cache: 'no-cache' }) : new Request(pedido, { cache: 'no-cache' });
   evento.respondWith(
-    fetch(pedido)
+    fetch(revalidar)
       .then(resposta => {
         if (resposta.ok && resposta.type === 'basic') {
           const copia = resposta.clone();

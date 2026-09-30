@@ -519,14 +519,17 @@ function bar(g, m) {
   const larg = (u1 - u0) / secoes;
   const r = aleatorioSemeado(77);
   const CORES = [['#7a4a14', '#c98a3a'], ['#1f4a2a', '#4f9a5a'], ['#6a1420', '#c04050'], ['#2a2a3a', '#8a8aa8'], ['#9a7a2a', '#e8cf8f']];
-  for (const prat of [-1.75, -2.6, -3.4]) {
+  // as garrafas ficam dentro do espelho: o letreiro logo acima não pode ser coberto
+  g.save();
+  g.beginPath(); g.rect(u0, -3.9 * LZ, u1 - u0, 2.6 * LZ); g.clip();
+  for (const prat of [-1.65, -2.45, -3.2]) {
     g.fillStyle = LATAO; g.fillRect(u0 + 6, prat * LZ, u1 - u0 - 12, 2.5);
     g.fillStyle = 'rgba(255,214,150,.10)'; g.fillRect(u0 + 6, prat * LZ + 2.5, u1 - u0 - 12, 10);
     for (let s = 0; s < secoes; s++) {
       let u = u0 + s * larg + 18 + r() * 10;
       const fim = u0 + (s + 1) * larg - 16;
       while (u < fim) {
-        const alto = 24 + r() * 14, w = 8 + r() * 3, pescoco = 9 + r() * 5;
+        const alto = 18 + r() * 10, w = 8 + r() * 3, pescoco = 7 + r() * 4;
         const [escura, clara] = CORES[Math.floor(r() * CORES.length)];
         const base = prat * LZ;
         const gb = g.createLinearGradient(u, 0, u + w, 0);
@@ -546,6 +549,7 @@ function bar(g, m) {
       }
     }
   }
+  g.restore();
   for (let s = 0; s <= secoes; s++) {
     const u = u0 + s * larg;
     g.fillStyle = '#1a0a0e'; g.fillRect(u - 5, -3.9 * LZ, 10, 2.6 * LZ);
@@ -553,9 +557,14 @@ function bar(g, m) {
   }
   g.strokeStyle = LATAO; g.lineWidth = 2;
   g.strokeRect(u0, -3.9 * LZ, u1 - u0, 2.6 * LZ);
-  // letreiro pequeno do bar
-  g.font = '22px Limelight'; g.fillStyle = 'rgba(232,207,143,.8)'; g.textAlign = 'center';
-  g.fillText('BAR DO VÍDEO PÔQUER', (u0 + u1) / 2, -4.05 * LZ);
+  // letreiro pequeno do bar, numa placa escura com friso de latão, acima do espelho
+  g.font = '22px Limelight'; g.textAlign = 'center';
+  const texto = 'BAR DO VÍDEO PÔQUER', cx = (u0 + u1) / 2;
+  const lp = g.measureText(texto).width + 36, topoPlaca = -4.72 * LZ, altPlaca = 0.62 * LZ;
+  g.fillStyle = '#0d0709'; g.fillRect(cx - lp / 2, topoPlaca, lp, altPlaca);
+  g.strokeStyle = LATAO; g.lineWidth = 1.5; g.strokeRect(cx - lp / 2 + 3, topoPlaca + 3, lp - 6, altPlaca - 6);
+  g.fillStyle = 'rgba(232,207,143,.92)';
+  g.fillText(texto, cx, topoPlaca + altPlaca / 2 + 8);
   g.restore();
   // balcão
   caixa(g, x0, 0.15, 0, x1 - x0, 0.75, 1.05, { topo: '#1a0e08', esq: '#2e1a0e', dir: '#24140a', linha: 'rgba(0,0,0,.4)' });
