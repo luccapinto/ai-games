@@ -53,12 +53,19 @@ function atualizarSaldo({ forcar = false } = {}) {
   $('divida').textContent = d > 0 ? `deve ${fichas(d)}` : '';
 }
 
+// Conta de um valor ao outro. Uma contagem nova cancela a anterior; se as
+// duas pontas são fichas inteiras, os números do meio também são.
+let contagemAtual = 0;
 function contar(el, de, para) {
+  const minha = ++contagemAtual;
+  const inteiro = de % 100 === 0 && para % 100 === 0;
   const ini = performance.now(), dur = Math.min(900, 250 + Math.abs(para - de) / 100 * 4);
   function passo() {
+    if (minha !== contagemAtual) return;
     const p = Math.min(1, (performance.now() - ini) / dur);
     const e = 1 - Math.pow(1 - p, 3);
-    el.textContent = fichas(Math.round(de + (para - de) * e));
+    const v = de + (para - de) * e;
+    el.textContent = fichas(inteiro ? Math.round(v / 100) * 100 : Math.round(v));
     if (p < 1) requestAnimationFrame(passo);
     else el.textContent = fichas(para);
   }

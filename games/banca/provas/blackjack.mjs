@@ -10,7 +10,7 @@ import { criarCasa, armazemMemoria } from '../js/nucleo/casa.js';
 import { criarGerador, conferirHash } from '../js/nucleo/justo.js';
 import { lerCurto, carta, curto } from '../js/nucleo/baralho.js';
 import {
-  REGRAS, TOTAL_SAPATO, valorMao, valorCarta, bancaDeveComprar, derivar,
+  REGRAS, TOTAL_SAPATO, valorMao, valorCarta, bancaDeveComprar, derivar, conferir as conferirBJ,
 } from '../js/jogos/blackjack/regras.js';
 import { acaoBasica, DURO, MACIO, PARES } from '../js/jogos/blackjack/estrategia.js';
 import { avaliar, melhorAcao, distribuicaoBanca, evParar, evComprar, evDobrar, evDividir } from '../js/jogos/blackjack/ev.js';
@@ -261,7 +261,8 @@ prova('a carta de corte troca o sapato, revela o antigo e abre um compromisso no
   ok(s.sapato.pos <= 10, 'o sapato novo começou do zero');
   const revelado = casa.justo.revelados[casa.justo.revelados.length - 1];
   ok(conferirHash(revelado.semente, hashAntigo), 'a semente revelada bate com o hash publicado');
-  igual(revelado.resultado.cartasUsadas, REGRAS.corte, 'o resumo diz quantas cartas saíram');
+  igual(revelado.resultado.usadas, REGRAS.corte, 'o resumo diz quantas cartas saíram');
+  ok(conferirBJ(revelado).confere, 'o Conferir refaz o sapato e bate a sequência usada');
   const recomputado = derivar(criarGerador(revelado.semente, revelado.sementeJogador, revelado.contador));
   igual(recomputado.join(','), sapatoAntigo.join(','), 'a semente revelada devolve o mesmo sapato');
 });
@@ -461,7 +462,9 @@ bloco('blackjack: vantagem medida');
 
 prova('a simulação devolve a vantagem da casa gravada em vantagem.js', () => {
   const t0 = performance.now();
-  const maos = 6_000_000;
+  // 20 milhões de mãos: erro-padrão de uns 0,026 ponto, para o intervalo de
+  // 0,3% a 0,7% não depender de uma semente de sorte.
+  const maos = 20_000_000;
   const r = consolidar([simularBlackjack({ maos, semente: 424242 })]);
   const s = (performance.now() - t0) / 1000;
   entre(r.vantagem, 0.003, 0.007, 'vantagem simulada');

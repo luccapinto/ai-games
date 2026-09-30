@@ -3,7 +3,9 @@
 // estratégia, o simulador e as provas usam. Mudar uma linha aqui muda a
 // vantagem da casa, e a prova que confere a vantagem vai gritar.
 
-import { baralhos, valorDe } from '../../nucleo/baralho.js';
+import { baralhos, valorDe, curto } from '../../nucleo/baralho.js';
+import { criarGerador } from '../../nucleo/justo.js';
+import { sha256hex } from '../../nucleo/sha256.js';
 
 export const REGRAS = {
   // 6 baralhos, 312 cartas. A carta de corte entra na posição 234: quando uma
@@ -118,3 +120,34 @@ export const ROTULO_RESULTADO = {
   desistiu: 'desistiu',
   estourou: 'estourou',
 };
+
+// O que a mesa imprime no feltro e no painel: as regras, uma por linha.
+export const REGRAS_TEXTO = [
+  'Seis baralhos. O sapato é trocado quando a carta de corte (posição 234 de 312) já saiu.',
+  'A banca para em todo 17, inclusive no 17 macio.',
+  'Blackjack paga 3 para 2. Seguro paga 2 para 1 e custa metade da aposta.',
+  'Dobrar em quaisquer duas cartas, inclusive depois de dividir.',
+  'Divide até quatro mãos. Ases divididos recebem uma carta cada e não se dividem de novo.',
+  'Desistência tardia: na primeira decisão, devolve metade da aposta.',
+  'A banca espia o furo com ás ou dez: se tiver blackjack, a rodada acaba ali.',
+];
+
+// Resumo do sapato para o arquivo de sementes: a sequência que saiu vira um
+// hash, e as primeiras cartas vão por extenso para o jogador bater o olho.
+export function resumoDoSapato(cartas, usadas) {
+  const seq = cartas.slice(0, usadas).map(curto).join(' ');
+  return {
+    usadas,
+    primeiras: cartas.slice(0, 12).map(curto).join(' '),
+    hashSequencia: sha256hex(seq),
+    texto: `sapato de ${cartas.length} cartas, ${usadas} usadas`,
+  };
+}
+
+export function conferir(registro) {
+  const cartas = derivar(criarGerador(registro.semente, registro.sementeJogador, registro.contador));
+  const r = registro.resultado ?? {};
+  const refeito = resumoDoSapato(cartas, r.usadas ?? 0);
+  const confere = refeito.hashSequencia === r.hashSequencia && refeito.primeiras === r.primeiras;
+  return { confere, descricao: `o sapato refeito começa com ${refeito.primeiras} e as ${refeito.usadas} cartas usadas batem com o registro${confere ? '' : ' (não batem)'}` };
+}

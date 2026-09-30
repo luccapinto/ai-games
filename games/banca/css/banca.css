@@ -339,7 +339,8 @@ button { font: inherit; color: inherit; }
 
 #mesa {
   position: fixed; inset: 0; z-index: 10;
-  overflow: hidden;
+  /* clip e não hidden: uma carta voando fora do palco não pode rolar a mesa */
+  overflow: clip;
   background: #050505;
 }
 #mesa.entrando { animation: entra-mesa .9s var(--transicao); }

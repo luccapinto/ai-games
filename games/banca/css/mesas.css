@@ -153,8 +153,8 @@
   .conta.aberta { transform: none; }
   .aba-conta {
     display: flex; align-items: center; gap: 6px;
-    position: fixed; right: max(10px, env(safe-area-inset-right)); top: calc(var(--topo) + 6px); z-index: 44;
-    height: 36px; padding: 0 12px; border: 0; border-radius: 999px; cursor: pointer;
+    position: fixed; right: 0; top: 34%; z-index: 44;
+    height: 44px; padding: 0 10px 0 12px; border: 0; border-radius: 12px 0 0 12px; cursor: pointer;
     background: rgba(14, 12, 9, .88); color: var(--latao-claro); box-shadow: inset 0 0 0 1px rgba(201, 164, 92, .5);
     font-size: 11.5px; letter-spacing: .14em; text-transform: uppercase;
   }

@@ -10,7 +10,7 @@
 
 import { valorDe } from '../../nucleo/baralho.js';
 import {
-  REGRAS, TOTAL_SAPATO, valorCarta, valorMao, bancaDeveComprar, bancaEspia, derivar,
+  REGRAS, TOTAL_SAPATO, valorCarta, valorMao, bancaDeveComprar, bancaEspia, derivar, resumoDoSapato,
 } from './regras.js';
 import { acaoBasica } from './estrategia.js';
 import { avaliar, melhorAcao, custoPorFicha as custoDasAcoes } from './ev.js';
@@ -129,7 +129,7 @@ export function criarSessaoBlackjack(casa) {
     const eventos = [];
     if (!reg || m.pos >= REGRAS.corte) {
       if (reg) {
-        casa.justo.revelar(JOGO, { cartasUsadas: m.pos, embaralhadoEm: new Date().toISOString() });
+        casa.justo.revelar(JOGO, resumoDoSapato(cartas, m.pos));
         reg = null;
       }
       novoSapato();
