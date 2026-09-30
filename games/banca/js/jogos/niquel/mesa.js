@@ -18,13 +18,13 @@ export function placa() {
 
 const NOME = Object.fromEntries(SIMBOLOS.map(s => [s.id, s.nome]));
 const CORES_LINHA = ['#ff3d6e', '#35f0d8', '#ffd35a', '#9cc2ff', '#7dff9a', '#ff9a4a', '#e58cff'];
-const espera = ms => new Promise(r => setTimeout(r, ms));
 const easeOutBack = u => { const c1 = 1.25, c3 = c1 + 1; return 1 + c3 * Math.pow(u - 1, 3) + c1 * Math.pow(u - 1, 2); };
 
-export function montar(raiz, app) {
+export function montar(raiz, app, vida) {
   const { casa } = app;
   const s = criarSessaoNiquel(casa);
-  let ocupado = false, vivo = true, automatico = 0;
+  let ocupado = false, automatico = 0;
+  const espera = ms => vida.espera(ms);
   const exato = rtpExato();
   const medidas = { desenho: [] };
 
@@ -158,10 +158,9 @@ export function montar(raiz, app) {
     $('.nq-linha-msg').textContent = `linha ${l.linha + 1}: ${l.quantidade} ${NOME[l.simbolo]} · ${fichas(l.pago)}`;
   }
 
-  let raf = 0, anterior = performance.now();
+  let anterior = performance.now();
   function quadro(agora) {
-    if (!vivo) return;
-    raf = requestAnimationFrame(quadro);
+    vida.quadro(quadro);
     const dt = Math.min(0.05, (agora - anterior) / 1000);
     anterior = agora;
     const ini = performance.now();
@@ -229,10 +228,10 @@ export function montar(raiz, app) {
     if (a === 'girar') girar();
   });
   function tecla(e) {
-    if (!vivo || document.querySelector('.cortina')) return;
+    if (document.querySelector('.cortina')) return;
     if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); girar(); }
   }
-  addEventListener('keydown', tecla);
+  vida.ouvir(window, 'keydown', tecla);
 
   async function girar() {
     if (ocupado) return;
@@ -246,9 +245,9 @@ export function montar(raiz, app) {
     vitrine = null;
     $('.nq-linha-msg').textContent = '';
     $('.nq-comemora').hidden = true;
-    app.congelarSaldo();
+    const soltar = vida.congelar();
     let r;
-    try { r = s.girar(); } catch (err) { ocupado = false; app.liberarSaldo(); avisar(err.message, { erro: true }); return; }
+    try { r = s.girar(); } catch (err) { ocupado = false; soltar(); avisar(err.message, { erro: true }); return; }
     // o débito aparece na hora; o prêmio só depois dos rolos
     $('.nq-creditos').textContent = fichas(casa.carteira.saldo - r.avaliacao.total);
     pintarPainel(0);
@@ -264,19 +263,19 @@ export function montar(raiz, app) {
           som.antecipacao(1.1);
           await espera(1050);
         } else if (i > 0) await espera(r.gratis ? 170 : 240);
-        await pararRolo(i, r.paradas[i]);
+        await vida.seguir(pararRolo(i, r.paradas[i]));
         luas += [0, 1, 2].filter(f => simboloEm(rolos[i], r.paradas[i] + f) === 'lua').length;
       }
       som.rolosDesligar();
       await apresentar(r);
     } finally {
-      app.liberarSaldo();
+      soltar();
       ocupado = false;
       pintarPainel(); pintarConta();
     }
     // bônus em andamento ou automático: o próximo giro sai sozinho
-    if (vivo && s.emGirosGratis) { await espera(900); girar(); }
-    else if (vivo && automatico > 0) { automatico--; pintarPainel(); if (automatico > 0) { await espera(700); if (automatico > 0) girar(); } }
+    if (s.emGirosGratis) { await espera(900); girar(); }
+    else if (automatico > 0) { automatico--; pintarPainel(); if (automatico > 0) { await espera(700); if (automatico > 0) girar(); } }
   }
 
   async function apresentar(r) {
@@ -291,7 +290,7 @@ export function montar(raiz, app) {
       const mult = av.total / aposta;
       const nivel = mult >= 60 ? 5 : mult >= 25 ? 4 : mult >= 10 ? 3 : mult >= 2 ? 2 : 1;
       som.vitoria(nivel);
-      await contarGanho(av.total, nivel);
+      await vida.seguir(contarGanho(av.total, nivel));
       if (nivel >= 3) {
         const c = $('.nq-comemora');
         c.hidden = false;
@@ -321,9 +320,9 @@ export function montar(raiz, app) {
       function passo() {
         const p = Math.min(1, (performance.now() - ini) / dur);
         el.textContent = fichas(Math.round(v * (1 - Math.pow(1 - p, 2))));
-        if (p < 1) requestAnimationFrame(passo); else { el.textContent = fichas(v); res(); }
+        if (p < 1) vida.quadro(passo); else { el.textContent = fichas(v); res(); }
       }
-      requestAnimationFrame(passo);
+      vida.quadro(passo);
     });
   }
 
@@ -395,20 +394,18 @@ export function montar(raiz, app) {
 
   // ---------------------------------------------------------------- início
 
-  const ro = new ResizeObserver(() => dimensionar());
-  ro.observe(canvas);
+  vida.redimensionar(canvas, dimensionar);
   dimensionar();
   pintarPainel(0);
   pintarConta();
-  raf = requestAnimationFrame(quadro);
-  if (s.emGirosGratis) setTimeout(() => { if (vivo) girar(); }, 1200);
+  vida.quadro(quadro);
+  // giros grátis que ficaram guardados quando o jogador saiu recomeçam sozinhos
+  if (s.emGirosGratis) vida.depois(1200, girar);
+  vida.aoMorrer(() => { automatico = 0; som.rolosDesligar(); });
 
-  const api = {
+  return {
     sessao: s, medidas,
-    desmontar() { vivo = false; automatico = 0; cancelAnimationFrame(raf); ro.disconnect(); removeEventListener('keydown', tecla); som.rolosDesligar(); if (ocupado) app.liberarSaldo(); },
     get ocupado() { return ocupado; },
     girar,
   };
-  app.mesaAtual = api;
-  return api;
 }
