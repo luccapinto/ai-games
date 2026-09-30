@@ -4,7 +4,7 @@
     "jogos": 11,
     "autores": 1,
     "modelos": 3,
-    "linhas": 59183,
+    "linhas": 60136,
     "usd": 146.3,
     "tokens_novos": 4880647,
     "tokens_cache": 501635598,
@@ -59,7 +59,7 @@
         "metodo": "soma do campo usage de cada resposta nos registros de sessão do Oh My Pi (~/.omp/agent/sessions), separando entrada, saída, leitura e escrita de cache; o custo é o que o próprio Oh My Pi calculou pela tabela da Anthropic",
         "confianca": "medido",
         "medido_em": "2026-09-30",
-        "nota": "A entrada do claude-opus-5-5 soma o agente principal e o conselheiro, que rodam o mesmo modelo. Medido no commit de entrega: o relatório final escrito depois dele não está contado."
+        "nota": "A entrada do claude-opus-5-5 soma o agente principal e o conselheiro, que rodam o mesmo modelo. Medido no commit de entrega (ff595c3): o relatório final e a rodada 2 (sair da mesa no meio da rodada), feitos depois, não estão contados."
       },
       "totais": {
         "tokens_entrada": 3334,
@@ -69,7 +69,7 @@
         "tokens_totais": 343736043,
         "usd": 121.68,
         "chamadas_api": 1229,
-        "linhas": 17920,
+        "linhas": 18873,
         "tem_custo": true
       },
       "url": "games/banca/"
@@ -585,9 +585,9 @@
       "tokens_cache": 26326070,
       "chamadas_api": 1305,
       "usd": 49.85,
-      "linhas": 48474,
-      "tokens_por_linha": 44.29,
-      "linhas_por_dolar": 972.4
+      "linhas": 49427,
+      "tokens_por_linha": 43.44,
+      "linhas_por_dolar": 991.51
     },
     {
       "nome": "deepseek-flash",
@@ -613,9 +613,9 @@
       "tokens_cache": 316233304,
       "chamadas_api": 1070,
       "usd": 95.42,
-      "linhas": 17920,
-      "tokens_por_linha": 46.85,
-      "linhas_por_dolar": 187.8
+      "linhas": 18873,
+      "tokens_por_linha": 44.48,
+      "linhas_por_dolar": 197.79
     }
   ],
   "por_agente": [
@@ -633,9 +633,9 @@
       "tokens_cache": 316233304,
       "chamadas_api": 2080,
       "usd": 113.05,
-      "linhas": 43039,
-      "tokens_por_linha": 52.36,
-      "linhas_por_dolar": 380.71
+      "linhas": 43992,
+      "tokens_por_linha": 51.23,
+      "linhas_por_dolar": 389.14
     },
     {
       "nome": "Claude Code",
@@ -679,9 +679,9 @@
       "tokens_cache": 26326070,
       "chamadas_api": 159,
       "usd": 26.26,
-      "linhas": 17920,
-      "tokens_por_linha": 18.81,
-      "linhas_por_dolar": 682.41
+      "linhas": 18873,
+      "tokens_por_linha": 17.86,
+      "linhas_por_dolar": 718.7
     }
   ],
   "por_provider": [
@@ -704,9 +704,9 @@
       "tokens_cache": 342559374,
       "chamadas_api": 2375,
       "usd": 145.27,
-      "linhas": 48474,
-      "tokens_por_linha": 61.61,
-      "linhas_por_dolar": 333.68
+      "linhas": 49427,
+      "tokens_por_linha": 60.43,
+      "linhas_por_dolar": 340.24
     },
     {
       "nome": "DeepSeek",

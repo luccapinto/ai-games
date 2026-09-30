@@ -9,7 +9,7 @@ registrados ao lado.
 costs. Each game is a self-contained, playable folder that records the model that
 wrote it, the agent that drove it, and the tokens it burned.*
 
-**11 jogos** de **1 pessoa**, 59.183 linhas de código,
+**11 jogos** de **1 pessoa**, 60.136 linhas de código,
 4,9 M tokens novos e US$ 146,30 de API no total.
 
 👉 **[Jogar tudo](https://luccapinto.github.io/ai-games/)** · **[Ver o benchmark](https://luccapinto.github.io/ai-games/benchmark.html)** · **[Mandar o seu jogo](CONTRIBUTING.md)**
@@ -34,9 +34,9 @@ wrote it, the agent that drove it, and the tokens it burned.*
 
 | Modelo | Jogos | Tokens novos | Cache | Custo | Linhas |
 | --- | --- | --- | --- | --- | --- |
-| claude-opus-5 | 10 | 2,1 M | 26,3 M | US$ 49,85 | 48.474 |
+| claude-opus-5 | 10 | 2,1 M | 26,3 M | US$ 49,85 | 49.427 |
 | deepseek-flash | 1 | 1,9 M | 159,1 M | US$ 1,03 | 10.709 |
-| claude-opus-5-5 | 1 | 839,5 k | 316,2 M | US$ 95,42 | 17.920 |
+| claude-opus-5-5 | 1 | 839,5 k | 316,2 M | US$ 95,42 | 18.873 |
 
 Tokens novos são entrada + saída. Cache aparece em coluna separada de propósito:
 quanto do contexto vira leitura de cache depende da ferramenta que dirigiu o
@@ -113,13 +113,13 @@ O que tem dentro:
 - A bola e os dados obedecem ao sorteio: a roleta ajusta a fase do rotor para a bola cair na casa sorteada, e os dados rolam como corpos rígidos e param com a face sorteada para cima.
 - O Livro da Casa soma a perda esperada rodada a rodada contra o saldo real, com faixas de um e dois desvios-padrão e a sua sorte medida em desvios.
 - Treinador opcional no blackjack e no vídeo pôquer, que diz em fichas quanto cada desvio da jogada ótima custou.
-- 210 provas em Node, com um robô que joga 200 rodadas em cada mesa e confere que nenhuma das 412 apostas favorece o jogador; roda offline depois da primeira visita.
+- 227 provas em Node, com um robô que joga 200 rodadas em cada mesa e confere que nenhuma das 412 apostas favorece o jogador, e uma prova no Chrome que sai de cada mesa no meio da rodada e confere que nenhum centavo muda; roda offline depois da primeira visita.
 
 - **Quem fez:** Lucca Pinto
 - **Modelo:** claude-opus-5-5 via Anthropic, dirigido por Oh My Pi — 839,5 k tokens novos, 316,2 M de cache, 1.070 chamadas, US$ 95,42
 - **Modelo:** claude-opus-5 via Anthropic, dirigido por Oh My Pi (subagentes) — 337,1 k tokens novos, 26,3 M de cache, 159 chamadas, US$ 26,26
 - **Custo total:** US$ 121,68 (medido)
-- **Tamanho:** 17.920 linhas de código próprio, 1,1 MB
+- **Tamanho:** 18.873 linhas de código próprio, 1,2 MB
 - **Pasta:** [`games/banca/`](games/banca/README.md)
 
 ### TRAVESSIA
