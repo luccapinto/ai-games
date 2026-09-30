@@ -10,18 +10,24 @@ export function bloco(titulo) {
   process.stdout.write(`\n${titulo.padEnd(34)} `);
 }
 
+// Uma prova síncrona conta na hora; uma assíncrona devolve a promessa, e quem
+// chama espera (await prova(...)) antes de abrir o próximo bloco.
 export function prova(nome, fn) {
-  try {
-    fn();
+  const dono = blocoAtual;
+  const passou = () => {
     placar.feitas++;
-    if (blocoAtual) blocoAtual.feitas++;
+    if (dono) { dono.feitas++; dono.fim = performance.now(); }
     process.stdout.write('.');
-  } catch (erro) {
-    placar.falhas.push({ nome, erro, bloco: blocoAtual?.titulo });
-    if (blocoAtual) blocoAtual.falhas++;
+  };
+  const falhou = erro => {
+    placar.falhas.push({ nome, erro, bloco: dono?.titulo });
+    if (dono) { dono.falhas++; dono.fim = performance.now(); }
     process.stdout.write('X');
-  }
-  if (blocoAtual) blocoAtual.fim = performance.now();
+  };
+  let r;
+  try { r = fn(); } catch (erro) { falhou(erro); return; }
+  if (r && typeof r.then === 'function') return r.then(passou, falhou);
+  passou();
 }
 
 export function relatar(linha) {

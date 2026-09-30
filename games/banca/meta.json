@@ -52,7 +52,7 @@
     "confianca": "medido",
     "metodo": "soma do campo usage de cada resposta nos registros de sessão do Oh My Pi (~/.omp/agent/sessions), separando entrada, saída, leitura e escrita de cache; o custo é o que o próprio Oh My Pi calculou pela tabela da Anthropic",
     "medido_em": "2026-09-30",
-    "nota": "A entrada do claude-opus-5-5 soma o agente principal e o conselheiro, que rodam o mesmo modelo. Medido no commit de entrega: o relatório final escrito depois dele não está contado."
+    "nota": "A entrada do claude-opus-5-5 soma o agente principal e o conselheiro, que rodam o mesmo modelo. Medido no commit de entrega (ff595c3): o relatório final e a rodada 2 (sair da mesa no meio da rodada), feitos depois, não estão contados."
   },
   "stack": [
     "JavaScript (módulos ES)",
@@ -64,9 +64,9 @@
     "Node (provas)"
   ],
   "tamanho": {
-    "linhas_proprias": 17920,
-    "mb": 1.11,
-    "modulos_js": 55
+    "linhas_proprias": 18873,
+    "mb": 1.16,
+    "modulos_js": 56
   },
   "destaques": [
     "A vantagem da casa aparece em cada aposta e sai de conta, não de tabela: roleta 2,70% nas 157 apostas, blackjack 0,35% medido em 600 milhões de mãos, vídeo pôquer 9/6 a 99,54% pela enumeração das 2.598.960 mãos, caça-níquel a 96,0035% exato.",
@@ -74,7 +74,7 @@
     "A bola e os dados obedecem ao sorteio: a roleta ajusta a fase do rotor para a bola cair na casa sorteada, e os dados rolam como corpos rígidos e param com a face sorteada para cima.",
     "O Livro da Casa soma a perda esperada rodada a rodada contra o saldo real, com faixas de um e dois desvios-padrão e a sua sorte medida em desvios.",
     "Treinador opcional no blackjack e no vídeo pôquer, que diz em fichas quanto cada desvio da jogada ótima custou.",
-    "210 provas em Node, com um robô que joga 200 rodadas em cada mesa e confere que nenhuma das 412 apostas favorece o jogador; roda offline depois da primeira visita."
+    "227 provas em Node, com um robô que joga 200 rodadas em cada mesa e confere que nenhuma das 412 apostas favorece o jogador, e uma prova no Chrome que sai de cada mesa no meio da rodada e confere que nenhum centavo muda; roda offline depois da primeira visita."
   ],
   "arquivos_chave": [
     {
@@ -111,7 +111,7 @@
     },
     {
       "caminho": "provas.mjs",
-      "papel": "roda as 210 provas de provas/"
+      "papel": "roda as 227 provas de provas/"
     },
     {
       "caminho": "sw.js",

@@ -11,6 +11,7 @@ import * as som from './som.js';
 import { ICONES, avisar, abrirPainel, fecharPainel, esconderDica } from './ui.js';
 import { criarSalao } from './salao/salao.js';
 import { MESAS, MESA_POR_ID } from './mesas.js';
+import { criarVida } from './vida.js';
 
 const casa = criarCasa({ armazem: armazemNavegador() });
 som.configurar(casa.prefs);
@@ -36,9 +37,18 @@ function pintarSom() {
 pintarSom();
 
 let saldoMostrado = null;
-let congelado = 0;
-function atualizarSaldo({ forcar = false } = {}) {
-  if (congelado > 0 && !forcar) return;
+// Enquanto as fichas voam, o saldo do topo espera a animação. Cada
+// congelamento é uma marca própria, solta uma vez só; o topo volta a contar
+// quando a última sai. Quem congela é a vida da mesa (vida.congelar), e a
+// morte da vida solta o que ficou preso.
+const congelamentos = new Set();
+function congelarSaldo() {
+  const marca = {};
+  congelamentos.add(marca);
+  return () => { if (congelamentos.delete(marca) && !congelamentos.size) atualizarSaldo(); };
+}
+function atualizarSaldo() {
+  if (congelamentos.size) return;
   const v = casa.carteira.saldo;
   const el = $('saldo-valor');
   if (saldoMostrado !== null && v !== saldoMostrado) {
@@ -77,14 +87,11 @@ casa.ouvir(tipo => { if (tipo === 'saldo' || tipo === 'zerar') atualizarSaldo();
 
 // ------------------------------------------------------------------ app
 
-let mesaAtual = null, idAtual = null;
+let idAtual = null, vidaAtual = null, montagem = 0;
 
 const app = {
   casa, som,
   atualizarSaldo,
-  // Enquanto as fichas voam, o saldo do topo espera a animação.
-  congelarSaldo() { congelado++; },
-  liberarSaldo() { congelado = Math.max(0, congelado - 1); atualizarSaldo({ forcar: true }); },
   elementoSaldo: () => $('saldo'),
   voltar: () => { location.hash = ''; },
   avisar,
@@ -150,12 +157,16 @@ dir.addEventListener('click', e => {
 
 // ------------------------------------------------------------------ rotas
 
+// Cada montagem ganha uma casca nova dentro de #mesa e uma vida própria. Na
+// saída a vida morre (corta timers, quadros, esperas e ouvintes) e a casca sai
+// da página: nada da mesa velha escreve na mesa nova.
 async function irPara(id) {
+  const minha = ++montagem;
   fecharPainel();
   esconderDica();
-  if (mesaAtual) { try { mesaAtual.desmontar?.(); } catch (e) { console.error(e); } mesaAtual = null; }
+  if (vidaAtual) { vidaAtual.matar(); vidaAtual = null; }
   app.mesaAtual = null;
-  elMesa.innerHTML = '';
+  elMesa.replaceChildren();
   idAtual = id;
   if (!id) {
     elMesa.hidden = true;
@@ -166,6 +177,7 @@ async function irPara(id) {
     dir.hidden = false;
     salao.ligar();
     document.title = 'BANCA';
+    atualizarSaldo();
     return;
   }
   const m = MESA_POR_ID[id];
@@ -177,13 +189,22 @@ async function irPara(id) {
   document.title = `${m.nome} · BANCA`;
   elMesa.hidden = false;
   elMesa.classList.remove('entrando'); void elMesa.offsetWidth; elMesa.classList.add('entrando');
+  let vida = null;
   try {
     const mod = await import(m.modulo);
-    if (idAtual !== id) return;
-    mesaAtual = mod.montar(elMesa, app);
+    // o jogador pode ter trocado de mesa (ou saído e voltado) durante o import
+    if (minha !== montagem) return;
+    const casca = document.createElement('div');
+    casca.className = 'casca';
+    elMesa.append(casca);
+    vida = vidaAtual = criarVida({ congelarSaldo });
+    app.mesaAtual = mod.montar(casca, app, vida);
   } catch (e) {
     console.warn(e);
-    elMesa.innerHTML = `<div class="feltro"></div><div class="em-montagem"><h2>${m.nome}</h2><p>Esta mesa ainda está sendo montada.</p><button class="btn" id="volta-salao">Voltar ao salão</button></div>`;
+    vida?.matar();
+    if (vidaAtual === vida) vidaAtual = null;
+    if (minha !== montagem) return;
+    elMesa.innerHTML = `<div class="feltro"></div><div class="em-montagem"><h2>${m.nome}</h2><p>Não consegui abrir esta mesa: ${e.message}</p><button class="btn" id="volta-salao">Voltar ao salão</button></div>`;
     elMesa.querySelector('#volta-salao').onclick = app.voltar;
   }
   atualizarSaldo();

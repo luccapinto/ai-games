@@ -35,13 +35,16 @@ function textoTotal(cartas, dividida = false) {
   return String(t.total);
 }
 
-export function montar(raiz, app) {
+export function montar(raiz, app, vida) {
   const { casa } = app;
   const s = criarSessaoBlackjack(casa);
   let ficha = casa.mesa('blackjack').ficha ?? 500;
   let apostaMontada = s.estado === 'aposta' || s.estado === 'fim' ? s.aposta : 0;
   let ocupado = false;
-  let vivo = true;
+  // o saldo do topo fica congelado da chamada à sessão até as fichas pousarem
+  let soltarSaldo = null;
+  const congelar = () => { soltarSaldo ??= vida.congelar(); };
+  const soltar = () => { soltarSaldo?.(); soltarSaldo = null; };
   const ui = { maos: [], banca: [], rotulos: [] };
 
   raiz.innerHTML = `
@@ -173,13 +176,13 @@ export function montar(raiz, app) {
     };
     s.banca.cartas.forEach((c, i) => {
       const oculta = i === 1 && s.banca.oculta;
-      cenaCartas.dar(c, { para: g.banca(i), oculta, instantaneo: true }).then(el => { ui.banca[i] = el; });
+      vida.seguir(cenaCartas.dar(c, { para: g.banca(i), oculta, instantaneo: true })).then(el => { ui.banca[i] = el; });
     });
     s.maos.forEach((m, j) => {
       ui.maos[j] = [];
       m.cartas.forEach((c, i) => {
         const deitada = m.dobrada && i === 2;
-        cenaCartas.dar(c, { para: g.mao(j, i), deitada, instantaneo: true }).then(el => { ui.maos[j][i] = el; });
+        vida.seguir(cenaCartas.dar(c, { para: g.mao(j, i), deitada, instantaneo: true })).then(el => { ui.maos[j][i] = el; });
       });
     });
     ui.mostrarMaos = s.estado === 'jogando' || s.estado === 'seguro';
@@ -272,8 +275,7 @@ export function montar(raiz, app) {
   // Antes de dar cartas novas, as da rodada anterior vão para o descarte.
   async function varrer() {
     if (s.estado !== 'fim') return;
-    if (cenaCartas.cartas.size) await cenaCartas.recolher(geo().descarte, { atraso: 22 });
-    if (!vivo) return;
+    if (cenaCartas.cartas.size) await vida.seguir(cenaCartas.recolher(geo().descarte, { atraso: 22 }));
     novaRodadaSilenciosa();
   }
 
@@ -284,18 +286,18 @@ export function montar(raiz, app) {
   });
 
   function tecla(e) {
-    if (!vivo || document.querySelector('.cortina') || e.target.tagName === 'INPUT') return;
+    if (document.querySelector('.cortina') || e.target.tagName === 'INPUT') return;
     const mapa = { 1: 'pedir', 2: 'parar', 3: 'dobrar', 4: 'dividir', 5: 'desistir' };
     if (mapa[e.key] && s.estado === 'jogando') acao(mapa[e.key]);
     else if ((e.key === 'Enter' || e.key === ' ') && (s.estado === 'aposta' || s.estado === 'fim')) { e.preventDefault(); acao('dar'); }
   }
-  addEventListener('keydown', tecla);
+  vida.ouvir(window, 'keydown', tecla);
 
   // Toda chamada à sessão congela o saldo do topo; a encenação solta no fim,
   // depois de as fichas voarem. Assim o topo nunca conta o fim antes da mesa.
   function chamar(fn) {
-    app.congelarSaldo();
-    try { return fn(); } catch (e) { app.liberarSaldo(); throw e; }
+    congelar();
+    try { return fn(); } catch (e) { soltar(); throw e; }
   }
 
   async function acao(a) {
@@ -308,7 +310,6 @@ export function montar(raiz, app) {
         ocupado = true;
         await varrer();
         ocupado = false;
-        if (!vivo) return;
         s.definirAposta(apostaMontada);
         const r = chamar(() => s.dar());
         ui.mostrarMaos = true;
@@ -333,7 +334,7 @@ export function montar(raiz, app) {
 
   // ---------------------------------------------------------------- encenação
 
-  const espera = ms => new Promise(r => setTimeout(r, ms));
+  const espera = ms => vida.espera(ms);
 
   async function encenar(eventos, acaoFeita = null) {
     ocupado = true;
@@ -344,14 +345,13 @@ export function montar(raiz, app) {
     try {
       if (acaoFeita === 'dobrar') {
         const g = geo();
-        await voarFichas({ de: $('.rack'), para: pontoTela(g.aposta(v.ativa)), valor: s.maos[v.ativa].aposta / 2, duracao: 380, tamanho: 34 });
+        await vida.seguir(voarFichas({ de: $('.rack'), para: pontoTela(g.aposta(v.ativa)), valor: s.maos[v.ativa].aposta / 2, duracao: 380, tamanho: 34 }));
         pintarAposta();
       }
       for (const e of eventos) {
-        if (!vivo) return;
         const g = geo();
         if (e.tipo === 'embaralhar') {
-          await cenaCartas.recolher(g.descarte);
+          await vida.seguir(cenaCartas.recolher(g.descarte));
           $('.bj-sapato').classList.add('embaralhando');
           som.embaralhar();
           mensagem('Sapato novo: seis baralhos embaralhados pelo gerador verificável.');
@@ -363,7 +363,7 @@ export function montar(raiz, app) {
             const i = v.banca.length;
             v.banca.push(e.carta);
             if (e.oculta) v.bancaOculta = true;
-            ui.banca[i] = await cenaCartas.dar(e.carta, { de: g.sapato, para: g.banca(i), oculta: e.oculta });
+            ui.banca[i] = await vida.seguir(cenaCartas.dar(e.carta, { de: g.sapato, para: g.banca(i), oculta: e.oculta }));
           } else {
             const j = e.mao;
             ui.maos[j] ??= [];
@@ -372,7 +372,7 @@ export function montar(raiz, app) {
             const i = v.maos[j].length;
             v.maos[j].push(e.carta);
             v.ativa = j;
-            ui.maos[j][i] = await cenaCartas.dar(e.carta, { de: g.sapato, para: g.mao(j, i), deitada: e.deitada });
+            ui.maos[j][i] = await vida.seguir(cenaCartas.dar(e.carta, { de: g.sapato, para: g.mao(j, i), deitada: e.deitada }));
           }
           pintarRotulos();
         } else if (e.tipo === 'dividir') {
@@ -382,7 +382,7 @@ export function montar(raiz, app) {
           v.maos.splice(e.nova, 0, [cs]);
           await relayout();
           const gA = geo();
-          await voarFichas({ de: $('.rack'), para: pontoTela(gA.aposta(e.nova)), valor: s.maos[e.nova].aposta, duracao: 420, tamanho: 34 });
+          await vida.seguir(voarFichas({ de: $('.rack'), para: pontoTela(gA.aposta(e.nova)), valor: s.maos[e.nova].aposta, duracao: 420, tamanho: 34 }));
           pintarAposta();
           mensagem('Mão dividida.');
         } else if (e.tipo === 'seguro') {
@@ -392,7 +392,7 @@ export function montar(raiz, app) {
           const el = ui.banca[e.indice];
           aproximar($('.bj-cartas'), { x: rect().left + g.banca(1).x + g.l / 2, y: rect().top + g.banca(1).y + g.l * 0.7 }, { escala: 1.1, duracao: 1100 });
           await espera(250);
-          if (el) await cenaCartas.revelar(el, e.carta);
+          if (el) await vida.seguir(cenaCartas.revelar(el, e.carta));
           v.bancaOculta = false;
           pintarRotulos();
         } else if (e.tipo === 'fim') {
@@ -404,7 +404,7 @@ export function montar(raiz, app) {
       if (!v.resultados) v.ativa = s.maoAtual;
     } finally {
       ocupado = false;
-      app.liberarSaldo();
+      soltar();
       pintarRotulos(); pintarAposta(); pintarAcoes(); pintarSapato(); pintarRack();
       pintarConta();
     }
@@ -414,7 +414,7 @@ export function montar(raiz, app) {
     const g = geo();
     const movs = [];
     ui.maos.forEach((cs, j) => cs.forEach((el, i) => { if (el) movs.push(cenaCartas.mover(el, g.mao(j, i), 300)); }));
-    await Promise.all(movs);
+    await vida.seguir(Promise.all(movs));
     pintarRotulos();
   }
 
@@ -431,12 +431,12 @@ export function montar(raiz, app) {
       if (m.pago === 0) {
         if (pilha) { pilha.classList.add('desmorona'); voos.push(voarFichas({ de: pilha, para: rack, valor: m.aposta, duracao: 520, tamanho: 30, maximo: 4, somFinal: false })); }
       } else if (m.pago > m.aposta) {
-        voos.push(voarFichas({ de: rack, para: tela(g.aposta(j)), valor: m.pago - m.aposta, duracao: 520, tamanho: 32, maximo: 5 }).then(() => { if (pilha) pilha.innerHTML = htmlPilha(m.pago); }));
+        voos.push(vida.seguir(voarFichas({ de: rack, para: tela(g.aposta(j)), valor: m.pago - m.aposta, duracao: 520, tamanho: 32, maximo: 5 })).then(() => { if (pilha) pilha.innerHTML = htmlPilha(m.pago); }));
       } else if (m.pago < m.aposta && pilha) {
         pilha.innerHTML = htmlPilha(m.pago);
       }
     });
-    await Promise.all(voos);
+    await vida.seguir(Promise.all(voos));
     const liquido = rodada.retorno - rodada.apostado;
     const bj = s.maos.some(m => m.resultado === 'blackjack');
     if (liquido > 0) {
@@ -446,9 +446,9 @@ export function montar(raiz, app) {
     mensagem(rodada.rotulo);
     await espera(650);
     const restantes = [...raiz.querySelectorAll('.bj-apostas .pilha')].filter(p => !p.classList.contains('desmorona'));
-    await Promise.all(restantes.map((p, i) => voarFichas({ de: p, para: app.elementoSaldo(), valor: s.maos[Number(p.dataset.mao)]?.pago ?? 0, atraso: i * 80, duracao: 600, tamanho: 30, maximo: 4 })));
+    await vida.seguir(Promise.all(restantes.map((p, i) => voarFichas({ de: p, para: app.elementoSaldo(), valor: s.maos[Number(p.dataset.mao)]?.pago ?? 0, atraso: i * 80, duracao: 600, tamanho: 30, maximo: 4 }))));
     for (const p of raiz.querySelectorAll('.bj-apostas .pilha')) p.remove();
-    if (casa.carteira.saldo < REGRAS.minimo) setTimeout(() => app.oferecerCredito(REGRAS.minimo), 400);
+    if (casa.carteira.saldo < REGRAS.minimo) vida.depois(400, () => app.oferecerCredito(REGRAS.minimo));
     const cabe = Math.floor(casa.carteira.saldo / 100) * 100;
     apostaMontada = cabe >= REGRAS.minimo ? Math.min(s.aposta, cabe) : 0;
     ui.mostrarMaos = false;
@@ -533,20 +533,16 @@ export function montar(raiz, app) {
 
   // ---------------------------------------------------------------- início
 
-  const ro = new ResizeObserver(() => { if (!ocupado) posicionarTudo(); });
-  ro.observe(palco);
+  vida.redimensionar(palco, () => { if (!ocupado) posicionarTudo(); });
   pintarRack();
   posicionarTudo();
   pintarAcoes();
   pintarConta();
   if (s.estado === 'fim') { apostaMontada = s.aposta; }
 
-  const api = {
+  return {
     sessao: s,
-    desmontar() { vivo = false; ro.disconnect(); removeEventListener('keydown', tecla); if (ocupado) app.liberarSaldo(); },
     get ocupado() { return ocupado; },
     acao,
   };
-  app.mesaAtual = api;
-  return api;
 }

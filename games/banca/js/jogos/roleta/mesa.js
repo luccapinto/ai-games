@@ -25,7 +25,7 @@ const TIPOS_TABELA = [
   ['duzia', 'd2'], ['coluna', 'k2'], ['simples', 'vermelho'],
 ];
 
-export function montar(raiz, app) {
+export function montar(raiz, app, vida) {
   const { casa } = app;
   const s = criarSessaoRoleta(casa);
   let ficha = casa.mesa('roleta').ficha ?? 500;
@@ -36,7 +36,7 @@ export function montar(raiz, app) {
   let rotorAng = casa.mesa('roleta').rotorAng ?? 0, rotorVel = 0.35;
   let bolaParada = casa.mesa('roleta').bolaPsi ?? null; // ângulo da bola no referencial do rotor
   let ultimoNumeroVisivel = s.historico[0] ?? null;
-  let raf = 0, vivo = true;
+  let soltarSaldo = null;
   let rapido = !!casa.mesa('roleta').rapido;
   const medidas = { desenho: [] };
 
@@ -194,10 +194,10 @@ export function montar(raiz, app) {
       const z = e.target.closest('.zona');
       if (!z || e.pointerType === 'mouse') return;
       longo = false;
-      clearTimeout(toque);
-      toque = setTimeout(() => { longo = true; mostrarDica(z, dicaDe(z.dataset.id)); destacar(APOSTA_POR_ID[z.dataset.id].numeros, true); }, 420);
+      vida.cancelar(toque);
+      toque = vida.depois(420, () => { longo = true; mostrarDica(z, dicaDe(z.dataset.id)); destacar(APOSTA_POR_ID[z.dataset.id].numeros, true); });
     });
-    panoEscala.addEventListener('pointerup', () => { clearTimeout(toque); if (longo) setTimeout(() => { esconderDica(); for (const el of raiz.querySelectorAll('.coberto')) el.classList.remove('coberto'); }, 1600); });
+    panoEscala.addEventListener('pointerup', () => { vida.cancelar(toque); if (longo) vida.depois(1600, () => { esconderDica(); for (const el of raiz.querySelectorAll('.coberto')) el.classList.remove('coberto'); }); });
     panoEscala.addEventListener('click', e => {
       const z = e.target.closest('.zona');
       if (!z || longo) { longo = false; return; }
@@ -283,9 +283,9 @@ export function montar(raiz, app) {
     if (girando) return;
     if (!s.total()) { avisar('Ponha uma ficha no pano.'); return; }
     esconderDica();
-    app.congelarSaldo();
+    soltarSaldo = vida.congelar();
     let r;
-    try { r = s.girar(); } catch (e) { app.liberarSaldo(); avisar(e.message, { erro: true }); return; }
+    try { r = s.girar(); } catch (e) { soltarSaldo(); soltarSaldo = null; avisar(e.message, { erro: true }); return; }
     girando = { r, eventoIdx: 0 };
     raiz.querySelector('.roleta').classList.add('girando');
     atualizarTotais();
@@ -312,8 +312,7 @@ export function montar(raiz, app) {
   }
 
   function quadro(agora) {
-    if (!vivo) return;
-    raf = requestAnimationFrame(quadro);
+    vida.quadro(quadro);
     const ini = performance.now();
     let bola = null;
     if (subida) {
@@ -398,7 +397,7 @@ export function montar(raiz, app) {
       const premio = g.retorno - g.aposta;
       lucro += premio;
       if (p) {
-        await voarFichas({ de: banco, para: p, valor: premio, duracao: 460, tamanho: 32, maximo: 6 });
+        await vida.seguir(voarFichas({ de: banco, para: p, valor: premio, duracao: 460, tamanho: 32, maximo: 6 }));
         p.innerHTML = htmlPilha(g.retorno);
         p.classList.add('paga');
       }
@@ -418,9 +417,9 @@ export function montar(raiz, app) {
     await espera(r.retorno > 0 ? 900 : 300);
     // o que sobrou no pano volta para o jogador
     const restantes = [...raiz.querySelectorAll('.fichas-pano .pilha')];
-    await Promise.all(restantes.map((p, i) => voarFichas({ de: p, para: app.elementoSaldo(), valor: r.ganhos.find(g => g.id === p.dataset.id)?.retorno ?? 0, atraso: i * 60, duracao: 600, tamanho: 30, maximo: 4 })));
+    await vida.seguir(Promise.all(restantes.map((p, i) => voarFichas({ de: p, para: app.elementoSaldo(), valor: r.ganhos.find(g => g.id === p.dataset.id)?.retorno ?? 0, atraso: i * 60, duracao: 600, tamanho: 30, maximo: 4 }))));
     for (const p of restantes) p.remove();
-    app.liberarSaldo();
+    soltarSaldo?.(); soltarSaldo = null;
     destacar([r.numero], false);
     raiz.querySelectorAll('.saiu').forEach(el => el.classList.remove('saiu'));
     girando = false;
@@ -429,7 +428,7 @@ export function montar(raiz, app) {
     if (casa.carteira.saldo < 100) app.oferecerCredito(100);
   }
 
-  const espera = ms => new Promise(res => setTimeout(res, ms));
+  const espera = ms => vida.espera(ms);
 
   // ---------------------------------------------------------------- a conta
 
@@ -483,9 +482,8 @@ export function montar(raiz, app) {
     roda.dimensionar();
     pintarFichas();
   }
-  const ro = new ResizeObserver(() => redimensionar());
-  ro.observe(raiz.querySelector('.roda-caixa'));
-  addEventListener('resize', redimensionar);
+  vida.redimensionar(raiz.querySelector('.roda-caixa'), redimensionar);
+  vida.ouvir(window, 'resize', redimensionar);
 
   escolherOrientacao();
   ligarPano();
@@ -493,22 +491,26 @@ export function montar(raiz, app) {
   pintarRack();
   pintarFichas();
   if (ultimoNumeroVisivel !== null && bolaParada === null) bolaParada = 0;
-  raf = requestAnimationFrame(quadro);
+  vida.quadro(quadro);
 
-  const api = {
+  // Saiu no meio do giro: o número já saiu e já foi pago na sessão. A bola é
+  // guardada onde a física a faria assentar, na casa sorteada, e é lá que ela
+  // está quando o jogador voltar.
+  vida.aoMorrer(() => {
+    const m = casa.mesa('roleta');
+    if (giro) {
+      const a = amostra(giro, Infinity);
+      m.bolaPsi = a.phi - a.rotor;
+      // as voltas inteiras somadas na subida não mudam a fase
+      rotorAng = a.rotor;
+    }
+    m.rotorAng = rotorAng % (Math.PI * 2);
+    som.rodaDesligar();
+  });
+
+  return {
     sessao: s, medidas,
-    desmontar() {
-      vivo = false;
-      cancelAnimationFrame(raf);
-      ro.disconnect();
-      removeEventListener('resize', redimensionar);
-      casa.mesa('roleta').rotorAng = rotorAng % (Math.PI * 2);
-      som.rodaDesligar();
-      if (girando) app.liberarSaldo();
-    },
     get girando() { return !!girando; },
     girar, apostar: (id, v) => { const f = ficha; ficha = v; aoApostar(id); ficha = f; },
   };
-  app.mesaAtual = api;
-  return api;
 }

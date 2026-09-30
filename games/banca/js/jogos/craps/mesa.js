@@ -21,14 +21,19 @@ export function placa() {
 const ABAS = [['linha', 'Linha e campo'], ['numeros', 'Números'], ['centro', 'Centro']];
 const PALAVRA_CLASSE = { boa: 'boa', media: 'média', ruim: 'ruim' };
 
-export function montar(raiz, app) {
+export function montar(raiz, app, vida) {
   const { casa } = app;
   const s = criarSessaoCraps(casa);
   let ficha = casa.mesa('craps').ficha ?? 500;
-  let ocupado = false, vivo = true;
+  let ocupado = false;
   let estreito = null, aba = casa.mesa('craps').aba ?? 'linha';
   let pano = null, ancora = {};
-  let lance = null, t0 = 0, raf = 0, ultimoLance = casa.mesa('craps').ultimoLance ?? null;
+  // O último lance volta parado onde a física o deixou: a simulação é
+  // determinística, então refazê-la com a mesma semente dá o mesmo repouso, com
+  // as faces sorteadas para cima (inclusive para quem saiu no meio do lance).
+  const ultimoDoHistorico = s.historico[0];
+  let lance = null, t0 = 0;
+  let ultimoLance = ultimoDoHistorico ? simularLance(ultimoDoHistorico.dados, (s.lances * 2654435761 + ultimoDoHistorico.soma) >>> 0) : null;
   const medidas = { desenho: [] };
 
   raiz.innerHTML = `
@@ -80,7 +85,7 @@ export function montar(raiz, app) {
     pintarClasses();
     pintarFichas();
     pintarPuck();
-    requestAnimationFrame(dimensionarDados);
+    vida.quadro(dimensionarDados);
   }
 
   function dimensionarDados() {
@@ -220,14 +225,14 @@ export function montar(raiz, app) {
   });
   $('[data-a="lancar"]').addEventListener('click', lancar);
   function tecla(e) {
-    if (!vivo || document.querySelector('.cortina')) return;
+    if (document.querySelector('.cortina')) return;
     if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); lancar(); }
   }
-  addEventListener('keydown', tecla);
+  vida.ouvir(window, 'keydown', tecla);
 
   // ---------------------------------------------------------------- o lance
 
-  const espera = ms => new Promise(r => setTimeout(r, ms));
+  const espera = ms => vida.espera(ms);
 
   function desenhoAtivo() { return estreito ? desenhoPista : desenhoMesa; }
 
@@ -244,28 +249,27 @@ export function montar(raiz, app) {
     for (const z of ZONAS) total += s.apostas[z.id] ?? 0;
     if (!total) { avisar('Ponha ao menos uma ficha no pano.'); return; }
     esconderDica();
-    app.congelarSaldo();
+    const soltar = vida.congelar();
     let r;
     const antes = { ...s.apostas };
     const pontoAntes = s.ponto;
-    try { r = s.lancar(); } catch (err) { app.liberarSaldo(); avisar(err.message, { erro: true }); return; }
+    try { r = s.lancar(); } catch (err) { soltar(); avisar(err.message, { erro: true }); return; }
     ocupado = true;
     atualizarTotais();
     try {
       som.dadosNaMao();
       await espera(260);
       lance = simularLance(r.dados, (s.lances * 2654435761 + r.total) >>> 0);
-      await animarLance();
+      await vida.seguir(animarLance());
       ultimoLance = lance;
-      casa.mesa('craps').ultimoLance = null;
       lance = null;
       mensagem(textoDoLance(r, pontoAntes));
       await resolverVisual(r, antes);
     } finally {
       ocupado = false;
-      app.liberarSaldo();
+      soltar();
       pintarClasses(); pintarFichas(); pintarPuck(); pintarRack(); pintarConta();
-      if (casa.carteira.saldo < 100) setTimeout(() => app.oferecerCredito(100), 300);
+      if (casa.carteira.saldo < 100) vida.depois(300, () => app.oferecerCredito(100));
     }
   }
 
@@ -275,7 +279,6 @@ export function montar(raiz, app) {
       let k = 0;
       t0 = performance.now();
       function quadro(agora) {
-        if (!vivo) return resolve();
         const t = (agora - t0) / 1000;
         const ini = performance.now();
         const a = amostraLance(lance, t);
@@ -287,9 +290,9 @@ export function montar(raiz, app) {
           if (e.tipo === 'mesa' || e.tipo === 'parede' || e.tipo === 'dados') som.dado(e.forca);
         }
         if (a.fim) { resolve(); return; }
-        raf = requestAnimationFrame(quadro);
+        vida.quadro(quadro);
       }
-      raf = requestAnimationFrame(quadro);
+      vida.quadro(quadro);
     });
   }
 
@@ -327,7 +330,7 @@ export function montar(raiz, app) {
         }
       }
     }
-    await Promise.all(voos);
+    await vida.seguir(Promise.all(voos));
     const ganhoTotal = r.eventos.filter(e => e.resultado === 'ganhou').reduce((q, e) => q + (e.permanece ? e.pago : e.pago - e.aposta), 0);
     const perdaTotal = r.eventos.filter(e => e.resultado === 'perdeu').reduce((q, e) => q + e.aposta, 0);
     if (ganhoTotal > 0) {
@@ -337,10 +340,10 @@ export function montar(raiz, app) {
     } else if (perdaTotal > 0) som.derrota();
     if (paraSaldo.length) {
       await espera(450);
-      await Promise.all(paraSaldo.map((x, i) => {
+      await vida.seguir(Promise.all(paraSaldo.map((x, i) => {
         const p = raiz.querySelector(`.cr-fichas .pilha[data-id="${x.id}"]`);
         return voarFichas({ de: p ?? banco, para: app.elementoSaldo(), valor: x.valor, atraso: i * 60, duracao: 600, tamanho: 28, maximo: 4 });
-      }));
+      })));
     }
   }
 
@@ -399,18 +402,14 @@ export function montar(raiz, app) {
 
   // ---------------------------------------------------------------- início
 
-  const ro = new ResizeObserver(() => { if (!ocupado) montarPano(); else dimensionarDados(); });
-  ro.observe(palco);
+  vida.redimensionar(palco, () => { if (!ocupado) montarPano(); else dimensionarDados(); });
   pintarRack();
   montarPano();
   pintarConta();
 
-  const api = {
+  return {
     sessao: s, medidas,
-    desmontar() { vivo = false; cancelAnimationFrame(raf); ro.disconnect(); removeEventListener('keydown', tecla); if (ocupado) app.liberarSaldo(); },
     get ocupado() { return ocupado; },
     lancar,
   };
-  app.mesaAtual = api;
-  return api;
 }

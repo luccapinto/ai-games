@@ -6,7 +6,7 @@
 // A lista abaixo é conferida por provas/offline.mjs contra os arquivos do
 // disco: arquivo novo fora da lista faz a prova falhar.
 
-const VERSAO = 'banca-v2';
+const VERSAO = 'banca-v3';
 
 const ARQUIVOS = [
   './',
@@ -27,6 +27,7 @@ const ARQUIVOS = [
   'js/ui.js',
   'js/mesas.js',
   'js/som.js',
+  'js/vida.js',
   'js/nucleo/sha256.js',
   'js/nucleo/justo.js',
   'js/nucleo/carteira.js',

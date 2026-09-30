@@ -89,11 +89,11 @@ function svgPano(estreito = false) {
   return s + '</svg>';
 }
 
-export function montar(raiz, app) {
+export function montar(raiz, app, vida) {
   const { casa } = app;
   const s = criarSessaoBacara(casa);
   let ficha = casa.mesa('bacara').ficha ?? 500;
-  let ocupado = false, vivo = true, estreito = null;
+  let ocupado = false, estreito = null;
   let rapido = !!casa.mesa('bacara').rapido;
   const ui = { jogador: [], banca: [] };
 
@@ -208,7 +208,6 @@ export function montar(raiz, app) {
   async function aoApostar(id, el) {
     if (ocupado) return;
     if (s.estado === 'fim') await varrer();
-    if (!vivo) return;
     try { s.apostar(id, ficha); } catch (e) { som.negado(); avisar(e.message, { erro: true }); if (casa.carteira.saldo < REGRAS.minimo) app.oferecerCredito(REGRAS.minimo); return; }
     som.ficha(1);
     voarFichas({ de: $(`.rack .ficha[data-v="${ficha}"]`), para: el, valor: ficha, duracao: 380, tamanho: 34, somFinal: false });
@@ -236,16 +235,14 @@ export function montar(raiz, app) {
       if (a === 'repetir') { if (s.estado === 'fim') await varrer(); s.repetir(); som.ficha(4); }
       if (a === 'dar') return dar();
     } catch (err) { som.negado(); avisar(err.message, { erro: true }); }
-    if (!vivo) return;
     pintarFichas(APOSTAS); pintarRack(); app.atualizarSaldo(); pintarConta();
   });
 
   async function varrer() {
     if (s.estado !== 'fim') return;
     ocupado = true;
-    if (cena.cartas.size) await cena.recolher(geo().descarte, { atraso: 30 });
+    if (cena.cartas.size) await vida.seguir(cena.recolher(geo().descarte, { atraso: 30 }));
     ocupado = false;
-    if (!vivo) return;
     s.novaRodada();
     ui.jogador = []; ui.banca = [];
     pintarTotais(null, null);
@@ -260,12 +257,11 @@ export function montar(raiz, app) {
 
   // ---------------------------------------------------------------- o coup
 
-  const espera = ms => new Promise(r => setTimeout(r, rapido ? ms * 0.45 : ms));
+  const espera = ms => vida.espera(rapido ? ms * 0.45 : ms);
 
   async function dar() {
     if (ocupado) return;
     if (s.estado === 'fim') await varrer();
-    if (!vivo) return;
     if (APOSTAS.every(id => !s.apostas[id])) {
       try { s.repetir(); } catch (e) { som.negado(); avisar(e.message, { erro: true }); if (casa.carteira.saldo < REGRAS.minimo) app.oferecerCredito(REGRAS.minimo); pintarFichas(); return; }
       som.ficha(4);
@@ -273,21 +269,19 @@ export function montar(raiz, app) {
       ocupado = true;
       await espera(350);
       ocupado = false;
-      if (!vivo) return;
     }
-    app.congelarSaldo();
+    const soltar = vida.congelar();
     let r;
-    try { r = s.dar(); } catch (e) { app.liberarSaldo(); avisar(e.message, { erro: true }); return; }
+    try { r = s.dar(); } catch (e) { soltar(); avisar(e.message, { erro: true }); return; }
     ocupado = true;
     atualizarTotais();
     esconderDica();
     const vis = { jogador: [], banca: [] };
     try {
       for (const e of r.eventos) {
-        if (!vivo) return;
         const g = geo();
         if (e.tipo === 'embaralhar') {
-          if (cena.cartas.size) await cena.recolher(g.descarte);
+          if (cena.cartas.size) await vida.seguir(cena.recolher(g.descarte));
           $('.bc-sapato').classList.add('embaralhando');
           som.embaralhar();
           mensagem('Sapato novo: oito baralhos embaralhados pelo gerador verificável.');
@@ -298,7 +292,7 @@ export function montar(raiz, app) {
           const i = vis[e.alvo].length;
           vis[e.alvo].push(e.carta);
           // as quatro primeiras chegam de costas; a terceira de cada lado também
-          const el = await cena.dar(e.carta, { de: g.sapato, para: g.carta(e.alvo, i), oculta: true });
+          const el = await vida.seguir(cena.dar(e.carta, { de: g.sapato, para: g.carta(e.alvo, i), oculta: true }));
           ui[e.alvo][i] = el;
           el._carta = e.carta;
           pintarSapato();
@@ -314,9 +308,9 @@ export function montar(raiz, app) {
       }
     } finally {
       ocupado = false;
-      app.liberarSaldo();
+      soltar();
       pintarFichas(); pintarRack(); pintarPlacar(); pintarConta(); atualizarTotais();
-      if (casa.carteira.saldo < REGRAS.minimo) setTimeout(() => app.oferecerCredito(REGRAS.minimo), 400);
+      if (casa.carteira.saldo < REGRAS.minimo) vida.depois(400, () => app.oferecerCredito(REGRAS.minimo));
     }
   }
 
@@ -332,7 +326,7 @@ export function montar(raiz, app) {
       el.classList.add('espiando');
       await espera(indices.length > 1 ? 420 : 700);
       el.classList.remove('espiando');
-      await cena.revelar(el, el._carta);
+      await vida.seguir(cena.revelar(el, el._carta));
     }
     const cartasVistas = vis[lado].slice(0, Math.max(...indices) + 1);
     const t = totalMao(cartasVistas);
@@ -363,10 +357,10 @@ export function montar(raiz, app) {
         p.classList.add('desmorona');
         voos.push(voarFichas({ de: p, para: rack, valor: e.aposta, duracao: 520, tamanho: 30, maximo: 3, somFinal: false }));
       } else if (e.pago > e.aposta) {
-        voos.push(voarFichas({ de: rack, para: p, valor: e.pago - e.aposta, duracao: 520, tamanho: 32, maximo: 5 }).then(() => { p.innerHTML = htmlPilha(e.pago); }));
+        voos.push(vida.seguir(voarFichas({ de: rack, para: p, valor: e.pago - e.aposta, duracao: 520, tamanho: 32, maximo: 5 })).then(() => { p.innerHTML = htmlPilha(e.pago); }));
       }
     }
-    await Promise.all(voos);
+    await vida.seguir(Promise.all(voos));
     const liquido = rodada.retorno - rodada.apostado;
     if (liquido > 0) {
       const mult = rodada.retorno / rodada.apostado;
@@ -376,7 +370,7 @@ export function montar(raiz, app) {
     await espera(700);
     const restantes = [...raiz.querySelectorAll('.bc-fichas .pilha')].filter(p => !p.classList.contains('desmorona'));
     const pagos = Object.fromEntries(r.eventos.filter(x => x.tipo === 'resultado').map(x => [x.zona, x.pago]));
-    await Promise.all(restantes.map((p, i) => voarFichas({ de: p, para: app.elementoSaldo(), valor: pagos[p.dataset.id] ?? 0, atraso: i * 70, duracao: 600, tamanho: 30, maximo: 4 })));
+    await vida.seguir(Promise.all(restantes.map((p, i) => voarFichas({ de: p, para: app.elementoSaldo(), valor: pagos[p.dataset.id] ?? 0, atraso: i * 70, duracao: 600, tamanho: 30, maximo: 4 }))));
     raiz.querySelector('.bc-fichas').innerHTML = '';
   }
 
@@ -484,24 +478,20 @@ export function montar(raiz, app) {
     if (s.estado === 'fim' && s.mao) {
       const g = geo();
       for (const lado of ['jogador', 'banca']) {
-        s.mao[lado].forEach((c, i) => cena.dar(c, { para: g.carta(lado, i), instantaneo: true }).then(el => { ui[lado][i] = el; }));
+        s.mao[lado].forEach((c, i) => vida.seguir(cena.dar(c, { para: g.carta(lado, i), instantaneo: true })).then(el => { ui[lado][i] = el; }));
       }
       pintarTotais(s.mao.totalJogador, s.mao.totalBanca);
     }
     pintarFichas(); pintarSapato(); pintarPlacar();
   }
-  const ro = new ResizeObserver(() => { if (!ocupado) posicionar(); });
-  ro.observe(palco);
+  vida.redimensionar(palco, () => { if (!ocupado) posicionar(); });
   pintarRack();
   posicionar();
   pintarConta();
 
-  const api = {
+  return {
     sessao: s,
-    desmontar() { vivo = false; ro.disconnect(); if (ocupado) app.liberarSaldo(); },
     get ocupado() { return ocupado; },
     dar, apostar: (id) => aoApostar(id, raiz.querySelector(`.bc-zona[data-id="${id}"]`)),
   };
-  app.mesaAtual = api;
-  return api;
 }

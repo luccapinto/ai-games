@@ -47,7 +47,8 @@ export function avisar(texto, { erro = false, ms = 2600 } = {}) {
 let dicaDona = null;
 export function mostrarDica(ancora, html) {
   const d = document.getElementById('dica');
-  if (!d) return;
+  // um toque longo que termina depois de o jogador sair da mesa não abre dica no salão
+  if (!d || (ancora instanceof Element && !ancora.isConnected)) return;
   d.innerHTML = html;
   d.classList.add('visivel');
   dicaDona = ancora;

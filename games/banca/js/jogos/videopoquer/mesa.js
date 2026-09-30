@@ -56,7 +56,7 @@ function nomeCurto(c) {
   return `<span class="nc">${INDICES[valorDe(c)]}${iconeNaipe(naipeDe(c), 11)}</span>`;
 }
 
-export function montar(raiz, app) {
+export function montar(raiz, app, vida) {
   const { casa } = app;
   const cache = new Map();
   const chave = (mao, moedas) => `${mao.join(',')}|${moedas === MAX_MOEDAS ? 5 : 1}`;
@@ -67,7 +67,7 @@ export function montar(raiz, app) {
       return r;
     },
   });
-  let ocupado = false, vivo = true, analisando = false;
+  let ocupado = false, analisando = false;
   let cartasEl = [];
 
   raiz.innerHTML = `
@@ -155,7 +155,7 @@ export function montar(raiz, app) {
     raiz.querySelectorAll('.vp-segurar').forEach((b, i) => { b.classList.toggle('ativo', !!s.segurar[i] && s.estado === 'descarte'); b.disabled = s.estado !== 'descarte' || ocupado; });
   }
 
-  const espera = ms => new Promise(r => setTimeout(r, ms));
+  const espera = ms => vida.espera(ms);
 
   async function virarPara(i, c) {
     const el = cartasEl[i];
@@ -197,16 +197,15 @@ export function montar(raiz, app) {
     analisando = true;
     pintarBotoes();
     try {
-      const r = await pedir({ tipo: 'analisar', mao: s.mao.slice(), moedas: s.moedas });
+      const r = await vida.seguir(pedir({ tipo: 'analisar', mao: s.mao.slice(), moedas: s.moedas }));
       cache.set(k, { evs: r.evs, melhor: r.melhor });
     } catch (e) {
       // sem trabalhador: calcula na própria página
-      const { construirTabelas, analisar: an } = await import('./analise.js');
+      const { construirTabelas, analisar: an } = await vida.seguir(import('./analise.js'));
       obterTrabalhador.tabelas ??= construirTabelas();
       cache.set(k, an(s.mao, obterTrabalhador.tabelas, s.moedas));
     }
     analisando = false;
-    if (!vivo) return;
     pintarTreinador();
     pintarBotoes();
   }
@@ -222,9 +221,7 @@ export function montar(raiz, app) {
     marcarSegurar();
   }
 
-  // no próprio gabinete, não em raiz: raiz é o #mesa, que sobrevive à troca de mesa
   $('.mesa-grade').addEventListener('click', e => {
-    if (!vivo) return;
     const lugar = e.target.closest('.vp-lugar, .vp-segurar');
     if (lugar && s.estado === 'descarte' && !ocupado) {
       s.alternar(Number(lugar.dataset.i));
@@ -246,11 +243,11 @@ export function montar(raiz, app) {
   });
 
   function tecla(e) {
-    if (!vivo || document.querySelector('.cortina')) return;
+    if (document.querySelector('.cortina')) return;
     if (e.key >= '1' && e.key <= '5' && s.estado === 'descarte' && !ocupado) { s.alternar(Number(e.key) - 1); som.clique(); marcarSegurar(); pintarTreinador(); }
     else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); jogar(); }
   }
-  addEventListener('keydown', tecla);
+  vida.ouvir(window, 'keydown', tecla);
 
   async function jogar() {
     if (ocupado) return;
@@ -279,9 +276,9 @@ export function montar(raiz, app) {
   async function trocar() {
     if (analisando) return;
     const antes = casa.prefs.treinador ? s.conselho() : null;
-    app.congelarSaldo();
+    const soltar = vida.congelar();
     let r;
-    try { r = s.trocar(); } catch (err) { app.liberarSaldo(); avisar(err.message, { erro: true }); return; }
+    try { r = s.trocar(); } catch (err) { soltar(); avisar(err.message, { erro: true }); return; }
     ocupado = true;
     pintarBotoes();
     $('.vp-treinador').hidden = true;
@@ -305,7 +302,7 @@ export function montar(raiz, app) {
     }
     if (antes && antes.custo > 0.5) avisar(`Esta escolha valia ${numero(antes.evEscolha * s.moedas * s.moeda / 100, 2)} fichas em média; a ótima valia ${numero(antes.evMelhor * s.moedas * s.moeda / 100, 2)}. O erro custou ${fichasFrac(antes.custo, 2)}.`, { ms: 5200 });
     await espera(500);
-    app.liberarSaldo();
+    soltar();
     ocupado = false;
     pintarBotoes(); pintarPainel(); pintarConta();
     if (casa.carteira.saldo < s.moeda * s.moedas && casa.carteira.saldo < 25) app.oferecerCredito(25);
@@ -316,12 +313,12 @@ export function montar(raiz, app) {
     const minha = ++contagem;
     const ini = performance.now(), dur = Math.min(1600, 300 + v / 100 * 20);
     function passo() {
-      if (!vivo || minha !== contagem) return;
+      if (minha !== contagem) return;
       const p = Math.min(1, (performance.now() - ini) / dur);
       el.textContent = fichas(Math.round(v * p / 25) * 25);
-      if (p < 1) { requestAnimationFrame(passo); if (Math.random() < 0.3) som.clique(); } else el.textContent = fichas(v);
+      if (p < 1) { vida.quadro(passo); if (Math.random() < 0.3) som.clique(); } else el.textContent = fichas(v);
     }
-    requestAnimationFrame(passo);
+    vida.quadro(passo);
   }
 
   function mensagem(t) { $('.vp-mensagem').textContent = t; }
@@ -369,7 +366,7 @@ export function montar(raiz, app) {
       saida.textContent = 'Enumerando as 2.598.960 mãos iniciais e as 32 retenções de cada uma…';
       const t0 = performance.now();
       try {
-        const res = await pedir({ tipo: 'rtp', moedas: s.moedas });
+        const res = await vida.seguir(pedir({ tipo: 'rtp', moedas: s.moedas }));
         saida.innerHTML = `Recalculado agora, neste navegador: <b>${pct(res.rtp, 4)}</b> em ${numero((performance.now() - t0) / 1000, 1)} s. Variância por moeda: ${numero(res.variancia, 3)}.`;
       } catch (e) { saida.textContent = `Não consegui recalcular aqui: ${e.message}`; }
       b.disabled = false;
@@ -389,12 +386,9 @@ export function montar(raiz, app) {
   if (s.estado === 'descarte') { analisar(); mensagem('Escolha as cartas que quer segurar.'); }
   else if (s.estado === 'aposta') mensagem('Aposte e dê as cartas.');
 
-  const api = {
+  return {
     sessao: s,
-    desmontar() { vivo = false; removeEventListener('keydown', tecla); },
     get ocupado() { return ocupado || analisando; },
     jogar,
   };
-  app.mesaAtual = api;
-  return api;
 }
