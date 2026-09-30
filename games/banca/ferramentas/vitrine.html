@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BANCA: vitrine de cartas e fichas</title>
+<link rel="stylesheet" href="../css/banca.css">
+<style>
+  body { overflow: auto; user-select: auto; }
+  .fundo { position: relative; min-height: 100vh; padding: 24px; }
+  .linha { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 18px; position: relative; }
+  .linha .carta { position: relative; }
+  h2 { font-family: var(--f-display); font-weight: 400; color: var(--latao-claro); letter-spacing: .1em; margin: 8px 0 12px; }
+  .fichas { display: flex; gap: 14px; align-items: center; }
+  .fichas svg { width: 76px; height: 76px; filter: drop-shadow(0 6px 6px rgba(0,0,0,.5)); }
+  .pilhas { display: flex; gap: 60px; align-items: flex-end; height: 120px; padding: 60px 30px 0; }
+  .pilhas .pilha { position: relative; }
+</style>
+</head>
+<body>
+<div class="fundo feltro">
+  <h2>Figuras e ases</h2>
+  <div class="linha" id="figuras"></div>
+  <h2>Copas e espadas</h2>
+  <div class="linha" id="numeros"></div>
+  <h2>Fichas</h2>
+  <div class="fichas" id="fichas"></div>
+  <div class="pilhas" id="pilhas"></div>
+</div>
+<script type="module">
+  import { instalarTexturasCss } from '../js/visual/texturas.js';
+  import { instalarCartas, elementoCarta } from '../js/visual/cartas.js';
+  import { instalarFichas, svgFicha, DENOMINACOES, htmlPilha } from '../js/visual/fichas.js';
+  instalarTexturasCss();
+  instalarCartas();
+  instalarFichas();
+  const larg = Number(new URLSearchParams(location.search).get('l') || 110);
+  const fig = document.getElementById('figuras');
+  for (const c of [0, 13, 26, 39, 10, 11, 12, 23, 24, 25, 36, 37, 38, 49, 50, 51]) fig.append(elementoCarta(c, { largura: larg }));
+  fig.append(elementoCarta(0, { virada: true, largura: larg }));
+  const num = document.getElementById('numeros');
+  for (const c of [14, 15, 16, 17, 18, 19, 20, 21, 22, 1, 2, 3, 4, 5, 6, 7, 8, 9]) num.append(elementoCarta(c, { largura: larg * 0.8 }));
+  document.getElementById('fichas').innerHTML = DENOMINACOES.map(d => svgFicha(d.valor)).join('');
+  document.getElementById('pilhas').innerHTML = [700, 3500, 12650, 187500, 1500].map(v => `<div class="pilha">${htmlPilha(v)}</div>`).join('');
+</script>
+</body>
+</html>

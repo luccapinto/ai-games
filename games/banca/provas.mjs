@@ -10,13 +10,19 @@
 //
 // Cada bloco mora num arquivo de provas/, e todos importam as mesmas regras
 // puras que o navegador executa.
-
+import { readdirSync } from 'node:fs';
 import { placar } from './provas/base.mjs';
 
 const t0 = performance.now();
-const blocos = process.argv.slice(2);
-const todos = ['nucleo'];
-for (const b of (blocos.length ? blocos : todos)) await import(`./provas/${b}.mjs`);
+// Ordem fixa para os blocos conhecidos; arquivo novo em provas/ entra no fim
+// sozinho, e o robô roda por último porque usa todas as mesas.
+const ORDEM = ['nucleo', 'roleta', 'blackjack', 'niquel', 'videopoquer', 'bacara', 'craps', 'holdem', 'textos', 'robo'];
+const existentes = readdirSync(new URL('./provas/', import.meta.url))
+  .filter(f => f.endsWith('.mjs') && f !== 'base.mjs')
+  .map(f => f.slice(0, -4));
+const todos = [...ORDEM.filter(b => existentes.includes(b)), ...existentes.filter(b => !ORDEM.includes(b)).sort()];
+const pedidos = process.argv.slice(2);
+for (const b of (pedidos.length ? pedidos : todos)) await import(`./provas/${b}.mjs`);
 
 console.log('\n');
 for (const l of placar.linhas) console.log(l);
