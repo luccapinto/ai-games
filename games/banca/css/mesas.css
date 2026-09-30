@@ -136,9 +136,12 @@
 }
 .acoes .icone { background: rgba(14, 12, 9, .75); box-shadow: inset 0 0 0 1px rgba(201, 164, 92, .4); }
 
+/* o recado da mesa passa por cima do pano impresso: vai numa pílula escura para ler sempre */
 .mensagem-mesa {
   font-family: var(--f-display); letter-spacing: .06em; color: var(--latao-claro);
   text-shadow: 0 2px 10px rgba(0, 0, 0, .8);
+  padding: 6px 18px; border-radius: 999px; background: rgba(8, 7, 5, .88);
+  box-shadow: inset 0 0 0 1px rgba(201, 164, 92, .45), 0 8px 18px rgba(0, 0, 0, .35);
 }
 
 /* aba da conta no celular */
@@ -163,4 +166,6 @@
 @media (max-width: 720px) {
   .aba-conta { padding: 0 10px; }
   .aba-conta span { display: none; }
+  /* nas máquinas a borda direita no meio da tela é tabela de prêmios e rolo: a aba desce para o chão */
+  .mesa-grade.videopoquer ~ .aba-conta, .mesa-grade.niquel ~ .aba-conta { top: auto; bottom: calc(env(safe-area-inset-bottom) + 18px); }
 }

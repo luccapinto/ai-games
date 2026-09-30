@@ -173,7 +173,9 @@ export function montar(raiz, app) {
     const larg = $('.bc-pano-escala').clientWidth;
     const W = estreito ? ESTREITO.largura : 1000, Hs = estreito ? ESTREITO.alto : ALTO;
     const d = Math.max(22, Math.min(46, larg / W * (estreito ? 30 : 50)));
-    camada.innerHTML = APOSTAS.filter(id => s.apostas[id] > 0).map(id => {
+    // coup resolvido: as fichas já foram pagas ou recolhidas, o pano fica vazio
+    const vivas = s.estado === 'fim' ? [] : APOSTAS.filter(id => s.apostas[id] > 0);
+    camada.innerHTML = vivas.map(id => {
       const [x, y] = centroZona(id, estreito);
       return `<div class="pilha${novas.includes(id) ? ' cai' : ''}" data-id="${id}" style="left:${x / W * 100}%;top:${y / Hs * 100}%;--d:${d}px">${htmlPilha(s.apostas[id])}</div>`;
     }).join('');
@@ -181,11 +183,14 @@ export function montar(raiz, app) {
   }
 
   function atualizarTotais() {
-    const c = contaDaMesa(s.apostas);
-    const total = APOSTAS.reduce((q, id) => q + (s.apostas[id] ?? 0), 0);
+    const fim = s.estado === 'fim';
+    const c = contaDaMesa(fim ? {} : s.apostas);
+    const total = fim ? 0 : APOSTAS.reduce((q, id) => q + (s.apostas[id] ?? 0), 0);
+    const anteriores = APOSTAS.reduce((q, id) => q + (s.ultimas[id] ?? 0), 0);
     $('.v-total').textContent = fichas(total);
     $('.v-pe').textContent = total ? '−' + fichasFrac(c.perdaEsperada, 3) : '0';
-    $('[data-a="dar"]').disabled = ocupado || total === 0;
+    // depois de um coup, dar cartas com o pano vazio repete as apostas anteriores
+    $('[data-a="dar"]').disabled = ocupado || (total === 0 && !(fim && anteriores > 0));
   }
 
   const dicaDe = id => {
@@ -261,6 +266,15 @@ export function montar(raiz, app) {
     if (ocupado) return;
     if (s.estado === 'fim') await varrer();
     if (!vivo) return;
+    if (APOSTAS.every(id => !s.apostas[id])) {
+      try { s.repetir(); } catch (e) { som.negado(); avisar(e.message, { erro: true }); if (casa.carteira.saldo < REGRAS.minimo) app.oferecerCredito(REGRAS.minimo); pintarFichas(); return; }
+      som.ficha(4);
+      pintarFichas(APOSTAS); pintarRack(); app.atualizarSaldo(); pintarConta();
+      ocupado = true;
+      await espera(350);
+      ocupado = false;
+      if (!vivo) return;
+    }
     app.congelarSaldo();
     let r;
     try { r = s.dar(); } catch (e) { app.liberarSaldo(); avisar(e.message, { erro: true }); return; }
@@ -403,8 +417,9 @@ export function montar(raiz, app) {
   function pintarConta() {
     const fx = fichasBacara();
     const p = ENUMERACAO.p;
-    const c = contaDaMesa(s.apostas);
-    const total = APOSTAS.reduce((q, id) => q + (s.apostas[id] ?? 0), 0);
+    const vivas = s.estado === 'fim' ? {} : s.apostas;
+    const c = contaDaMesa(vivas);
+    const total = APOSTAS.reduce((q, id) => q + (vivas[id] ?? 0), 0);
     const n = s.estrada.length;
     const obs = { jogador: 0, banca: 0, empate: 0 };
     for (const e of s.estrada) obs[e.vencedor]++;

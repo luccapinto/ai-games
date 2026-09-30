@@ -257,7 +257,7 @@ export function montar(raiz, app) {
     }
     apostaMontada = novo;
     som.ficha(1);
-    pintarAposta(); pintarAcoes();
+    pintarAposta(); pintarAcoes(); pintarConta();
   }
 
   function novaRodadaSilenciosa() {
@@ -301,7 +301,7 @@ export function montar(raiz, app) {
   async function acao(a) {
     if (ocupado) return;
     try {
-      if (a === 'limpar') { apostaMontada = 0; som.ficha(2, 0.5); pintarAposta(); pintarAcoes(); return; }
+      if (a === 'limpar') { apostaMontada = 0; som.ficha(2, 0.5); pintarAposta(); pintarAcoes(); pintarConta(); return; }
       if (a === 'dobrarAposta') { const f = ficha; ficha = apostaMontada || f; mexerAposta(+1); ficha = f; return; }
       if (a === 'dar') {
         if (!casa.carteira.pode(apostaMontada)) { if (!app.oferecerCredito(apostaMontada)) avisar('Saldo insuficiente.', { erro: true }); return; }

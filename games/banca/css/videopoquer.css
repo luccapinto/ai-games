@@ -36,7 +36,7 @@
 @keyframes pisca { 50% { color: #fff; background: rgba(255, 61, 110, .5); } }
 
 .vp-mensagem { text-align: center; min-height: 22px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; font-size: 14px; color: #ffe14d; margin: 2px 0 6px; }
-.vp-cartas { --vl: clamp(54px, 13.5vw, 142px); display: flex; justify-content: space-between; gap: 8px; padding: 18px 2px 8px; }
+.vp-cartas { --vl: clamp(54px, min(13.5vw, 12.5vh), 142px); display: flex; justify-content: space-between; gap: 8px; padding: 18px 2px 8px; }
 .vp-lugar { position: relative; flex: 1; display: grid; place-items: center; border: 0; background: none; padding: 0; cursor: pointer; }
 .vp-lugar .carta { --l: var(--vl); position: relative; width: var(--l); height: calc(var(--l) * 1.4); transition: transform .18s var(--transicao); }
 .vp-lugar.segurada .carta { transform: translateY(-8px); }
@@ -71,8 +71,8 @@
 
 .vp-treinador { position: relative; right: auto; bottom: auto; width: min(100%, 940px); max-width: none; }
 .vp-treinador em.sua { color: var(--latao-claro); }
-.nc { display: inline-flex; align-items: center; gap: 1px; white-space: nowrap; }
-.nc svg { vertical-align: -1px; }
+.nc { display: inline-flex; align-items: center; gap: 1px; white-space: nowrap; margin-right: .25em; }
+.nc svg { width: .78em; height: .78em; vertical-align: -1px; }
 .explica.aviso { color: #ffb3a6; }
 .vp-hist span { width: auto; padding: 0 7px; font-weight: 500; font-size: 11.5px; }
 .vp-hist span.bom { background: rgba(79, 214, 164, .18); color: var(--bom); }

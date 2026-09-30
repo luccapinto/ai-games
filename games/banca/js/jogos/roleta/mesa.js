@@ -404,15 +404,16 @@ export function montar(raiz, app) {
       }
     }
     const liquido = r.retorno - r.apostado;
+    const nome = nomeNumero(r.numero).replace(/^./, c => c.toUpperCase());
     if (r.retorno > 0) {
       const multiplo = r.retorno / r.apostado;
       const nivel = multiplo >= 30 ? 5 : multiplo >= 10 ? 4 : multiplo >= 3 ? 3 : multiplo > 1 ? 2 : 1;
       som.vitoria(nivel);
       if (nivel >= 4) { faiscas($('.roda-caixa'), 90); respirar($('.palco'), nivel); }
-      avisar(liquido > 0 ? `${nomeNumero(r.numero)}. Você recebeu ${fichas(r.retorno)} (${fichas(liquido, { sinal: true })}).` : `${nomeNumero(r.numero)}. Voltaram ${fichas(r.retorno)} de ${fichas(r.apostado)}.`);
+      avisar(liquido > 0 ? `${nome}. Você recebeu ${fichas(r.retorno)} (${fichas(liquido, { sinal: true })}).` : `${nome}. Voltaram ${fichas(r.retorno)} de ${fichas(r.apostado)}.`);
     } else {
       som.derrota();
-      avisar(`${nomeNumero(r.numero)}. A casa ficou com ${fichas(r.apostado)}.`);
+      avisar(`${nome}. A casa ficou com ${fichas(r.apostado)}.`);
     }
     await espera(r.retorno > 0 ? 900 : 300);
     // o que sobrou no pano volta para o jogador

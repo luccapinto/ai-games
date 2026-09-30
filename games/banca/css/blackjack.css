@@ -40,7 +40,9 @@
   box-shadow: inset 0 0 0 2px #1a120a, 0 0 0 1px rgba(201, 164, 92, .6), 0 8px 16px rgba(0, 0, 0, .5);
 }
 
-.bj-cartas { position: absolute; inset: 0; pointer-events: none; }
+/* cada camada é um contexto próprio: o z-index das cartas não passa por cima dos rótulos */
+.bj-cartas { position: absolute; inset: 0; pointer-events: none; z-index: 1; }
+.bj-rotulos { position: absolute; inset: 0; pointer-events: none; z-index: 3; }
 .carta.na-mesa { position: absolute; left: 0; top: 0; will-change: transform; }
 
 .bj-total {
@@ -78,7 +80,7 @@
 
 .bj-mensagem {
   position: absolute; left: 50%; top: 30%; transform: translate(-50%, 0); width: max-content; max-width: 90%; text-align: center;
-  font-size: 18px; opacity: 0; pointer-events: none;
+  font-size: 18px; opacity: 0; pointer-events: none; z-index: 4;
 }
 .bj-mensagem.mostra { animation: mensagem 3.2s ease forwards; }
 @keyframes mensagem { 0% { opacity: 0; transform: translate(-50%, 8px); } 10%, 75% { opacity: 1; transform: translate(-50%, 0); } 100% { opacity: 0; } }
@@ -88,7 +90,7 @@
   background: rgba(8, 7, 5, .85); box-shadow: inset 0 0 0 1px rgba(53, 240, 216, .45), 0 10px 24px rgba(0, 0, 0, .5);
   display: grid; gap: 2px; pointer-events: none;
 }
-.treinador span { font-size: 10.5px; letter-spacing: .2em; text-transform: uppercase; color: var(--neon-ciano); }
+.treinador > span { font-size: 10.5px; letter-spacing: .2em; text-transform: uppercase; color: var(--neon-ciano); }
 .treinador b { font-family: var(--f-display); font-weight: 400; font-size: 24px; color: var(--marfim); }
 .treinador em { font-style: normal; font-size: 12px; color: var(--marfim-sujo); }
 

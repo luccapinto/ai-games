@@ -118,10 +118,12 @@ export function montar(raiz, app) {
     }).join('');
   }
 
+  // cada escrita no medidor de ganho cancela a contagem que ainda estiver subindo
+  let contagem = 0;
   function pintarPainel(ganho = null) {
     $('.vp-creditos').textContent = fichas(casa.carteira.saldo);
     $('.vp-aposta').textContent = `${s.moedas} × ${fichas(s.moeda)}`;
-    if (ganho !== null) $('.vp-ganho').textContent = fichas(ganho);
+    if (ganho !== null) { contagem++; $('.vp-ganho').textContent = fichas(ganho); }
     for (const b of raiz.querySelectorAll('[data-moeda]')) b.classList.toggle('ativa', Number(b.dataset.moeda) === s.moeda);
   }
 
@@ -220,7 +222,9 @@ export function montar(raiz, app) {
     marcarSegurar();
   }
 
-  raiz.addEventListener('click', e => {
+  // no próprio gabinete, não em raiz: raiz é o #mesa, que sobrevive à troca de mesa
+  $('.mesa-grade').addEventListener('click', e => {
+    if (!vivo) return;
     const lugar = e.target.closest('.vp-lugar, .vp-segurar');
     if (lugar && s.estado === 'descarte' && !ocupado) {
       s.alternar(Number(lugar.dataset.i));
@@ -309,8 +313,10 @@ export function montar(raiz, app) {
 
   function contarGanho(v) {
     const el = $('.vp-ganho');
+    const minha = ++contagem;
     const ini = performance.now(), dur = Math.min(1600, 300 + v / 100 * 20);
     function passo() {
+      if (!vivo || minha !== contagem) return;
       const p = Math.min(1, (performance.now() - ini) / dur);
       el.textContent = fichas(Math.round(v * p / 25) * 25);
       if (p < 1) { requestAnimationFrame(passo); if (Math.random() < 0.3) som.clique(); } else el.textContent = fichas(v);

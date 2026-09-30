@@ -44,7 +44,7 @@
 .legenda-placar em { font-style: normal; color: rgba(216, 204, 176, .6); }
 
 .bc-mensagem {
-  position: absolute; left: 50%; top: 25%; transform: translate(-50%, 0); width: max-content; max-width: 92%; text-align: center;
+  position: absolute; left: 50%; top: 38%; transform: translate(-50%, 0); width: max-content; max-width: 92%; text-align: center;
   font-size: 22px; opacity: 0; pointer-events: none; z-index: 20;
 }
 .bc-mensagem.mostra { animation: mensagem 3.4s ease forwards; }
