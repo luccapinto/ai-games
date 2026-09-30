@@ -1,0 +1,51 @@
+{
+  "esquema": 1,
+  "slug": "banca",
+  "titulo": "BANCA",
+  "subtitulo": "",
+  "genero": "Cassino",
+  "plataforma": "Navegador",
+  "estado": "em-progresso",
+  "criado": "2026-09-30",
+  "licenca": "MIT",
+  "capa": "",
+  "previa": "",
+  "resumo": "",
+  "autores": [
+    {
+      "nome": "Lucca Pinto",
+      "github": "luccapinto",
+      "site": ""
+    }
+  ],
+  "ia": [
+    {
+      "modelo": "claude-opus-5-5",
+      "provider": "Anthropic",
+      "agente": "Oh My Pi",
+      "papel": "",
+      "chamadas_api": 0,
+      "tokens": {
+        "entrada": 0,
+        "saida": 0,
+        "cache_leitura": 0,
+        "cache_escrita": 0
+      },
+      "usd_estimado": 0
+    }
+  ],
+  "medicao": {
+    "confianca": "",
+    "metodo": "",
+    "medido_em": "2026-09-30",
+    "nota": ""
+  },
+  "stack": [],
+  "tamanho": {
+    "linhas_proprias": 0,
+    "mb": 0,
+    "modulos_js": 0
+  },
+  "destaques": [],
+  "arquivos_chave": []
+}

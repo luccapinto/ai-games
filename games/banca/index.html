@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>BANCA</title>
+<meta name="theme-color" content="#0b0b0d">
+<style>
+  body { margin: 0; min-height: 100dvh; display: grid; place-items: center; background: #0b0b0d; color: #f3ead7; font: 16px/1.5 system-ui, sans-serif; }
+  code { color: #e8cf8f; word-break: break-all; }
+</style>
+</head>
+<body>
+<main>
+  <h1>BANCA</h1>
+  <p>Saldo: <b id="saldo">–</b> fichas</p>
+  <p>Próxima rodada da roleta, hash publicado: <code id="hash">–</code></p>
+</main>
+<script type="module">
+  import { criarCasa, armazemNavegador } from './js/nucleo/casa.js';
+  import { fichas } from './js/nucleo/formato.js';
+  const casa = criarCasa({ armazem: armazemNavegador() });
+  document.getElementById('saldo').textContent = fichas(casa.carteira.saldo);
+  document.getElementById('hash').textContent = casa.justo.compromisso('roleta').hash;
+  casa.salvar();
+</script>
+</body>
+</html>
