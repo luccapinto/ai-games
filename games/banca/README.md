@@ -96,7 +96,7 @@ aposta e não entra na vantagem de nenhuma mesa; aparece separado no Livro.
 
 ## Offline
 
-`sw.js` guarda os 68 arquivos do jogo na primeira visita. Com rede, cada pedido
+`sw.js` guarda os 69 arquivos do jogo na primeira visita. Com rede, cada pedido
 vai ao servidor primeiro (com revalidação, para nunca rodar um módulo velho) e
 atualiza o cache; sem rede, tudo sai do cache. `provas/offline.mjs` confere que
 a lista do cache é exatamente a dos arquivos do jogo, que cada import, worker,
@@ -107,6 +107,73 @@ Prova feita no Chromium: com o servidor desligado e o modo offline ligado, a
 página recarregou e jogou uma rodada em cada uma das seis mesas, com o Web
 Worker do vídeo pôquer carregado do cache, sem nenhum erro na página.
 
+## Sair no meio da rodada
+
+O dinheiro nunca espera a animação. Cada sessão liquida a rodada, saldo e Livro
+da Casa, dentro da própria chamada que sorteia, antes de a primeira carta sair
+do sapato; a mesa só encena o que já aconteceu. Sair no meio, por outra mesa,
+pelo salão ou fechando a página, corta a encenação e não muda nenhum centavo.
+
+O que o jogador encontra quando volta:
+
+| Mesa | Saiu durante | Na volta |
+| --- | --- | --- |
+| Roleta | o giro ou o pagamento | o giro já pago; a bola parada na casa sorteada, o número no histórico |
+| Blackjack | as cartas sendo dadas | a mão como a sessão deixou: cartas na mesa esperando a decisão, ou a pergunta do seguro |
+| Blackjack | a banca jogando e pagando | a rodada terminada e paga, as cartas na mesa |
+| Blackjack | parado na pergunta do seguro | a mesma pergunta, com a mesma mão; nada foi cobrado além da aposta |
+| Caça-níquel | os rolos girando | o giro já pago; os rolos nas paradas sorteadas |
+| Caça-níquel | um bônus de giros grátis | os giros que faltam ficam guardados na máquina e recomeçam sozinhos quando ele volta |
+| Vídeo pôquer | as cartas sendo dadas, ou com a mão aberta | a mesma mão, virada para cima, esperando a troca; a aposta está separada e o Livro só registra a rodada depois da troca |
+| Vídeo pôquer | a troca | a mão final já paga |
+| Bacará | a saca e o pagamento | o coup terminado e pago, as cartas na mesa |
+| Craps | os dados rolando ou o pagamento | o lance resolvido; os dados parados com as faces sorteadas para cima; as apostas vivas (linha com ponto, colocações) continuam no pano |
+
+Por baixo: o roteador (`js/main.js`) dá a cada montagem de mesa uma casca nova e
+uma vida própria (`js/vida.js`). Tudo o que a mesa agenda, timer, quadro de
+animação, espera, ouvinte de teclado, observador de tamanho e o congelamento do
+saldo do topo, passa pela vida; na saída ela morre, e as esperas pendentes não
+se cumprem nunca: o código da mesa velha fica parado e vira lixo, sem tocar na
+tela nova. `provas/sair.mjs` confere a vida, varre as seis mesas atrás de
+qualquer agendamento por fora dela e de qualquer mexida em dinheiro, e prova que
+cada sessão já liquidou a rodada quando a chamada do sorteio volta.
+
+A prova de verdade é no navegador:
+
+```bash
+node ferramentas/prova_sair_no_meio.mjs              # todas as mesas
+node ferramentas/prova_sair_no_meio.mjs roleta craps # algumas
+node ferramentas/prova_sair_no_meio.mjs --celular    # 390x844, toque
+```
+
+Ela sobe um servidor da pasta, abre o Chrome pelo protocolo DevTools (sem
+dependência nenhuma) e, para cada mesa, começa uma rodada pela interface e sai em
+0,5 s, 1,5 s, 3 s e em mais três pontos perto do fim da encenação (55% e 85% da
+duração medida e 0,7 s antes do fim, onde ficam o pagamento da roleta e a saca
+do bacará), para outra mesa e para o salão. São onze cenários: roleta; blackjack
+saindo enquanto as cartas são dadas e enquanto a banca joga e paga; blackjack
+parado na pergunta do seguro; caça-níquel num giro pago e no meio de um bônus de
+giros grátis; vídeo pôquer saindo enquanto dá, enquanto troca e com a mão aberta;
+bacará; craps. Cada saída é comparada com uma rodada de controle que tem o mesmo
+sorteio e esperou a animação inteira; para os dois terem o mesmo sorteio, a
+página recebe um `crypto.getRandomValues` com semente antes de carregar.
+
+Exige, em toda rodada: zero exceção na página e zero `console.error`; enquanto
+o jogador está fora, dinheiro, Livro e mesa parados; fora o bônus, que sorteia
+giro após giro, saldo e Livro no instante da saída iguais aos de logo depois do
+sorteio; o saldo do topo igual ao da carteira; na volta, a pergunta do seguro no
+lugar e a mão aberta do vídeo pôquer igual e virada para cima; e, terminada a
+rodada, saldo, dívida, Livro, estado de cada mesa e contadores do gerador
+idênticos aos do controle, com todo sorteio conferindo no painel Conferir.
+
+Rodada no código de antes da correção, uma versão anterior da prova (dez
+cenários, dois pontos no fim) falhou em 34 de 86 rodadas, com as exceções que o
+jogador via: `pintarFichas` no bacará, `pintarRotulos` no blackjack,
+`pintarPainel` no caça-níquel, `pintarBotoes` e `pintarTabela` no vídeo pôquer,
+onde o saldo do topo ainda ficava congelado 5 fichas abaixo da carteira depois
+de sair no meio da troca. O terceiro ponto no fim pegou a da roleta, `revelar`
+aos 12 s, em 2 de 14 rodadas.
+
 ## Provas
 
 ```bash
@@ -114,7 +181,7 @@ node provas.mjs            # tudo, cerca de 40 s
 node provas.mjs roleta     # só um bloco
 ```
 
-210 provas em 11 arquivos de `provas/`. As que valem a pena ler:
+227 provas em 12 arquivos de `provas/`. As que valem a pena ler:
 
 - vantagem de cada aposta por enumeração exata (roleta, bacará, craps, vídeo
   pôquer, caça-níquel) e por simulação com erro-padrão (blackjack);
@@ -126,7 +193,10 @@ node provas.mjs roleta     # só um bloco
   sem saldo negativo e sem mesa travada; o Livro fecha em centavo com o saldo; um
   robô quebrado pega crédito e segue; tudo o que foi revelado confere;
 - textos: nenhum emoji, nenhum caractere de naipe, nenhuma palavra sem acento em
-  texto de interface.
+  texto de interface;
+- sair no meio: a vida da mesa corta o que foi agendado, nenhuma mesa agenda
+  nada por fora dela nem mexe em dinheiro, e as seis sessões liquidam a rodada no
+  sorteio (a prova no navegador está em "Sair no meio da rodada", acima).
 
 ## Desempenho
 
@@ -183,6 +253,16 @@ porquê.
   escolhidas numa folha de contato, as duas OFL e vendorizadas em `fontes/`.
 - **Texas Hold'em ficou de fora.** Era o sétimo jogo, opcional; o tempo foi para
   o polimento das seis mesas e para as provas.
+- **Quem sai no meio não perde nem ganha nada.** A rodada é da sessão, não da
+  tela: o que já foi sorteado já foi pago, e o que ainda não foi sorteado fica
+  guardado na mesa como estava (a mão aberta do vídeo pôquer, a pergunta do
+  seguro, os giros grátis do Malecón 57, as apostas vivas do craps). A roleta
+  guarda a bola onde a física a faria parar, na casa sorteada, para a mesa nunca
+  mostrar na volta um número diferente do que pagou.
+- **Uma casca e uma vida por montagem**, em vez de cada mesa limpar o que
+  lembrar de limpar: o erro que motivou a mudança era uma mesa desmontada
+  continuando a pintar na tela da mesa seguinte, e um contêiner compartilhado
+  guardava ouvintes de mesas mortas.
 
 ## Como foi feito
 
