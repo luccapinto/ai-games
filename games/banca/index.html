@@ -4,25 +4,41 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>BANCA</title>
+<meta name="description" content="Cassino no navegador que mostra a vantagem da casa em cada aposta: roleta, blackjack, caça-níquel, vídeo pôquer, bacará e craps, com fichas de mentira, aleatoriedade verificável e o Livro da Casa.">
 <meta name="theme-color" content="#0b0b0d">
-<style>
-  body { margin: 0; min-height: 100dvh; display: grid; place-items: center; background: #0b0b0d; color: #f3ead7; font: 16px/1.5 system-ui, sans-serif; }
-  code { color: #e8cf8f; word-break: break-all; }
-</style>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%235a1422'/%3E%3Ccircle cx='50' cy='50' r='34' fill='none' stroke='%23e8cf8f' stroke-width='6' stroke-dasharray='10 7'/%3E%3Ccircle cx='50' cy='50' r='22' fill='%23f3ead7'/%3E%3Ctext x='50' y='60' text-anchor='middle' font-family='Georgia' font-size='30' fill='%235a1422'%3EB%3C/text%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="icone.svg">
+<link rel="stylesheet" href="css/banca.css">
+<link rel="stylesheet" href="css/mesas.css">
 </head>
 <body>
-<main>
-  <h1>BANCA</h1>
-  <p>Saldo: <b id="saldo">–</b> fichas</p>
-  <p>Próxima rodada da roleta, hash publicado: <code id="hash">–</code></p>
-</main>
-<script type="module">
-  import { criarCasa, armazemNavegador } from './js/nucleo/casa.js';
-  import { fichas } from './js/nucleo/formato.js';
-  const casa = criarCasa({ armazem: armazemNavegador() });
-  document.getElementById('saldo').textContent = fichas(casa.carteira.saldo);
-  document.getElementById('hash').textContent = casa.justo.compromisso('roleta').hash;
-  casa.salvar();
-</script>
+<div id="app">
+  <canvas id="salao" aria-label="O salão da BANCA: arraste para andar, toque numa mesa para sentar"></canvas>
+  <div id="placa" role="status"></div>
+  <nav id="diretorio" aria-label="Mesas do salão"></nav>
+  <section id="mesa" hidden></section>
+  <header id="barra">
+    <div class="marca" id="marca" role="button" tabindex="0" title="Voltar ao salão">BANCA<small>cassino honesto</small></div>
+    <button class="voltar" id="voltar" hidden></button>
+    <div id="titulo-mesa"></div>
+    <div class="divida" id="divida" role="button" tabindex="0" title="Dívida com a casa"></div>
+    <div class="saldo" id="saldo" role="button" tabindex="0" title="Seu saldo em fichas">
+      <svg viewBox="0 0 100 100"><use href="#ficha-10000"/></svg>
+      <div class="pilha-texto"><span class="rotulo">fichas</span><b id="saldo-valor">–</b></div>
+    </div>
+    <button class="icone" id="b-livro" aria-label="Livro da Casa" title="Livro da Casa"></button>
+    <button class="icone" id="b-conferir" aria-label="Conferir os sorteios" title="Conferir os sorteios"></button>
+    <button class="icone" id="b-som" aria-label="Som" title="Som"></button>
+    <button class="icone" id="b-menu" aria-label="Mais opções" title="Mais opções"></button>
+  </header>
+  <div id="cortina-mesa"></div>
+  <div id="voo"></div>
+  <div id="dica" role="tooltip"></div>
+  <div id="aviso" role="status" aria-live="polite"></div>
+  <div id="grao"></div>
+</div>
+<noscript>A BANCA precisa de JavaScript para abrir as mesas.</noscript>
+<script type="module" src="js/main.js"></script>
 </body>
 </html>
