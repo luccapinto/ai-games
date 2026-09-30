@@ -20,6 +20,12 @@ export function armazemMemoria() {
   };
 }
 
+// Para provas de milhares de rodadas: não guarda nada e não serializa. A
+// persistência em si é provada com o armazemMemoria.
+export function armazemDescartavel() {
+  return { ler: () => null, gravarObjeto: () => {}, gravar: () => {}, apagar: () => {} };
+}
+
 // localStorage pode não existir, estar cheio ou bloqueado (aba anônima de
 // alguns navegadores). O jogo precisa abrir mesmo assim.
 export function armazemNavegador() {
@@ -90,7 +96,10 @@ export function criarCasa({ armazem = armazemMemoria(), fonte = bytesAleatorios 
   }
 
   function salvar() {
-    try { armazem.gravar(CHAVE, JSON.stringify(estado)); } catch (e) { console.error(e); }
+    try {
+      if (armazem.gravarObjeto) armazem.gravarObjeto(CHAVE, estado);
+      else armazem.gravar(CHAVE, JSON.stringify(estado));
+    } catch (e) { console.error(e); }
   }
 
   // Toda rodada de todo jogo termina aqui: entra no Livro, a dívida cobra o

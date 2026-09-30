@@ -1,0 +1,127 @@
+/* BANCA: mesa da roleta */
+
+.roleta .palco { display: flex; flex-direction: column; gap: 8px; }
+.roleta-topo { display: flex; gap: 12px; height: 38%; min-height: 220px; }
+.roda-caixa { position: relative; flex: 0 0 44%; min-width: 0; transition: flex-basis .5s var(--transicao); }
+.roda-caixa canvas { width: 100%; height: 100%; display: block; }
+.rapido {
+  position: absolute; left: 6px; bottom: 6px; min-height: 30px; padding: 0 10px; border: 0; border-radius: 999px; cursor: pointer;
+  background: rgba(0, 0, 0, .45); color: var(--latao); font-size: 11px; letter-spacing: .14em; text-transform: uppercase;
+  box-shadow: inset 0 0 0 1px rgba(201, 164, 92, .35);
+}
+.medalha {
+  position: absolute; right: 4%; top: 6%; width: 104px; height: 104px; border-radius: 50%;
+  display: grid; place-content: center; text-align: center; gap: 0;
+  box-shadow: 0 0 0 3px #1a120a, 0 0 0 5px var(--latao), 0 14px 30px rgba(0, 0, 0, .6), inset 0 0 20px rgba(0, 0, 0, .5);
+  animation: medalha .6s var(--transicao);
+}
+@keyframes medalha { from { transform: scale(.4) rotate(-40deg); opacity: 0; } to { transform: none; opacity: 1; } }
+.medalha.vermelho { background: radial-gradient(circle at 35% 30%, #d8394d, #8a1222); }
+.medalha.preto { background: radial-gradient(circle at 35% 30%, #3a3640, #0c0b0e); }
+.medalha.verde { background: radial-gradient(circle at 35% 30%, #2aa06a, #0f5a37); }
+.medalha b { font-family: var(--f-display); font-weight: 400; font-size: 44px; line-height: 1; color: #fff6e0; text-shadow: 0 2px 6px rgba(0, 0, 0, .6); }
+.medalha span { font-size: 9.5px; letter-spacing: .12em; text-transform: uppercase; color: rgba(255, 246, 224, .85); margin-top: 3px; }
+
+.pista-caixa { flex: 1; min-width: 0; display: grid; place-items: center; container-type: size; }
+.escala { position: relative; }
+.pista-escala { width: min(100cqw, calc(100cqh * 21.8 / 8.2)); aspect-ratio: 21.8 / 8.2; }
+.pista-escala svg, .pano-escala svg { width: 100%; height: 100%; display: block; overflow: visible; }
+
+.pano-caixa { position: relative; flex: 1; min-height: 0; display: grid; place-items: center; container-type: size; }
+.pano-escala { width: min(100cqw, calc(100cqh * var(--razao, 2.7))); }
+
+/* o pano */
+.pano-svg .moldura { fill: rgba(0, 0, 0, .14); stroke: rgba(243, 234, 215, .8); stroke-width: .045; }
+.pano-svg .casa, .pista-svg .casa { stroke: rgba(243, 234, 215, .75); stroke-width: .03; transition: filter .15s, stroke .15s; }
+.casa.verm { fill: #a11a2c; }
+.casa.preto { fill: #141216; }
+.casa.zero { fill: #177a4a; }
+.casa.coberto { stroke: #ffe39a; stroke-width: .075; filter: brightness(1.45) drop-shadow(0 0 .12px #ffd98a); }
+.casa.saiu { stroke: #fff4c8; stroke-width: .09; animation: saiu 1s ease-in-out infinite alternate; }
+@keyframes saiu { from { filter: brightness(1.2) drop-shadow(0 0 .1px #ffe39a); } to { filter: brightness(1.9) drop-shadow(0 0 .35px #ffe39a); } }
+.pano-svg .num, .pista-svg .num { fill: #f6eedc; font-family: var(--f-ui); font-weight: 600; pointer-events: none; }
+.pano-svg .fora { fill: rgba(0, 0, 0, .06); stroke: rgba(243, 234, 215, .7); stroke-width: .03; }
+.pano-svg .rotulo, .pista-svg .rotulo { fill: #f1e6cc; font-family: var(--f-display); letter-spacing: .02em; pointer-events: none; }
+.pista-svg .sub { fill: rgba(232, 207, 143, .75); font-family: var(--f-ui); pointer-events: none; }
+.pano-svg .losango { stroke: rgba(243, 234, 215, .8); stroke-width: .03; pointer-events: none; }
+.pano-svg .losango.vermelho { fill: #a11a2c; }
+.pano-svg .losango.preto { fill: #141216; }
+.pano-svg .zona { fill: transparent; cursor: pointer; }
+.pano-svg .zona:hover { fill: rgba(255, 228, 160, .10); }
+.pano-svg .zona.fina:hover { fill: rgba(255, 228, 160, .42); }
+.roleta.girando .pano-svg .zona, .roleta.girando .pista-svg .setor, .roleta.girando .pista-svg .pista-casa { cursor: default; }
+
+/* a pista francesa */
+.pista-svg .pista-fundo { fill: rgba(0, 0, 0, .18); stroke: rgba(243, 234, 215, .8); stroke-width: .05; }
+.pista-svg .pista-miolo { fill: none; stroke: rgba(243, 234, 215, .6); stroke-width: .04; }
+.pista-svg .setor rect { fill: transparent; stroke: rgba(243, 234, 215, .35); stroke-width: .03; }
+.pista-svg .setor { cursor: pointer; }
+.pista-svg .setor:hover rect { fill: rgba(255, 228, 160, .12); stroke: #ffe39a; }
+.pista-svg .pista-casa { cursor: pointer; }
+.pista-svg .pista-casa:hover .casa { stroke: #ffe39a; stroke-width: .08; }
+
+/* fichas no pano */
+.fichas-pano { position: absolute; inset: 0; pointer-events: none; }
+.pilha.ganhou .corpo { animation: ganhou .8s ease-in-out infinite alternate; }
+@keyframes ganhou { from { filter: drop-shadow(0 0 0 rgba(255, 220, 140, 0)); } to { filter: drop-shadow(0 0 8px rgba(255, 220, 140, .95)); } }
+
+/* o banco do crupiê: para onde as perdedoras vão e de onde o prêmio sai */
+.banco {
+  position: absolute; right: 10px; top: -4px; width: 132px; height: 22px; border-radius: 5px;
+  background:
+    repeating-linear-gradient(90deg, #b3192e 0 9px, #8f1224 9px 10px, #177a4c 10px 19px, #0f5a37 19px 20px, #17171b 20px 29px, #000 29px 30px, #5b2a86 30px 39px, #3f1d5e 39px 40px, #ece2cc 40px 49px, #bfb39a 49px 50px);
+  box-shadow: inset 0 0 0 2px #1a120a, 0 0 0 1px rgba(201, 164, 92, .6), 0 6px 12px rgba(0, 0, 0, .5);
+  opacity: .9;
+}
+
+.rodape-mesa { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.roleta .acoes { flex: 1; justify-content: flex-end; }
+.na-mesa { display: flex; flex-direction: column; align-items: flex-end; line-height: 1.1; margin: 0 8px; min-width: 110px; }
+.na-mesa span { font-size: 10.5px; letter-spacing: .16em; text-transform: uppercase; color: var(--latao); }
+.na-mesa b { font-size: 22px; font-weight: 600; }
+.na-mesa .pe { font-size: 11px; letter-spacing: .04em; text-transform: none; color: #ffb3a6; }
+.na-mesa .pe b { font-size: 11px; }
+.girar { min-width: 150px; }
+
+.alternar-vista { display: none; }
+.alternar-vista button {
+  flex: 1; min-height: 38px; border: 0; background: rgba(0, 0, 0, .35); color: var(--marfim-sujo); cursor: pointer;
+  font-size: 11.5px; letter-spacing: .16em; text-transform: uppercase; box-shadow: inset 0 0 0 1px rgba(201, 164, 92, .3);
+}
+.alternar-vista button:first-child { border-radius: 999px 0 0 999px; }
+.alternar-vista button:last-child { border-radius: 0 999px 999px 0; }
+.alternar-vista button.ativa { background: rgba(201, 164, 92, .22); color: var(--latao-claro); }
+
+.conta .historico span.n-vermelho, .qf i.n-vermelho { background: #a11a2c; }
+.conta .historico span.n-preto, .qf i.n-preto { background: #1d1b20; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .12); }
+.conta .historico span.n-verde, .qf i.n-verde { background: #177a4a; }
+.conta .historico span:first-child { outline: 2px solid var(--latao-claro); outline-offset: 1px; }
+.qf { display: grid; gap: 6px; margin-bottom: 6px; }
+.qf div { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.qf span { width: 54px; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--latao); }
+.qf i { font-style: normal; min-width: 30px; height: 26px; border-radius: 5px; display: grid; place-items: center; font-weight: 600; font-size: 12.5px; position: relative; padding: 0 5px; }
+.qf small { position: absolute; right: -4px; top: -6px; font-size: 9px; background: #0b0b0d; color: var(--latao-claro); border-radius: 6px; padding: 0 3px; }
+
+/* retrato no celular: roda no alto, pano em pé com rolagem, rack embaixo */
+@media (max-width: 720px) and (orientation: portrait) {
+  .roleta .palco { gap: 6px; }
+  .roleta-topo { height: 27dvh; min-height: 170px; transition: height .5s var(--transicao); }
+  .roleta.girando .roleta-topo { height: 46dvh; }
+  .roda-caixa { flex: 1 0 100%; }
+  .pista-caixa { display: none; }
+  .alternar-vista { display: flex; }
+  .pano-caixa { place-items: start center; overflow-y: auto; overflow-x: hidden; container-type: normal; padding-top: 6px; }
+  .roleta.em-pe .pano-escala { width: min(100%, 380px); }
+  .pista-escala.vertical { display: none; width: min(100%, 380px); aspect-ratio: 8.2 / 21.8; }
+  .roleta.mostra-pista .pano-caixa .pano-escala { display: none; }
+  .roleta.mostra-pista .pista-escala.vertical { display: block; }
+  .banco { top: 0; width: 90px; right: 4px; }
+  .rodape-mesa { flex-direction: column; align-items: stretch; gap: 6px; }
+  .roleta .rack { justify-content: space-between; }
+  .roleta .acoes { justify-content: space-between; flex-wrap: nowrap; gap: 4px; }
+  .na-mesa { min-width: 0; margin: 0 2px; }
+  .na-mesa b { font-size: 17px; }
+  .girar { min-width: 96px; padding: 0 14px; }
+  .medalha { width: 78px; height: 78px; }
+  .medalha b { font-size: 32px; }
+}

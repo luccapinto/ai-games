@@ -89,7 +89,7 @@ export function htmlConta(ficha, valor, { nota = '', rotuloValor = null } = {}) 
       <tr><td>Paga</td><td>${ficha.paga}</td></tr>
       <tr><td>Chance de ganhar</td><td>${chance(ficha.chance)}</td></tr>
       <tr><td>Vantagem da casa</td><td class="${zero ? 'zero' : 'casa'}">${pct(casa, 2)}</td></tr>
-      <tr><td>Perda esperada${rotuloValor ? '' : ` em ${fichas(valor)}`}</td><td class="${zero ? 'zero' : 'casa'}">${zero ? '0,00' : '−' + fichasFrac(perda, perda < 100 ? 3 : 2)}</td></tr>
+      <tr><td>Perda esperada${rotuloValor ? '' : ` em ${fichas(valor)} ficha${valor === 100 ? '' : 's'}`}</td><td class="${zero ? 'zero' : 'casa'}">${zero ? '0,00' : '−' + fichasFrac(perda, perda < 100 ? 3 : 2)}</td></tr>
     </table>
     ${nota ? `<div class="nota">${nota}</div>` : ''}`;
 }
