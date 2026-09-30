@@ -1,0 +1,90 @@
+/* BANCA: caça-níquel MALECÓN 57 */
+
+.nq-palco { display: grid; place-items: center; overflow: auto; }
+.nq-gabinete {
+  position: relative; width: min(100%, 900px); padding: 18px 20px 20px; border-radius: 120px 120px 18px 18px;
+  background:
+    radial-gradient(ellipse 80% 40% at 50% 0%, rgba(255, 61, 110, .16), transparent 70%),
+    linear-gradient(170deg, #22101a, #0d060a 55%, #1a0a12);
+  box-shadow:
+    inset 0 0 0 2px #8f6f35, inset 0 0 0 6px #140910, inset 0 0 0 7px rgba(232, 207, 143, .45),
+    0 30px 70px rgba(0, 0, 0, .75), 0 0 90px rgba(255, 61, 110, .1);
+}
+.niquel.bonus .nq-gabinete { box-shadow: inset 0 0 0 2px #35f0d8, inset 0 0 0 6px #06201c, inset 0 0 0 7px rgba(53, 240, 216, .6), 0 30px 70px rgba(0, 0, 0, .75), 0 0 110px rgba(53, 240, 216, .25); }
+.nq-letreiro { display: flex; justify-content: center; align-items: baseline; gap: 12px; margin-top: 6px; font-family: var(--f-display); letter-spacing: .14em; }
+.nq-letreiro span { font-size: 46px; color: #ffe3ec; text-shadow: 0 0 6px #ff3d6e, 0 0 20px #ff3d6e, 0 0 44px rgba(255, 61, 110, .7); animation: tremor 7s infinite; }
+.nq-letreiro em { font-style: normal; font-size: 40px; color: #dffffa; text-shadow: 0 0 6px #35f0d8, 0 0 20px #35f0d8, 0 0 40px rgba(53, 240, 216, .7); }
+@keyframes tremor { 0%, 91%, 93%, 100% { opacity: 1; } 92% { opacity: .55; } 92.5% { opacity: .9; } }
+.nq-sub { text-align: center; font-size: 12px; letter-spacing: .2em; text-transform: uppercase; color: rgba(232, 207, 143, .75); margin: 2px 0 12px; }
+
+.nq-janela {
+  position: relative; border-radius: 14px; overflow: hidden; aspect-ratio: 5 / 3;
+  background: #03050f;
+  box-shadow: inset 0 0 0 3px #c9a45c, inset 0 0 0 6px #2a1a0a, inset 0 0 0 7px rgba(232, 207, 143, .5), inset 0 20px 40px rgba(0, 0, 0, .6);
+  padding: 7px;
+}
+.nq-rolos { width: 100%; height: 100%; display: block; }
+.nq-faixa {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); padding: 10px 22px; border-radius: 12px; white-space: nowrap;
+  background: rgba(3, 12, 20, .82); color: #dffffa; font-family: var(--f-display); font-size: 20px; letter-spacing: .08em;
+  box-shadow: inset 0 0 0 1.5px #35f0d8, 0 0 30px rgba(53, 240, 216, .45); text-shadow: 0 0 10px #35f0d8;
+  pointer-events: none;
+}
+.niquel.bonus .nq-faixa:not(.pulsa) { top: auto; bottom: 8px; transform: translate(-50%, 0); font-size: 13px; padding: 5px 14px; }
+.nq-faixa.pulsa { animation: faixa 1.5s var(--transicao); }
+@keyframes faixa { 0% { transform: translate(-50%, -50%) scale(.3); opacity: 0; } 30% { transform: translate(-50%, -50%) scale(1.15); opacity: 1; } 100% { transform: translate(-50%, -50%) scale(1); } }
+.nq-comemora {
+  position: absolute; inset: 0; display: grid; place-content: center; text-align: center; gap: 6px;
+  background: radial-gradient(circle, rgba(0, 0, 0, .55), rgba(0, 0, 0, .1) 70%); pointer-events: none;
+  animation: aparece .4s ease;
+}
+.nq-comemora b { font-family: var(--f-display); font-weight: 400; font-size: 50px; letter-spacing: .08em; color: #fff4c8; text-shadow: 0 0 10px #ffd35a, 0 0 30px #ff9a4a, 0 6px 20px rgba(0, 0, 0, .8); animation: comemora .8s ease-in-out infinite alternate; }
+.nq-comemora span { font-size: 17px; color: #ffe39a; letter-spacing: .06em; }
+@keyframes comemora { from { transform: scale(1); } to { transform: scale(1.07); } }
+
+.nq-painel { display: flex; justify-content: space-between; gap: 10px; margin: 12px 4px 0; }
+.nq-painel div { display: flex; align-items: baseline; gap: 8px; }
+.nq-painel span { font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: var(--latao); }
+.nq-painel b { font-size: 22px; font-weight: 600; color: var(--marfim); }
+.nq-painel .nq-ganho { color: #ffe39a; }
+.nq-linha-msg { min-height: 20px; text-align: center; font-size: 13px; color: var(--marfim-sujo); letter-spacing: .04em; margin: 4px 0 2px; }
+.nq-botoes { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+.nq-valor { display: flex; align-items: center; gap: 4px; margin-right: auto; padding: 2px 4px; border-radius: 999px; background: rgba(0, 0, 0, .4); box-shadow: inset 0 0 0 1px rgba(201, 164, 92, .4); }
+.nq-valor .icone { font-size: 22px; font-weight: 600; }
+.nq-valor div { display: flex; flex-direction: column; align-items: center; min-width: 76px; line-height: 1.1; }
+.nq-valor span { font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: var(--latao); }
+.nq-valor b { font-size: 17px; }
+.nq-botoes .btn.ativo { color: #1a1206; background: linear-gradient(180deg, #bfffee, #35f0d8); }
+.nq-girar {
+  width: 96px; height: 96px; border-radius: 50%; border: 0; cursor: pointer; display: grid; place-items: center;
+  background: radial-gradient(circle at 38% 30%, #fff1c4, #d9b46a 35%, #8f6a2c 75%, #5a4018);
+  box-shadow: inset 0 -4px 0 rgba(60, 40, 10, .7), inset 0 2px 0 rgba(255, 250, 220, .7), 0 0 0 4px #1a120a, 0 0 0 6px rgba(232, 207, 143, .6), 0 12px 30px rgba(0, 0, 0, .6), 0 0 30px rgba(255, 211, 90, .25);
+  transition: transform .12s, filter .2s;
+}
+.nq-girar span { font-family: var(--f-display); font-size: 17px; letter-spacing: .1em; color: #2a1806; text-shadow: 0 1px 0 rgba(255, 245, 210, .6); }
+.nq-girar:hover { filter: brightness(1.08); }
+.nq-girar:active { transform: scale(.95); }
+.nq-girar:disabled { filter: grayscale(.6) brightness(.6); cursor: not-allowed; }
+
+.nq-tabela .nq-ico { display: inline-block; width: 32px; height: 32px; vertical-align: middle; margin-right: 8px; }
+.nq-tabela .nq-ico canvas { width: 32px; height: 32px; }
+.nq-tabela em { font-style: normal; font-size: 11px; color: var(--neon-ciano); margin-left: 4px; }
+.nq-hist span { width: auto; padding: 0 7px; font-size: 11.5px; }
+.nq-hist span.bom { background: rgba(79, 214, 164, .18); color: var(--bom); }
+.nq-hist span.ruim { color: rgba(216, 204, 176, .55); }
+
+@media (max-width: 720px) {
+  .nq-gabinete { padding: 12px 8px 12px; border-radius: 64px 64px 14px 14px; }
+  .nq-letreiro span { font-size: 30px; }
+  .nq-letreiro em { font-size: 26px; }
+  .nq-sub { font-size: 9.5px; letter-spacing: .1em; margin-bottom: 8px; }
+  .nq-janela { padding: 4px; }
+  .nq-painel b { font-size: 16px; }
+  .nq-painel span { font-size: 9.5px; letter-spacing: .1em; }
+  .nq-botoes { gap: 6px; }
+  .nq-botoes .btn { padding: 0 10px; font-size: 11px; letter-spacing: .08em; }
+  .nq-girar { width: 84px; height: 84px; }
+  .nq-valor { margin-right: 0; flex-basis: 100%; justify-content: space-between; }
+  .nq-comemora b { font-size: 30px; }
+  .nq-faixa { font-size: 14px; padding: 8px 12px; }
+}

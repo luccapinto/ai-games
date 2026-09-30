@@ -1,0 +1,171 @@
+/* BANCA: peças comuns às mesas e aos painéis da casa. */
+
+.em-montagem {
+  position: absolute; inset: 0; display: grid; place-content: center; text-align: center; gap: 6px;
+}
+.em-montagem h2 { font-family: var(--f-display); font-weight: 400; font-size: 44px; margin: 0; color: var(--latao-claro); letter-spacing: .08em; }
+.em-montagem p { color: var(--marfim-sujo); margin: 0 0 18px; }
+
+.credito-conta {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; margin: 6px 0 22px;
+}
+.credito-conta div {
+  padding: 14px 16px; border-radius: 10px; background: rgba(255, 240, 200, .04);
+  box-shadow: inset 0 0 0 1px rgba(201, 164, 92, .25);
+}
+.credito-conta span { display: block; font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--latao); }
+.credito-conta b { font-size: 22px; font-weight: 500; }
+.acoes-painel { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.nota-painel { font-size: 13px; color: rgba(216, 204, 176, .7); margin: 16px 0 0; }
+
+.opcoes { display: grid; gap: 4px; margin-bottom: 8px; }
+
+/* ------------------------------------------------------------------ Livro da Casa */
+.bom { color: var(--bom); }
+.ruim { color: #ff8a8a; }
+.livro-abas { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+.livro-abas button {
+  min-height: 36px; padding: 0 14px; border: 0; border-radius: 999px; cursor: pointer;
+  background: rgba(255, 240, 200, .05); color: var(--marfim-sujo); box-shadow: inset 0 0 0 1px rgba(201, 164, 92, .25);
+  font-size: 12px; letter-spacing: .1em; text-transform: uppercase;
+}
+.livro-abas button.ativa { background: rgba(201, 164, 92, .2); color: var(--latao-claro); box-shadow: inset 0 0 0 1px rgba(232, 207, 143, .8); }
+.livro-manchete { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; margin-bottom: 14px; }
+.livro-manchete > div { padding: 12px 14px; border-radius: 10px; background: rgba(255, 240, 200, .035); box-shadow: inset 0 0 0 1px rgba(201, 164, 92, .2); }
+.livro-manchete span { display: block; font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: var(--latao); }
+.livro-manchete b { display: block; font-family: var(--f-display); font-weight: 400; font-size: 28px; letter-spacing: .02em; margin: 2px 0; }
+.livro-manchete b.casa { color: #ffb3a6; }
+.livro-manchete small { color: var(--marfim-sujo); font-size: 12.5px; line-height: 1.3; display: block; }
+.livro-manchete .sorte { grid-column: span 1; }
+.livro-manchete .vazio { grid-column: 1 / -1; color: var(--marfim-sujo); margin: 0; }
+.livro-grafico { position: relative; border-radius: 10px; background: rgba(0, 0, 0, .35); box-shadow: inset 0 0 0 1px rgba(201, 164, 92, .18); padding: 8px 8px 4px; }
+.livro-grafico canvas { width: 100%; height: 280px; display: block; }
+.legenda { display: flex; flex-wrap: wrap; gap: 16px; justify-content: center; font-size: 12px; color: var(--marfim-sujo); padding: 6px 0 4px; }
+.legenda i { display: inline-block; width: 18px; height: 3px; vertical-align: middle; margin-right: 6px; border-radius: 2px; }
+.legenda i.real { background: #ff5c86; box-shadow: 0 0 6px #ff3d6e; }
+.legenda i.esp { background: repeating-linear-gradient(90deg, #e8cf8f 0 5px, transparent 5px 9px); }
+.legenda i.faixa { height: 10px; background: rgba(201, 164, 92, .25); }
+.rolagem { overflow-x: auto; }
+.livro-tabela { width: 100%; border-collapse: collapse; font-size: 13.5px; min-width: 720px; }
+.livro-tabela th { text-align: right; font-weight: 500; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--latao); padding: 8px 8px; border-bottom: 1px solid rgba(201, 164, 92, .35); white-space: nowrap; }
+.livro-tabela td { text-align: right; padding: 7px 8px; border-bottom: 1px solid rgba(201, 164, 92, .1); white-space: nowrap; }
+.livro-tabela th:first-child, .livro-tabela td:first-child { text-align: left; }
+.livro-tabela tr[data-jogo] { cursor: pointer; }
+.livro-tabela tr.ativa td { background: rgba(201, 164, 92, .1); }
+.livro-tabela tr.soma td { font-weight: 600; border-top: 1px solid rgba(201, 164, 92, .4); }
+.livro-tabela .casa { color: #ffb3a6; }
+.livro-tabela.ultimas { min-width: 620px; }
+.livro-tabela.ultimas td:nth-child(3) { text-align: left; white-space: normal; color: var(--marfim-sujo); }
+
+/* ------------------------------------------------------------------ Conferir */
+.semente-linha { display: flex; gap: 8px; }
+.semente-linha input {
+  flex: 1; min-width: 0; min-height: 44px; padding: 0 14px; border-radius: 8px; border: 0;
+  background: rgba(0, 0, 0, .45); color: var(--marfim); font: 500 15px var(--f-ui); letter-spacing: .04em;
+  box-shadow: inset 0 0 0 1px rgba(201, 164, 92, .45);
+}
+.compromissos { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 8px; }
+.revelados { display: grid; gap: 10px; }
+.revelado { border-radius: 10px; padding: 12px 14px; background: rgba(255, 240, 200, .03); box-shadow: inset 0 0 0 1px rgba(201, 164, 92, .2); }
+.revelado.ok { box-shadow: inset 0 0 0 1px rgba(79, 214, 164, .55); }
+.revelado.falha { box-shadow: inset 0 0 0 1px rgba(255, 110, 110, .8); }
+.topo-rev { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
+.topo-rev b { font-family: var(--f-display); font-weight: 400; font-size: 18px; color: var(--latao-claro); }
+.topo-rev span { font-size: 12.5px; color: var(--marfim-sujo); }
+.topo-rev .res { color: var(--marfim); font-size: 14px; }
+.topo-rev .btn { margin-left: auto; min-height: 36px; font-size: 12px; }
+.dados-rev { display: grid; gap: 4px; margin-top: 8px; }
+.dados-rev div { display: grid; grid-template-columns: 130px 1fr; gap: 8px; font-size: 12px; }
+.dados-rev span { color: var(--latao); letter-spacing: .06em; }
+.revelado code, .saida-rev code { font-family: ui-monospace, 'SFMono-Regular', Menlo, monospace; font-size: 11.5px; word-break: break-all; color: var(--marfim-sujo); }
+.saida-rev { margin-top: 8px; display: grid; gap: 3px; font-size: 13.5px; }
+@media (max-width: 720px) { .dados-rev div { grid-template-columns: 1fr; gap: 0; } }
+.opcoes label {
+  display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 0 12px; border-radius: 8px; cursor: pointer;
+  background: rgba(255, 240, 200, .03);
+}
+.opcoes input { width: 20px; height: 20px; accent-color: var(--latao); }
+
+/* estrutura comum de mesa: palco + painel da conta ao lado */
+.mesa-grade {
+  position: absolute; inset: 0;
+  padding: calc(var(--topo) + 4px) max(12px, env(safe-area-inset-right)) calc(env(safe-area-inset-bottom) + 10px) max(12px, env(safe-area-inset-left));
+  display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 14px;
+}
+.palco { position: relative; min-width: 0; min-height: 0; }
+
+.conta {
+  position: relative; min-height: 0; overflow: auto;
+  border-radius: 12px; padding: 16px 16px 14px;
+  background: linear-gradient(180deg, rgba(14, 12, 9, .9), rgba(8, 7, 5, .92));
+  box-shadow: inset 0 0 0 1px rgba(201, 164, 92, .4), 0 10px 30px rgba(0, 0, 0, .5);
+  font-size: 13.5px;
+}
+.conta h4 {
+  margin: 0 0 8px; font-weight: 500; font-size: 11.5px; letter-spacing: .24em; text-transform: uppercase; color: var(--latao);
+}
+.conta .grande-numero { font-family: var(--f-display); font-size: 30px; color: var(--latao-claro); letter-spacing: .02em; line-height: 1.1; }
+.conta .explica { color: var(--marfim-sujo); font-size: 12.5px; margin: 4px 0 12px; }
+.conta .bloco { margin-bottom: 16px; }
+.conta table { width: 100%; border-collapse: collapse; }
+.conta td { padding: 4px 0; border-bottom: 1px solid rgba(201, 164, 92, .12); vertical-align: top; }
+.conta td:last-child { text-align: right; white-space: nowrap; padding-left: 8px; }
+.conta .casa { color: #ffb3a6; }
+.conta .zero { color: var(--bom); }
+.conta .barra-vantagem { height: 4px; border-radius: 2px; background: rgba(255, 255, 255, .08); margin-top: 3px; overflow: hidden; }
+.conta .barra-vantagem i { display: block; height: 100%; background: linear-gradient(90deg, #ffb3a6, #ff3d6e); border-radius: 2px; }
+.conta .barra-vantagem i.zero { background: var(--bom); }
+
+.historico { display: flex; flex-wrap: wrap; gap: 4px; }
+.historico span {
+  min-width: 28px; height: 26px; padding: 0 6px; border-radius: 5px; display: grid; place-items: center;
+  font-size: 12.5px; font-weight: 600;
+  background: rgba(255, 255, 255, .06); color: var(--marfim);
+}
+
+.compromisso {
+  font-size: 11.5px; color: rgba(216, 204, 176, .75); word-break: break-all; line-height: 1.35;
+  padding: 8px 10px; border-radius: 8px; background: rgba(0, 0, 0, .35); box-shadow: inset 0 0 0 1px rgba(201, 164, 92, .18);
+  cursor: pointer;
+}
+.compromisso b { color: var(--latao); font-weight: 500; letter-spacing: .12em; font-size: 10px; display: block; margin-bottom: 2px; }
+
+/* botões de ação da mesa */
+.acoes {
+  display: flex; gap: 8px; align-items: center; justify-content: center; flex-wrap: wrap;
+}
+.acoes .icone { background: rgba(14, 12, 9, .75); box-shadow: inset 0 0 0 1px rgba(201, 164, 92, .4); }
+
+/* o recado da mesa passa por cima do pano impresso: vai numa pílula escura para ler sempre */
+.mensagem-mesa {
+  font-family: var(--f-display); letter-spacing: .06em; color: var(--latao-claro);
+  text-shadow: 0 2px 10px rgba(0, 0, 0, .8);
+  padding: 6px 18px; border-radius: 999px; background: rgba(8, 7, 5, .88);
+  box-shadow: inset 0 0 0 1px rgba(201, 164, 92, .45), 0 8px 18px rgba(0, 0, 0, .35);
+}
+
+/* aba da conta no celular */
+.aba-conta { display: none; }
+
+@media (max-width: 980px) {
+  .mesa-grade { grid-template-columns: minmax(0, 1fr); }
+  .conta {
+    position: fixed; left: 8px; right: 8px; bottom: calc(env(safe-area-inset-bottom) + 8px); z-index: 45;
+    max-height: 62dvh; transform: translateY(calc(100% + 20px)); transition: transform .35s var(--transicao);
+  }
+  .conta.aberta { transform: none; }
+  .aba-conta {
+    display: flex; align-items: center; gap: 6px;
+    position: fixed; right: 0; top: 34%; z-index: 44;
+    height: 44px; padding: 0 10px 0 12px; border: 0; border-radius: 12px 0 0 12px; cursor: pointer;
+    background: rgba(14, 12, 9, .88); color: var(--latao-claro); box-shadow: inset 0 0 0 1px rgba(201, 164, 92, .5);
+    font-size: 11.5px; letter-spacing: .14em; text-transform: uppercase;
+  }
+  .aba-conta svg { width: 20px; height: 20px; }
+}
+@media (max-width: 720px) {
+  .aba-conta { padding: 0 10px; }
+  .aba-conta span { display: none; }
+  /* nas máquinas a borda direita no meio da tela é tabela de prêmios e rolo: a aba desce para o chão */
+  .mesa-grade.videopoquer ~ .aba-conta, .mesa-grade.niquel ~ .aba-conta { top: auto; bottom: calc(env(safe-area-inset-bottom) + 18px); }
+}

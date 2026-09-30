@@ -1,0 +1,139 @@
+/* BANCA: mesa de blackjack */
+
+.bj-palco { position: relative; }
+.bj-impresso { position: absolute; left: 2%; right: 2%; top: 8%; height: 50%; width: 96%; pointer-events: none; overflow: visible; }
+.bj-impresso .linha-arco { fill: none; stroke: rgba(232, 207, 143, .45); stroke-width: 2; }
+.bj-impresso .linha-arco.fina { stroke-width: 1; stroke-dasharray: 4 6; stroke: rgba(232, 207, 143, .3); }
+.bj-impresso text { font-family: var(--f-display); fill: rgba(232, 207, 143, .62); }
+.bj-impresso .arco-grande { font-size: 40px; letter-spacing: 6px; fill: rgba(241, 220, 160, .75); }
+.bj-impresso .arco-pequeno { font-size: 17px; letter-spacing: 4px; }
+.bj-impresso .arco-seguro { font-size: 12.5px; letter-spacing: 3px; fill: rgba(232, 207, 143, .45); font-family: var(--f-ui); font-weight: 500; }
+
+/* sapato e descarte */
+.bj-sapato, .bj-descarte {
+  position: absolute; top: 1.5%; width: 92px; height: 118px; border-radius: 10px 10px 6px 6px;
+  background: linear-gradient(160deg, #3a2412, #1a0e06 70%);
+  box-shadow: inset 0 0 0 2px rgba(201, 164, 92, .65), inset 0 8px 18px rgba(0, 0, 0, .6), 0 12px 24px rgba(0, 0, 0, .55);
+  transform: perspective(500px) rotateX(18deg);
+}
+.bj-sapato { right: 1.5%; }
+.bj-descarte { left: 1.5%; width: 80px; }
+.bj-pilha {
+  position: absolute; left: 10px; right: 10px; bottom: 10px; height: calc((100% - 20px) * var(--f, 1));
+  border-radius: 3px;
+  background: repeating-linear-gradient(0deg, #5a1422 0 2px, #e8cf8f 2px 2.6px, #6a1a2a 2.6px 4px);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, .5);
+  transition: height .4s var(--transicao);
+}
+.bj-descarte .bj-pilha { opacity: .8; }
+.bj-corte { position: absolute; left: 6px; right: 6px; height: 3px; bottom: calc(10px + (100% - 20px) * var(--c, .25)); background: #ff3d6e; box-shadow: 0 0 6px #ff3d6e; border-radius: 2px; }
+.bj-sapato span { position: absolute; left: 0; right: 0; bottom: -20px; text-align: center; font-size: 11px; color: var(--latao); letter-spacing: .08em; }
+.bj-sapato.embaralhando .bj-pilha { animation: embaralha .22s ease-in-out 5 alternate; }
+@keyframes embaralha { from { transform: translateX(-4px) skewX(-6deg); } to { transform: translateX(4px) skewX(6deg); } }
+
+/* rack da banca: de onde o prêmio sai e para onde a aposta perdida vai */
+.bj-rack {
+  position: absolute; left: 50%; top: -6px; transform: translateX(-50%); width: 280px; height: 30px; border-radius: 0 0 8px 8px;
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, .0), rgba(0, 0, 0, .35)),
+    repeating-linear-gradient(90deg, #ece2cc 0 20px, #0003 20px 23px, #b3192e 23px 43px, #0003 43px 46px, #177a4c 46px 66px, #0003 66px 69px, #17171b 69px 89px, #0003 89px 92px, #5b2a86 92px 112px, #0003 112px 115px, #d9a133 115px 135px, #0003 135px 138px);
+  box-shadow: inset 0 0 0 2px #1a120a, 0 0 0 1px rgba(201, 164, 92, .6), 0 8px 16px rgba(0, 0, 0, .5);
+}
+
+/* cada camada é um contexto próprio: o z-index das cartas não passa por cima dos rótulos */
+.bj-cartas { position: absolute; inset: 0; pointer-events: none; z-index: 1; }
+.bj-rotulos { position: absolute; inset: 0; pointer-events: none; z-index: 3; }
+.carta.na-mesa { position: absolute; left: 0; top: 0; will-change: transform; }
+
+.bj-total {
+  position: absolute; min-width: 36px; height: 28px; padding: 0 9px; border-radius: 999px;
+  display: grid; place-items: center; transform: translateY(0);
+  background: rgba(8, 7, 5, .82); color: var(--marfim); font-weight: 600; font-size: 14px;
+  box-shadow: inset 0 0 0 1px rgba(201, 164, 92, .6);
+  pointer-events: none; transition: box-shadow .2s;
+}
+.bj-total.ativa { box-shadow: inset 0 0 0 1.5px #ffe39a, 0 0 14px rgba(255, 220, 140, .55); }
+.bj-resultado {
+  position: absolute; transform: translate(-50%, -50%); pointer-events: none; white-space: nowrap;
+  font-family: var(--f-display); font-size: 22px; letter-spacing: .06em; padding: 4px 14px; border-radius: 8px;
+  background: rgba(8, 7, 5, .8); box-shadow: inset 0 0 0 1px rgba(201, 164, 92, .7), 0 10px 20px rgba(0, 0, 0, .5);
+  animation: resultado .5s var(--transicao);
+}
+.bj-resultado b { font-family: var(--f-ui); font-size: 16px; }
+.bj-resultado.bom { color: #ffe39a; text-shadow: 0 0 12px rgba(255, 210, 120, .7); }
+.bj-resultado.ruim { color: #ff9a8a; }
+.bj-resultado.neutro { color: var(--marfim); }
+@keyframes resultado { from { transform: translate(-50%, -30%) scale(.8); opacity: 0; } to { transform: translate(-50%, -50%); opacity: 1; } }
+
+.bj-apostas { position: absolute; inset: 0; pointer-events: none; }
+.bj-circulo {
+  position: absolute; width: var(--d); height: var(--d); transform: translate(-50%, -50%); border-radius: 50%;
+  border: 0; background: radial-gradient(circle, rgba(255, 240, 200, .05) 40%, rgba(255, 240, 200, .0) 70%);
+  box-shadow: inset 0 0 0 2px rgba(232, 207, 143, .75), inset 0 0 0 6px rgba(0, 0, 0, .2), inset 0 0 0 7px rgba(232, 207, 143, .3);
+  pointer-events: auto; cursor: pointer;
+  display: grid; place-items: end center; padding-bottom: 12%;
+}
+.bj-circulo span { font-size: 10px; letter-spacing: .22em; text-transform: uppercase; color: rgba(232, 207, 143, .7); }
+.bj-circulo.cheio { pointer-events: none; }
+.bj-circulo.ativa { box-shadow: inset 0 0 0 2px #ffe39a, 0 0 22px rgba(255, 220, 140, .5); }
+.bj-apostas .pilha { z-index: 2; }
+
+.bj-mensagem {
+  position: absolute; left: 50%; top: 30%; transform: translate(-50%, 0); width: max-content; max-width: 90%; text-align: center;
+  font-size: 18px; opacity: 0; pointer-events: none; z-index: 4;
+}
+.bj-mensagem.mostra { animation: mensagem 3.2s ease forwards; }
+@keyframes mensagem { 0% { opacity: 0; transform: translate(-50%, 8px); } 10%, 75% { opacity: 1; transform: translate(-50%, 0); } 100% { opacity: 0; } }
+
+.treinador {
+  position: absolute; right: 8px; bottom: 96px; max-width: 340px; padding: 10px 14px; border-radius: 10px;
+  background: rgba(8, 7, 5, .85); box-shadow: inset 0 0 0 1px rgba(53, 240, 216, .45), 0 10px 24px rgba(0, 0, 0, .5);
+  display: grid; gap: 2px; pointer-events: none;
+}
+.treinador > span { font-size: 10.5px; letter-spacing: .2em; text-transform: uppercase; color: var(--neon-ciano); }
+.treinador b { font-family: var(--f-display); font-weight: 400; font-size: 24px; color: var(--marfim); }
+.treinador em { font-style: normal; font-size: 12px; color: var(--marfim-sujo); }
+
+.bj-rodape { position: absolute; left: 0; right: 0; bottom: 0; }
+.bj-acoes { flex: 1; justify-content: flex-end; }
+.bj-acao { position: relative; min-width: 96px; }
+.bj-acao small { position: absolute; right: 6px; top: 3px; font-size: 9px; opacity: .55; letter-spacing: 0; }
+.bj-pergunta { max-width: 420px; font-size: 13.5px; color: var(--marfim); padding: 8px 12px; border-radius: 8px; background: rgba(8, 7, 5, .7); }
+.bj-pergunta .casa { color: #ffb3a6; }
+
+/* quadro da estratégia básica na conta */
+.quadro-bj { display: grid; gap: 8px; }
+.quadro { border-collapse: collapse; width: 100%; font-size: 10.5px; table-layout: fixed; }
+.quadro th, .quadro td { padding: 2px 0 !important; text-align: center !important; border: 1px solid rgba(0, 0, 0, .5) !important; }
+.quadro thead th { color: var(--latao); font-weight: 500; }
+.quadro tbody th { color: var(--marfim-sujo); font-weight: 500; width: 34px; }
+.q-C { background: #2a3a5a; color: #cfe0ff; }
+.q-P { background: #5a1422; color: #ffd6dc; }
+.q-D, .q-Ds { background: #1f6a44; color: #d8ffe9; }
+.q-V { background: #7d6230; color: #fff1cc; }
+.q-R, .q-Rh, .q-Rp, .q-Rv { background: #4a4a52; color: #eee; }
+.quadro td.marcada { outline: 2px solid #ffe39a; outline-offset: -1px; box-shadow: 0 0 10px #ffe39a; position: relative; z-index: 1; }
+.leg { display: inline-block; min-width: 18px; text-align: center; border-radius: 3px; font-size: 10.5px; padding: 0 3px; }
+.regras { margin: 0; padding-left: 16px; color: var(--marfim-sujo); font-size: 12.5px; display: grid; gap: 4px; }
+.bj-hist span.bom { background: rgba(79, 214, 164, .18); color: var(--bom); }
+.bj-hist span.ruim { background: rgba(255, 110, 110, .15); color: #ff9a8a; }
+
+@media (max-width: 720px) {
+  .bj-impresso { top: 16%; height: 50%; }
+  .bj-impresso .arco-grande { font-size: 44px; }
+  .bj-impresso .arco-pequeno { font-size: 22px; }
+  .bj-impresso .arco-seguro { display: none; }
+  .bj-sapato { width: 62px; height: 84px; }
+  .bj-descarte { width: 54px; height: 84px; }
+  .bj-rack { width: 150px; height: 24px; }
+  .treinador { left: 8px; right: auto; bottom: 122px; max-width: none; padding: 6px 12px; display: flex; align-items: baseline; gap: 8px; }
+  .treinador b { font-size: 17px; }
+  .treinador em { display: none; }
+  .bj-rodape { flex-direction: column; align-items: stretch; gap: 6px; }
+  .bj-rodape .rack { justify-content: space-between; }
+  .bj-acoes { justify-content: space-between; gap: 4px; }
+  .bj-acao { min-width: 0; flex: 1; padding: 0 6px; font-size: 12px; letter-spacing: .06em; }
+  .bj-acao small { display: none; }
+  .bj-pergunta { font-size: 12px; max-width: none; flex-basis: 100%; }
+  .bj-mensagem { font-size: 15px; top: 27%; }
+}

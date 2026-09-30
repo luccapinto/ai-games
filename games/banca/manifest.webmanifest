@@ -1,0 +1,15 @@
+{
+  "name": "BANCA, o cassino honesto",
+  "short_name": "BANCA",
+  "description": "Seis mesas de cassino que mostram a vantagem da casa em cada aposta. Fichas de mentira, funciona sem internet.",
+  "lang": "pt-BR",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0b0b0d",
+  "theme_color": "#0b0b0d",
+  "icons": [
+    { "src": "icone.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

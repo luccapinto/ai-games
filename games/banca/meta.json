@@ -1,0 +1,121 @@
+{
+  "esquema": 1,
+  "slug": "banca",
+  "titulo": "BANCA",
+  "subtitulo": "A banca sempre ganha. Aqui ela te mostra quanto.",
+  "genero": "Cassino",
+  "plataforma": "Navegador, desktop e celular",
+  "estado": "jogavel",
+  "criado": "2026-09-30",
+  "licenca": "MIT",
+  "capa": "capa.jpg",
+  "previa": "",
+  "resumo": "Um cassino de fichas de mentira num salão de Havana em 1957, com roleta, blackjack, caça-níquel, vídeo pôquer, bacará e craps. Cada aposta mostra a vantagem da casa calculada por código, cada sorteio pode ser refeito pelo jogador, e o Livro da Casa compara o que você perdeu com o que a matemática previa.",
+  "autores": [
+    {
+      "nome": "Lucca Pinto",
+      "github": "luccapinto",
+      "site": ""
+    }
+  ],
+  "ia": [
+    {
+      "modelo": "claude-opus-5-5",
+      "provider": "Anthropic",
+      "agente": "Oh My Pi",
+      "papel": "agente principal (núcleo, visual, salão, as seis mesas, provas, offline) e o conselheiro do Oh My Pi, que revisou ao lado",
+      "chamadas_api": 1070,
+      "tokens": {
+        "entrada": 3012,
+        "saida": 836518,
+        "cache_leitura": 314255277,
+        "cache_escrita": 1978027
+      },
+      "usd_estimado": 95.42
+    },
+    {
+      "modelo": "claude-opus-5",
+      "provider": "Anthropic",
+      "agente": "Oh My Pi (subagentes)",
+      "papel": "matemática do blackjack e do vídeo pôquer; regras puras do bacará e do craps e o começo do caça-níquel",
+      "chamadas_api": 159,
+      "tokens": {
+        "entrada": 322,
+        "saida": 336817,
+        "cache_leitura": 25834303,
+        "cache_escrita": 491767
+      },
+      "usd_estimado": 26.26
+    }
+  ],
+  "medicao": {
+    "confianca": "medido",
+    "metodo": "soma do campo usage de cada resposta nos registros de sessão do Oh My Pi (~/.omp/agent/sessions), separando entrada, saída, leitura e escrita de cache; o custo é o que o próprio Oh My Pi calculou pela tabela da Anthropic",
+    "medido_em": "2026-09-30",
+    "nota": "A entrada do claude-opus-5-5 soma o agente principal e o conselheiro, que rodam o mesmo modelo. Medido no commit de entrega: o relatório final escrito depois dele não está contado."
+  },
+  "stack": [
+    "JavaScript (módulos ES)",
+    "Canvas 2D",
+    "SVG",
+    "Web Audio",
+    "Web Worker",
+    "Service Worker",
+    "Node (provas)"
+  ],
+  "tamanho": {
+    "linhas_proprias": 17920,
+    "mb": 1.11,
+    "modulos_js": 55
+  },
+  "destaques": [
+    "A vantagem da casa aparece em cada aposta e sai de conta, não de tabela: roleta 2,70% nas 157 apostas, blackjack 0,35% medido em 600 milhões de mãos, vídeo pôquer 9/6 a 99,54% pela enumeração das 2.598.960 mãos, caça-níquel a 96,0035% exato.",
+    "Todo sorteio é verificável: SHA-256 e HMAC em JavaScript puro, hash da semente da casa publicado antes da rodada e um painel que refaz roleta, dados, rolos, mãos e sapatos inteiros.",
+    "A bola e os dados obedecem ao sorteio: a roleta ajusta a fase do rotor para a bola cair na casa sorteada, e os dados rolam como corpos rígidos e param com a face sorteada para cima.",
+    "O Livro da Casa soma a perda esperada rodada a rodada contra o saldo real, com faixas de um e dois desvios-padrão e a sua sorte medida em desvios.",
+    "Treinador opcional no blackjack e no vídeo pôquer, que diz em fichas quanto cada desvio da jogada ótima custou.",
+    "210 provas em Node, com um robô que joga 200 rodadas em cada mesa e confere que nenhuma das 412 apostas favorece o jogador; roda offline depois da primeira visita."
+  ],
+  "arquivos_chave": [
+    {
+      "caminho": "js/nucleo/justo.js",
+      "papel": "gerador verificável: compromisso SHA-256 e HMAC por bloco, sem viés"
+    },
+    {
+      "caminho": "js/nucleo/livro.js",
+      "papel": "Livro da Casa: perda esperada, variância e sorte em desvios"
+    },
+    {
+      "caminho": "js/jogos/roleta/fisica.js",
+      "papel": "física da bola resolvida para parar no número sorteado"
+    },
+    {
+      "caminho": "js/jogos/craps/dados.js",
+      "papel": "dados de corpo rígido com renumeração das faces"
+    },
+    {
+      "caminho": "js/jogos/videopoquer/analise.js",
+      "papel": "valor esperado exato das 32 retenções de cada mão"
+    },
+    {
+      "caminho": "js/jogos/blackjack/estrategia.js",
+      "papel": "estratégia básica e custo de cada desvio"
+    },
+    {
+      "caminho": "js/jogos/niquel/regras.js",
+      "papel": "retorno exato do Malecón 57 pelas tiras"
+    },
+    {
+      "caminho": "js/salao/cena.js",
+      "papel": "o salão isométrico desenhado em canvas"
+    },
+    {
+      "caminho": "provas.mjs",
+      "papel": "roda as 210 provas de provas/"
+    },
+    {
+      "caminho": "sw.js",
+      "papel": "offline: rede primeiro, cache de reserva"
+    }
+  ]
+}

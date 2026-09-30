@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>BANCA</title>
+<meta name="description" content="Cassino no navegador que mostra a vantagem da casa em cada aposta: roleta, blackjack, caça-níquel, vídeo pôquer, bacará e craps, com fichas de mentira, aleatoriedade verificável e o Livro da Casa.">
+<meta name="theme-color" content="#0b0b0d">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icone.svg" type="image/svg+xml">
+<link rel="stylesheet" href="css/banca.css">
+<link rel="stylesheet" href="css/mesas.css">
+<link rel="stylesheet" href="css/roleta.css">
+<link rel="stylesheet" href="css/blackjack.css">
+<link rel="stylesheet" href="css/videopoquer.css">
+<link rel="stylesheet" href="css/bacara.css">
+<link rel="stylesheet" href="css/craps.css">
+<link rel="stylesheet" href="css/niquel.css">
+</head>
+<body>
+<div id="app">
+  <canvas id="salao" aria-label="O salão da BANCA: arraste para andar, toque numa mesa para sentar"></canvas>
+  <div id="placa" role="status"></div>
+  <nav id="diretorio" aria-label="Mesas do salão"></nav>
+  <section id="mesa" hidden></section>
+  <header id="barra">
+    <div class="marca" id="marca" role="button" tabindex="0" title="Voltar ao salão">BANCA<small>cassino honesto</small></div>
+    <button class="voltar" id="voltar" hidden></button>
+    <div id="titulo-mesa"></div>
+    <div class="divida" id="divida" role="button" tabindex="0" title="Dívida com a casa"></div>
+    <div class="saldo" id="saldo" role="button" tabindex="0" title="Seu saldo em fichas">
+      <svg viewBox="0 0 100 100"><use href="#ficha-10000"/></svg>
+      <div class="pilha-texto"><span class="rotulo">fichas</span><b id="saldo-valor">–</b></div>
+    </div>
+    <button class="icone" id="b-livro" aria-label="Livro da Casa" title="Livro da Casa"></button>
+    <button class="icone" id="b-conferir" aria-label="Conferir os sorteios" title="Conferir os sorteios"></button>
+    <button class="icone" id="b-som" aria-label="Som" title="Som"></button>
+    <button class="icone" id="b-menu" aria-label="Mais opções" title="Mais opções"></button>
+  </header>
+  <div id="cortina-mesa"></div>
+  <div id="voo"></div>
+  <div id="dica" role="tooltip"></div>
+  <div id="aviso" role="status" aria-live="polite"></div>
+  <div id="grao"></div>
+</div>
+<noscript>A BANCA precisa de JavaScript para abrir as mesas.</noscript>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
