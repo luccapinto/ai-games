@@ -9,8 +9,8 @@ registrados ao lado.
 costs. Each game is a self-contained, playable folder that records the model that
 wrote it, the agent that drove it, and the tokens it burned.*
 
-**10 jogos** de **1 pessoa**, 41.263 linhas de código,
-3,7 M tokens novos e US$ 24,62 de API no total.
+**11 jogos** de **1 pessoa**, 59.183 linhas de código,
+4,9 M tokens novos e US$ 146,30 de API no total.
 
 👉 **[Jogar tudo](https://luccapinto.github.io/ai-games/)** · **[Ver o benchmark](https://luccapinto.github.io/ai-games/benchmark.html)** · **[Mandar o seu jogo](CONTRIBUTING.md)**
 
@@ -18,6 +18,7 @@ wrote it, the agent that drove it, and the tokens it burned.*
 
 | Jogo | Gênero | Quem fez | Modelo | Tokens novos | Custo | Jogar |
 | --- | --- | --- | --- | --- | --- | --- |
+| **BANCA** [`banca`](games/banca/README.md) | Cassino | Lucca Pinto | claude-opus-5-5, claude-opus-5 | 1,2 M | US$ 121,68 | [jogar](https://luccapinto.github.io/ai-games/games/banca/) |
 | **TRAVESSIA** [`travessia`](games/travessia/README.md) | Mundo aberto | Lucca Pinto | claude-opus-5 | 103,0 k | US$ 1,54 | [jogar](https://luccapinto.github.io/ai-games/games/travessia/) |
 | **SUBSOLO** [`subsolo`](games/subsolo/README.md) | FPS de rodadas | Lucca Pinto | claude-opus-5 | 705,0 k | US$ 8,30 | [jogar](https://luccapinto.github.io/ai-games/games/subsolo/) |
 | **GUARDRAIL** [`guardrail`](games/guardrail/README.md) | Defesa de torre | Lucca Pinto | claude-opus-5 | 165,0 k | US$ 2,48 | [jogar](https://luccapinto.github.io/ai-games/games/guardrail/) |
@@ -33,8 +34,9 @@ wrote it, the agent that drove it, and the tokens it burned.*
 
 | Modelo | Jogos | Tokens novos | Cache | Custo | Linhas |
 | --- | --- | --- | --- | --- | --- |
-| claude-opus-5 | 9 | 1,8 M | 0 | US$ 23,59 | 30.554 |
+| claude-opus-5 | 10 | 2,1 M | 26,3 M | US$ 49,85 | 48.474 |
 | deepseek-flash | 1 | 1,9 M | 159,1 M | US$ 1,03 | 10.709 |
+| claude-opus-5-5 | 1 | 839,5 k | 316,2 M | US$ 95,42 | 17.920 |
 
 Tokens novos são entrada + saída. Cache aparece em coluna separada de propósito:
 quanto do contexto vira leitura de cache depende da ferramenta que dirigiu o
@@ -99,6 +101,26 @@ pagar preço cheio por ele outra vez. Sem cache, o custo destes jogos seria uma
 ordem de grandeza maior.
 
 ## Os jogos por dentro
+
+### BANCA
+
+Um cassino de fichas de mentira num salão de Havana em 1957, com roleta, blackjack, caça-níquel, vídeo pôquer, bacará e craps. Cada aposta mostra a vantagem da casa calculada por código, cada sorteio pode ser refeito pelo jogador, e o Livro da Casa compara o que você perdeu com o que a matemática previa.
+
+O que tem dentro:
+
+- A vantagem da casa aparece em cada aposta e sai de conta, não de tabela: roleta 2,70% nas 157 apostas, blackjack 0,35% medido em 600 milhões de mãos, vídeo pôquer 9/6 a 99,54% pela enumeração das 2.598.960 mãos, caça-níquel a 96,0035% exato.
+- Todo sorteio é verificável: SHA-256 e HMAC em JavaScript puro, hash da semente da casa publicado antes da rodada e um painel que refaz roleta, dados, rolos, mãos e sapatos inteiros.
+- A bola e os dados obedecem ao sorteio: a roleta ajusta a fase do rotor para a bola cair na casa sorteada, e os dados rolam como corpos rígidos e param com a face sorteada para cima.
+- O Livro da Casa soma a perda esperada rodada a rodada contra o saldo real, com faixas de um e dois desvios-padrão e a sua sorte medida em desvios.
+- Treinador opcional no blackjack e no vídeo pôquer, que diz em fichas quanto cada desvio da jogada ótima custou.
+- 210 provas em Node, com um robô que joga 200 rodadas em cada mesa e confere que nenhuma das 412 apostas favorece o jogador; roda offline depois da primeira visita.
+
+- **Quem fez:** Lucca Pinto
+- **Modelo:** claude-opus-5-5 via Anthropic, dirigido por Oh My Pi — 839,5 k tokens novos, 316,2 M de cache, 1.070 chamadas, US$ 95,42
+- **Modelo:** claude-opus-5 via Anthropic, dirigido por Oh My Pi (subagentes) — 337,1 k tokens novos, 26,3 M de cache, 159 chamadas, US$ 26,26
+- **Custo total:** US$ 121,68 (medido)
+- **Tamanho:** 17.920 linhas de código próprio, 1,1 MB
+- **Pasta:** [`games/banca/`](games/banca/README.md)
 
 ### TRAVESSIA
 

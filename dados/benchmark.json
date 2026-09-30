@@ -1,16 +1,79 @@
 {
   "esquema": 1,
   "resumo": {
-    "jogos": 10,
+    "jogos": 11,
     "autores": 1,
-    "modelos": 2,
-    "linhas": 41263,
-    "usd": 24.62,
-    "tokens_novos": 3703978,
-    "tokens_cache": 159076224,
-    "chamadas": 1802
+    "modelos": 3,
+    "linhas": 59183,
+    "usd": 146.3,
+    "tokens_novos": 4880647,
+    "tokens_cache": 501635598,
+    "chamadas": 3031
   },
   "jogos": [
+    {
+      "slug": "banca",
+      "titulo": "BANCA",
+      "genero": "Cassino",
+      "criado": "2026-09-30",
+      "estado": "jogavel",
+      "licenca": "MIT",
+      "autores": [
+        {
+          "nome": "Lucca Pinto",
+          "github": "luccapinto",
+          "site": ""
+        }
+      ],
+      "ia": [
+        {
+          "modelo": "claude-opus-5-5",
+          "provider": "Anthropic",
+          "agente": "Oh My Pi",
+          "papel": "agente principal (núcleo, visual, salão, as seis mesas, provas, offline) e o conselheiro do Oh My Pi, que revisou ao lado",
+          "chamadas_api": 1070,
+          "tokens": {
+            "entrada": 3012,
+            "saida": 836518,
+            "cache_leitura": 314255277,
+            "cache_escrita": 1978027
+          },
+          "usd_estimado": 95.42
+        },
+        {
+          "modelo": "claude-opus-5",
+          "provider": "Anthropic",
+          "agente": "Oh My Pi (subagentes)",
+          "papel": "matemática do blackjack e do vídeo pôquer; regras puras do bacará e do craps e o começo do caça-níquel",
+          "chamadas_api": 159,
+          "tokens": {
+            "entrada": 322,
+            "saida": 336817,
+            "cache_leitura": 25834303,
+            "cache_escrita": 491767
+          },
+          "usd_estimado": 26.26
+        }
+      ],
+      "medicao": {
+        "metodo": "soma do campo usage de cada resposta nos registros de sessão do Oh My Pi (~/.omp/agent/sessions), separando entrada, saída, leitura e escrita de cache; o custo é o que o próprio Oh My Pi calculou pela tabela da Anthropic",
+        "confianca": "medido",
+        "medido_em": "2026-09-30",
+        "nota": "A entrada do claude-opus-5-5 soma o agente principal e o conselheiro, que rodam o mesmo modelo. Medido no commit de entrega: o relatório final escrito depois dele não está contado."
+      },
+      "totais": {
+        "tokens_entrada": 3334,
+        "tokens_saida": 1173335,
+        "tokens_novos": 1176669,
+        "tokens_cache": 342559374,
+        "tokens_totais": 343736043,
+        "usd": 121.68,
+        "chamadas_api": 1229,
+        "linhas": 17920,
+        "tem_custo": true
+      },
+      "url": "games/banca/"
+    },
     {
       "slug": "travessia",
       "titulo": "TRAVESSIA",
@@ -507,6 +570,7 @@
       "nome": "claude-opus-5",
       "jogos": [
         "antena",
+        "banca",
         "ceia",
         "cripta",
         "curva",
@@ -516,14 +580,14 @@
         "subsolo",
         "travessia"
       ],
-      "n_jogos": 9,
-      "tokens_novos": 1810000,
-      "tokens_cache": 0,
-      "chamadas_api": 1146,
-      "usd": 23.59,
-      "linhas": 30554,
-      "tokens_por_linha": 59.24,
-      "linhas_por_dolar": 1295.21
+      "n_jogos": 10,
+      "tokens_novos": 2147139,
+      "tokens_cache": 26326070,
+      "chamadas_api": 1305,
+      "usd": 49.85,
+      "linhas": 48474,
+      "tokens_por_linha": 44.29,
+      "linhas_por_dolar": 972.4
     },
     {
       "nome": "deepseek-flash",
@@ -538,9 +602,41 @@
       "linhas": 10709,
       "tokens_por_linha": 176.86,
       "linhas_por_dolar": 10397.09
+    },
+    {
+      "nome": "claude-opus-5-5",
+      "jogos": [
+        "banca"
+      ],
+      "n_jogos": 1,
+      "tokens_novos": 839530,
+      "tokens_cache": 316233304,
+      "chamadas_api": 1070,
+      "usd": 95.42,
+      "linhas": 17920,
+      "tokens_por_linha": 46.85,
+      "linhas_por_dolar": 187.8
     }
   ],
   "por_agente": [
+    {
+      "nome": "Oh My Pi",
+      "jogos": [
+        "banca",
+        "curva",
+        "guardrail",
+        "subsolo",
+        "travessia"
+      ],
+      "n_jogos": 5,
+      "tokens_novos": 2253530,
+      "tokens_cache": 316233304,
+      "chamadas_api": 2080,
+      "usd": 113.05,
+      "linhas": 43039,
+      "tokens_por_linha": 52.36,
+      "linhas_por_dolar": 380.71
+    },
     {
       "nome": "Claude Code",
       "jogos": [
@@ -560,23 +656,6 @@
       "linhas_por_dolar": 911.91
     },
     {
-      "nome": "Oh My Pi",
-      "jogos": [
-        "curva",
-        "guardrail",
-        "subsolo",
-        "travessia"
-      ],
-      "n_jogos": 4,
-      "tokens_novos": 1414000,
-      "tokens_cache": 0,
-      "chamadas_api": 1010,
-      "usd": 17.63,
-      "linhas": 25119,
-      "tokens_por_linha": 56.29,
-      "linhas_por_dolar": 1424.79
-    },
-    {
       "nome": "Hermes Agent (Talos)",
       "jogos": [
         "attention-is-all-you-kill"
@@ -589,6 +668,20 @@
       "linhas": 10709,
       "tokens_por_linha": 176.86,
       "linhas_por_dolar": 10397.09
+    },
+    {
+      "nome": "Oh My Pi (subagentes)",
+      "jogos": [
+        "banca"
+      ],
+      "n_jogos": 1,
+      "tokens_novos": 337139,
+      "tokens_cache": 26326070,
+      "chamadas_api": 159,
+      "usd": 26.26,
+      "linhas": 17920,
+      "tokens_por_linha": 18.81,
+      "linhas_por_dolar": 682.41
     }
   ],
   "por_provider": [
@@ -596,6 +689,7 @@
       "nome": "Anthropic",
       "jogos": [
         "antena",
+        "banca",
         "ceia",
         "cripta",
         "curva",
@@ -605,14 +699,14 @@
         "subsolo",
         "travessia"
       ],
-      "n_jogos": 9,
-      "tokens_novos": 1810000,
-      "tokens_cache": 0,
-      "chamadas_api": 1146,
-      "usd": 23.59,
-      "linhas": 30554,
-      "tokens_por_linha": 59.24,
-      "linhas_por_dolar": 1295.21
+      "n_jogos": 10,
+      "tokens_novos": 2986669,
+      "tokens_cache": 342559374,
+      "chamadas_api": 2375,
+      "usd": 145.27,
+      "linhas": 48474,
+      "tokens_por_linha": 61.61,
+      "linhas_por_dolar": 333.68
     },
     {
       "nome": "DeepSeek",
