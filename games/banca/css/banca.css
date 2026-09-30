@@ -441,6 +441,7 @@ button { font: inherit; color: inherit; }
 
 @media (max-width: 720px) {
   :root { --topo: calc(52px + env(safe-area-inset-top)); }
+  body.em-mesa .marca { display: none; }
   #barra { gap: 2px; padding-left: max(8px, env(safe-area-inset-left)); padding-right: max(6px, env(safe-area-inset-right)); }
   .marca { font-size: 18px; letter-spacing: .1em; padding: 4px 2px; }
   .marca small { display: none; }

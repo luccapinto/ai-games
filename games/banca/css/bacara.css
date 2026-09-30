@@ -1,0 +1,94 @@
+/* BANCA: mesa de bacará */
+
+.bc-palco { position: relative; }
+.bc-lado {
+  position: absolute; top: calc(var(--topo-cartas, 7.5%) + 20%); display: flex; align-items: baseline; gap: 12px;
+  font-family: var(--f-display); letter-spacing: .1em; color: rgba(243, 234, 215, .8);
+}
+.bc-lado.jogador { left: 29%; }
+.bc-lado.banca { left: 56%; }
+.bc-lado h3 { margin: 0; font-weight: 400; font-size: 18px; }
+.bc-lado.jogador h3 { color: #9cc2ff; }
+.bc-lado.banca h3 { color: #ff9cad; }
+.bc-total { font-family: var(--f-display); font-weight: 400; font-size: 40px; line-height: 1; color: var(--marfim); min-width: 30px; text-shadow: 0 4px 14px rgba(0, 0, 0, .6); }
+.bc-total.pula { animation: pula .5s var(--transicao); }
+@keyframes pula { from { transform: scale(1.6); color: #fff4c8; } to { transform: none; } }
+.bc-lado.venceu h3, .bc-lado.venceu .bc-total { color: #ffe39a; text-shadow: 0 0 16px rgba(255, 220, 140, .8); }
+.bc-maos { display: contents; }
+
+.bc-cartas { position: absolute; inset: 0; pointer-events: none; }
+.carta.espiando .giro { transform: rotateY(180deg) rotateX(-38deg) translateZ(10px); transition: transform .45s cubic-bezier(.3, .7, .2, 1); }
+
+.bc-placar {
+  position: absolute; left: 50%; top: 31%; transform: translateX(-50%);
+  padding: 8px 10px 6px; border-radius: 10px;
+  background: #07060a; box-shadow: inset 0 0 0 1px rgba(201, 164, 92, .55), 0 10px 24px rgba(0, 0, 0, .55);
+}
+.bc-placar .contas { display: grid; grid-auto-flow: column; grid-template-rows: repeat(6, 17px); grid-auto-columns: 17px; gap: 3px; }
+.bc-placar i {
+  width: 17px; height: 17px; border-radius: 50%; display: grid; place-items: center; position: relative;
+  font-style: normal; font-size: 9.5px; font-weight: 700; color: #fff;
+  background: rgba(255, 255, 255, .04);
+}
+.bc-placar i.banca { background: radial-gradient(circle at 35% 30%, #ff6a7e, #b3192e); box-shadow: 0 0 6px rgba(255, 61, 110, .5); }
+.bc-placar i.jogador { background: radial-gradient(circle at 35% 30%, #7fb0ff, #2456b8); box-shadow: 0 0 6px rgba(80, 140, 255, .5); }
+.bc-placar i.empate { background: radial-gradient(circle at 35% 30%, #6af0b8, #177a4a); box-shadow: 0 0 6px rgba(53, 240, 170, .5); }
+.bc-placar i.natural { outline: 1.5px solid #ffe39a; outline-offset: 0; }
+.bc-placar u { position: absolute; width: 5px; height: 5px; border-radius: 50%; }
+.bc-placar u.pj { left: -1px; bottom: -1px; background: #9cc2ff; }
+.bc-placar u.pb { right: -1px; top: -1px; background: #ff9cad; }
+.legenda-placar { display: flex; gap: 10px; justify-content: center; font-size: 11px; margin-top: 5px; letter-spacing: .06em; }
+.legenda-placar .banca { color: #ff9cad; }
+.legenda-placar .jogador { color: #9cc2ff; }
+.legenda-placar .empate { color: #6af0b8; }
+.legenda-placar em { font-style: normal; color: rgba(216, 204, 176, .6); }
+
+.bc-mensagem {
+  position: absolute; left: 50%; top: 25%; transform: translate(-50%, 0); width: max-content; max-width: 92%; text-align: center;
+  font-size: 22px; opacity: 0; pointer-events: none; z-index: 20;
+}
+.bc-mensagem.mostra { animation: mensagem 3.4s ease forwards; }
+
+.bc-pano-caixa { position: absolute; left: 0; right: 0; top: 50%; bottom: 76px; display: grid; place-items: center; container-type: size; }
+.bc-pano-escala { position: relative; width: min(100cqw, calc(100cqh * var(--razao, 3.3333))); aspect-ratio: 1000 / 300; }
+.bc-pano { width: 100%; height: 100%; display: block; overflow: visible; }
+.bc-nome.empate { font-size: 16.5px; letter-spacing: 2px; }
+.bc-nome-r { font-family: var(--f-display); font-size: 30px; letter-spacing: 4px; fill: #f3ead7; pointer-events: none; }
+.bc-pano.estreito .bc-par-t { font-size: 15px; letter-spacing: 1px; }
+.bc-pano.estreito .bc-par-s { font-size: 12.5px; }
+.bc-faixa { stroke: rgba(243, 234, 215, .8); stroke-width: 2; cursor: pointer; transition: fill .2s, filter .2s; }
+.bc-faixa.banca { fill: rgba(179, 25, 46, .22); }
+.bc-faixa.jogador { fill: rgba(36, 86, 184, .22); }
+.bc-faixa.empate { fill: rgba(23, 122, 74, .28); }
+.bc-zona { cursor: pointer; }
+.bc-zona:hover .bc-faixa, .bc-zona:hover .bc-par { filter: brightness(1.5); }
+.bc-zona.venceu .bc-faixa, .bc-zona.venceu .bc-par { animation: faixa-venceu .8s ease-in-out infinite alternate; stroke: #ffe39a; }
+@keyframes faixa-venceu { from { filter: brightness(1.2); } to { filter: brightness(2) drop-shadow(0 0 8px #ffe39a); } }
+.bc-nome { font-family: var(--f-display); font-size: 21px; letter-spacing: 3px; fill: #f3ead7; pointer-events: none; }
+.bc-par { fill: rgba(0, 0, 0, .15); stroke: rgba(243, 234, 215, .8); stroke-width: 2; }
+.bc-par-t { font-family: var(--f-display); font-size: 17px; letter-spacing: 2px; fill: #f3ead7; pointer-events: none; }
+.bc-par-s { font-size: 12px; fill: rgba(232, 207, 143, .85); pointer-events: none; font-family: var(--f-ui); }
+.bc-fichas { position: absolute; inset: 0; pointer-events: none; }
+.bc-rodape { position: absolute; left: 0; right: 0; bottom: 0; }
+.bc-rodape .acoes { flex: 1; justify-content: flex-end; }
+.bc-rapido { position: static; min-height: 40px; }
+
+@media (max-width: 720px) {
+  .bc-lado { top: calc(7.5% + 13%); gap: 6px; }
+  .bc-lado.jogador { left: 12%; }
+  .bc-lado.banca { left: 58%; }
+  .bc-lado h3 { font-size: 14px; }
+  .bc-total { font-size: 30px; }
+  .bc-placar { top: 27%; padding: 6px; }
+  .bc-placar .contas { grid-template-rows: repeat(6, 12px); grid-auto-columns: 12px; gap: 2px; }
+  .bc-placar i { width: 12px; height: 12px; font-size: 7px; }
+  .bc-pano-caixa { top: 45%; bottom: 128px; }
+  .bc-nome { font-size: 26px; }
+  .bc-rodape { flex-direction: column; align-items: stretch; gap: 6px; }
+  .bc-rodape .rack { justify-content: space-between; }
+  .bc-rodape .acoes { justify-content: space-between; }
+  .bc-mensagem { font-size: 16px; top: 40%; }
+  .bc-pano-caixa { top: 44%; bottom: 168px; }
+  .bc-nome-r.pequeno { font-size: 19px; letter-spacing: 2px; }
+  .bc-pano.estreito .bc-par-t { font-size: 13px; letter-spacing: .5px; }
+}

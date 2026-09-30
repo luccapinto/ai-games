@@ -159,6 +159,7 @@ async function irPara(id) {
     elMesa.hidden = true;
     $('voltar').hidden = true;
     $('marca').hidden = false;
+    document.body.classList.remove('em-mesa');
     $('titulo-mesa').textContent = '';
     dir.hidden = false;
     salao.ligar();
@@ -169,6 +170,7 @@ async function irPara(id) {
   salao.desligar();
   dir.hidden = true;
   $('voltar').hidden = false;
+  document.body.classList.add('em-mesa');
   $('titulo-mesa').textContent = m.nome;
   document.title = `${m.nome} · BANCA`;
   elMesa.hidden = false;

@@ -388,7 +388,7 @@ export function montar(raiz, app) {
           else if (e.pago === 0) mensagem('A banca não tinha blackjack: o seguro foi para a casa.');
         } else if (e.tipo === 'revelar') {
           const el = ui.banca[e.indice];
-          aproximar(palco, { x: rect().left + g.banca(1).x + g.l / 2, y: rect().top + g.banca(1).y + g.l * 0.7 }, { escala: 1.05, duracao: 1100 });
+          aproximar($('.bj-cartas'), { x: rect().left + g.banca(1).x + g.l / 2, y: rect().top + g.banca(1).y + g.l * 0.7 }, { escala: 1.1, duracao: 1100 });
           await espera(250);
           if (el) await cenaCartas.revelar(el, e.carta);
           v.bancaOculta = false;
