@@ -8,7 +8,7 @@ A mina é escura de verdade. Você tem uma lanterna, uma pistola, quinhentos
 pontos e duas janelas com tábuas. A cada rodada chega mais gente, mais rápido, e
 com mais vida — e o que você faz com os pontos entre uma rodada e outra é o jogo.
 
-- **[Jogar](https://luccapinto.github.io/ai-games/games/subsolo/)** ou abra
+- **[Jogar](https://ai-games.luccabuilds.com/games/subsolo/)** ou abra
   `index.html` desta pasta servido por HTTP (ver [Rodar](#rodar))
 - **Parte de:** [ai-games](../../README.md)
 
