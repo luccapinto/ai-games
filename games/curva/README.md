@@ -4,7 +4,7 @@ Kart em três dimensões, no navegador, com WebGL2 escrito à mão: sem bibliote
 sem arquivo de modelo, sem textura em disco. Seis kartódromos com relevo, nove
 adversários, itens — e uma técnica que decide a corrida.
 
-- **[Jogar](https://luccapinto.github.io/ai-games/games/curva/)** ou abra
+- **[Jogar](https://ai-games.luccabuilds.com/games/curva/)** ou abra
   `index.html` desta pasta servido por HTTP (ver [Rodar](#rodar))
 - **Parte de:** [ai-games](../../README.md)
 

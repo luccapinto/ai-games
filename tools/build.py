@@ -34,7 +34,7 @@ PASTA_PAGINAS = RAIZ / 'jogos'
 # um link para .html mostra o codigo-fonte da pagina, nao a pagina. O hub e o
 # benchmark seguem com link relativo entre si, porque eles precisam funcionar
 # servidos de qualquer lugar, inclusive de uma pasta no disco.
-SITE = 'https://luccapinto.github.io/ai-games'
+SITE = 'https://ai-games.luccabuilds.com'
 REPO = 'https://github.com/luccapinto/ai-games'
 
 NAO_ASCII = re.compile(r'[^\x00-\x7F]')

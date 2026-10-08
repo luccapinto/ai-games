@@ -3,7 +3,7 @@
 Este repositório é coletivo e é um benchmark ao mesmo tempo. Cada jogo que entra
 traz junto um registro honesto de **qual modelo escreveu, qual ferramenta
 dirigiu e quantos tokens custou** — e é a soma desses registros que vira a
-[tabela do benchmark](https://luccapinto.github.io/ai-games/benchmark.html).
+[tabela do benchmark](https://ai-games.luccabuilds.com/benchmark.html).
 
 Não precisa pedir permissão. Faça o jogo, preencha a ficha, abra o PR.
 
@@ -158,7 +158,7 @@ jogo antes de fazer, tem um modelo de issue pronto.
 A collective repo of browser games built by talking to AI, doubling as a
 benchmark of what that costs. Add a game, declare honestly which model wrote it,
 which agent drove it, and how many tokens it burned — those declarations are what
-the [benchmark table](https://luccapinto.github.io/ai-games/benchmark.html) is made of.
+the [benchmark table](https://ai-games.luccabuilds.com/benchmark.html) is made of.
 
 ```bash
 python3 tools/novo_jogo.py my-game --autor "Your Name" --github your-handle

@@ -12,23 +12,23 @@ wrote it, the agent that drove it, and the tokens it burned.*
 **11 jogos** de **1 pessoa**, 60.136 linhas de código,
 4,9 M tokens novos e US$ 146,30 de API no total.
 
-👉 **[Jogar tudo](https://luccapinto.github.io/ai-games/)** · **[Ver o benchmark](https://luccapinto.github.io/ai-games/benchmark.html)** · **[Mandar o seu jogo](CONTRIBUTING.md)**
+👉 **[Jogar tudo](https://ai-games.luccabuilds.com/)** · **[Ver o benchmark](https://ai-games.luccabuilds.com/benchmark.html)** · **[Mandar o seu jogo](CONTRIBUTING.md)**
 
 ## Os jogos
 
 | Jogo | Gênero | Quem fez | Modelo | Tokens novos | Custo | Jogar |
 | --- | --- | --- | --- | --- | --- | --- |
-| **BANCA** [`banca`](games/banca/README.md) | Cassino | Lucca Pinto | claude-opus-5-5, claude-opus-5 | 1,2 M | US$ 121,68 | [jogar](https://luccapinto.github.io/ai-games/games/banca/) |
-| **TRAVESSIA** [`travessia`](games/travessia/README.md) | Mundo aberto | Lucca Pinto | claude-opus-5 | 103,0 k | US$ 1,54 | [jogar](https://luccapinto.github.io/ai-games/games/travessia/) |
-| **SUBSOLO** [`subsolo`](games/subsolo/README.md) | FPS de rodadas | Lucca Pinto | claude-opus-5 | 705,0 k | US$ 8,30 | [jogar](https://luccapinto.github.io/ai-games/games/subsolo/) |
-| **GUARDRAIL** [`guardrail`](games/guardrail/README.md) | Defesa de torre | Lucca Pinto | claude-opus-5 | 165,0 k | US$ 2,48 | [jogar](https://luccapinto.github.io/ai-games/games/guardrail/) |
-| **CURVA** [`curva`](games/curva/README.md) | Kart 3D | Lucca Pinto | claude-opus-5 | 441,0 k | US$ 5,31 | [jogar](https://luccapinto.github.io/ai-games/games/curva/) |
-| **SEIVA** [`seiva`](games/seiva/README.md) | Defesa de torre | Lucca Pinto | claude-opus-5 | 70,0 k | US$ 1,05 | [jogar](https://luccapinto.github.io/ai-games/games/seiva/) |
-| **PROCESSO** [`processo`](games/processo/README.md) | Cartas com construção de baralho | Lucca Pinto | claude-opus-5 | 44,0 k | US$ 0,66 | [jogar](https://luccapinto.github.io/ai-games/games/processo/) |
-| **CRIPTA** [`cripta`](games/cripta/README.md) | Puzzle | Lucca Pinto | claude-opus-5 | 86,0 k | US$ 1,30 | [jogar](https://luccapinto.github.io/ai-games/games/cripta/) |
-| **A CEIA** [`ceia`](games/ceia/README.md) | Dedução lógica | Lucca Pinto | claude-opus-5 | 31,0 k | US$ 0,47 | [jogar](https://luccapinto.github.io/ai-games/games/ceia/) |
-| **ANTENA** [`antena`](games/antena/README.md) | Plataforma de precisão | Lucca Pinto | claude-opus-5 | 165,0 k | US$ 2,48 | [jogar](https://luccapinto.github.io/ai-games/games/antena/) |
-| **ATTENTION IS ALL YOU KILL** [`attention-is-all-you-kill`](games/attention-is-all-you-kill/README.md) | FPS roguelike | Lucca Pinto | deepseek-flash | 1,9 M | US$ 1,03 | [jogar](https://luccapinto.github.io/ai-games/games/attention-is-all-you-kill/) |
+| **BANCA** [`banca`](games/banca/README.md) | Cassino | Lucca Pinto | claude-opus-5-5, claude-opus-5 | 1,2 M | US$ 121,68 | [jogar](https://ai-games.luccabuilds.com/games/banca/) |
+| **TRAVESSIA** [`travessia`](games/travessia/README.md) | Mundo aberto | Lucca Pinto | claude-opus-5 | 103,0 k | US$ 1,54 | [jogar](https://ai-games.luccabuilds.com/games/travessia/) |
+| **SUBSOLO** [`subsolo`](games/subsolo/README.md) | FPS de rodadas | Lucca Pinto | claude-opus-5 | 705,0 k | US$ 8,30 | [jogar](https://ai-games.luccabuilds.com/games/subsolo/) |
+| **GUARDRAIL** [`guardrail`](games/guardrail/README.md) | Defesa de torre | Lucca Pinto | claude-opus-5 | 165,0 k | US$ 2,48 | [jogar](https://ai-games.luccabuilds.com/games/guardrail/) |
+| **CURVA** [`curva`](games/curva/README.md) | Kart 3D | Lucca Pinto | claude-opus-5 | 441,0 k | US$ 5,31 | [jogar](https://ai-games.luccabuilds.com/games/curva/) |
+| **SEIVA** [`seiva`](games/seiva/README.md) | Defesa de torre | Lucca Pinto | claude-opus-5 | 70,0 k | US$ 1,05 | [jogar](https://ai-games.luccabuilds.com/games/seiva/) |
+| **PROCESSO** [`processo`](games/processo/README.md) | Cartas com construção de baralho | Lucca Pinto | claude-opus-5 | 44,0 k | US$ 0,66 | [jogar](https://ai-games.luccabuilds.com/games/processo/) |
+| **CRIPTA** [`cripta`](games/cripta/README.md) | Puzzle | Lucca Pinto | claude-opus-5 | 86,0 k | US$ 1,30 | [jogar](https://ai-games.luccabuilds.com/games/cripta/) |
+| **A CEIA** [`ceia`](games/ceia/README.md) | Dedução lógica | Lucca Pinto | claude-opus-5 | 31,0 k | US$ 0,47 | [jogar](https://ai-games.luccabuilds.com/games/ceia/) |
+| **ANTENA** [`antena`](games/antena/README.md) | Plataforma de precisão | Lucca Pinto | claude-opus-5 | 165,0 k | US$ 2,48 | [jogar](https://ai-games.luccabuilds.com/games/antena/) |
+| **ATTENTION IS ALL YOU KILL** [`attention-is-all-you-kill`](games/attention-is-all-you-kill/README.md) | FPS roguelike | Lucca Pinto | deepseek-flash | 1,9 M | US$ 1,03 | [jogar](https://ai-games.luccabuilds.com/games/attention-is-all-you-kill/) |
 
 ## O benchmark
 
