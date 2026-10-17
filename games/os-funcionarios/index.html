@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OS FUNCIONÁRIOS</title>
+<link rel="icon" href="icone.svg">
+<link rel="stylesheet" href="css/jogo.css">
+<script type="importmap">{"imports":{"three":"./vendor/three/build/three.module.min.js","three/addons/":"./vendor/three/addons/"}}</script>
+</head>
+<body>
+<canvas id="tela"></canvas>
+<div id="flash"></div>
+
+<!-- HUD -->
+<div id="hud" hidden>
+  <div id="mira"></div>
+  <div class="topo">
+    <span id="hud-dia">DIA 1</span>
+    <span id="hud-hora">09:00</span>
+    <span id="hud-aliens"></span>
+    <span class="dir"><span id="hud-pontos">0</span> pts <span id="hud-falhas" title="Falhas"></span></span>
+  </div>
+  <div id="hud-memo"><b>Memorando <kbd>Tab</kbd></b><ul id="hud-memo-lista"></ul></div>
+  <div id="dica"></div>
+  <div id="aviso" class="aviso" hidden></div>
+  <div class="teclas">
+    <kbd>WASD</kbd> andar · <kbd>Shift</kbd> correr · <kbd>botão direito</kbd>/<kbd>Z</kbd> examinar · <kbd>E</kbd> crachá · <kbd>clique</kbd> eliminar · <kbd>Esc</kbd> pausa
+  </div>
+</div>
+
+<!-- crachá x ficha do RH -->
+<div id="cracha" hidden>
+  <div><h3>Crachá que ele(a) está usando</h3><canvas id="cracha-img" width="384" height="240"></canvas></div>
+  <div><h3>Ficha do RH</h3><canvas id="ficha-img" width="384" height="150"></canvas></div>
+  <p>Compare o nome e a foto. <kbd>E</kbd> devolve.</p>
+</div>
+
+<!-- telas -->
+<section id="carregando" class="tela">
+  <h1>OS FUNCIONÁRIOS</h1>
+  <p>Chegando ao escritório…</p>
+  <div class="trilho"><div id="barra"></div></div>
+</section>
+
+<section id="titulo" class="tela" hidden>
+  <div class="caixa">
+    <p class="sobre">Interplan S.A. · 7º andar</p>
+    <h1>OS FUNCIONÁRIOS</h1>
+    <p class="sub">Departamento de Recursos Não Humanos</p>
+    <p>Alguém no andar não é quem diz ser. Cópias alienígenas estão substituindo os funcionários, e elas imitam
+      quase tudo. Quase. Ande pelo escritório, observe, peça o crachá e elimine só os impostores.
+      Um humano abatido é uma falha. Três falhas e você está fora.</p>
+    <ul class="como">
+      <li><kbd>WASD</kbd> anda, <kbd>mouse</kbd> olha, <kbd>Shift</kbd> corre</li>
+      <li><kbd>botão direito</kbd> ou <kbd>Z</kbd> examina de perto (zoom)</li>
+      <li><kbd>E</kbd> pede o crachá e compara com a ficha do RH</li>
+      <li><kbd>clique</kbd> elimina quem estiver na mira</li>
+      <li><kbd>Tab</kbd> abre o memorando com os sinais do dia</li>
+    </ul>
+    <button id="btn-comecar">Bater o ponto</button>
+    <p id="recorde" class="recorde"></p>
+  </div>
+</section>
+
+<section id="memorando" class="tela" hidden>
+  <div class="caixa papel">
+    <p class="cabecalho">MEMORANDO INTERNO · CONFIDENCIAL · <span id="memo-dia"></span></p>
+    <h2>Hoje temos <span id="memo-qtd"></span> no andar.</h2>
+    <p id="memo-pessoas"></p>
+    <p>Relatos recebidos pela segurança. <b>Nem todo boato é verdade</b>: alguns sinais da lista não vão aparecer hoje.</p>
+    <ul id="memo-sinais" class="sinais"></ul>
+    <button id="btn-expediente">Começar o expediente</button>
+  </div>
+</section>
+
+<section id="pausa" class="tela" hidden>
+  <div class="caixa">
+    <h2>Pausa para o café</h2>
+    <button id="btn-continuar">Voltar ao trabalho</button>
+    <button id="btn-desistir" class="sec">Sair para o título</button>
+  </div>
+</section>
+
+<section id="relatorio" class="tela" hidden>
+  <div class="caixa papel">
+    <p class="cabecalho">RELATÓRIO DO DIA</p>
+    <h2 id="rel-titulo"></h2>
+    <p id="rel-motivo"></p>
+    <ul id="rel-lista" class="rel"></ul>
+    <p class="placar"><span id="rel-pontos"></span> · <span id="rel-falhas"></span></p>
+    <button id="rel-seguir">Próximo dia</button>
+  </div>
+</section>
+
+<section id="fim" class="tela" hidden>
+  <div class="caixa">
+    <p class="sobre">Fim da semana</p>
+    <h1 id="fim-titulo"></h1>
+    <p id="fim-texto"></p>
+    <p id="fim-pontos" class="placar"></p>
+    <button id="btn-denovo">Nova semana</button>
+  </div>
+</section>
+
+<script type="module" src="js/jogo.js"></script>
+</body>
+</html>

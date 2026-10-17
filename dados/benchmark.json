@@ -1,16 +1,79 @@
 {
   "esquema": 1,
   "resumo": {
-    "jogos": 11,
+    "jogos": 12,
     "autores": 1,
     "modelos": 3,
-    "linhas": 60136,
-    "usd": 146.3,
-    "tokens_novos": 4880647,
-    "tokens_cache": 501635598,
-    "chamadas": 3031
+    "linhas": 62137,
+    "usd": 200.82,
+    "tokens_novos": 6390325,
+    "tokens_cache": 590930570,
+    "chamadas": 3581
   },
   "jogos": [
+    {
+      "slug": "os-funcionarios",
+      "titulo": "OS FUNCIONÁRIOS",
+      "genero": "Dedução em primeira pessoa",
+      "criado": "2026-10-17",
+      "estado": "jogavel",
+      "licenca": "MIT (código) · personagens de Quaternius, CC0 e CC BY 4.0 (ver CREDITOS.md)",
+      "autores": [
+        {
+          "nome": "Lucca Pinto",
+          "github": "luccapinto",
+          "site": "https://luccabuilds.com"
+        }
+      ],
+      "ia": [
+        {
+          "modelo": "claude-opus-5-5",
+          "provider": "Anthropic (assinatura)",
+          "agente": "Hermes Agent (Talos)",
+          "papel": "o jogo inteiro: kit de personagens em Blender que acabou descartado, protótipos de estilo, teste do pacote Quaternius, troca de peças entre modelos, os 14 sinais por cima da animação, escritório, IA de rotina, laço do jogo, provas e revisão visual de cada etapa",
+          "chamadas_api": 350,
+          "tokens": {
+            "entrada": 6501,
+            "saida": 635832,
+            "cache_leitura": 55903092,
+            "cache_escrita": 3774472
+          },
+          "usd_estimado": 54.12
+        },
+        {
+          "modelo": "deepseek-flash",
+          "provider": "DeepSeek",
+          "agente": "Hermes Agent (Talos)",
+          "papel": "parte do kit em Blender (a sessão trocou de modelo no meio da tarde) e a compressão de contexto da sessão longa",
+          "chamadas_api": 200,
+          "tokens": {
+            "entrada": 474364,
+            "saida": 392981,
+            "cache_leitura": 29617408,
+            "cache_escrita": 0
+          },
+          "usd_estimado": 0.4
+        }
+      ],
+      "medicao": {
+        "metodo": "tabela session_model_usage do banco de sessões do Hermes (~/.hermes/state.db), somando a sessão do projeto e os dois subagentes dela, por modelo. Os tokens são a contabilidade do próprio Hermes; o valor em dólar é a tabela de preço do modelo, porque o Opus rodou em plano de assinatura e não há fatura por chamada",
+        "confianca": "estimado",
+        "medido_em": "2026-10-17",
+        "nota": "O total (US$ 54,52) é o caminho inteiro até o jogo, e a maior parte dele não está no jogo: um kit de funcionários feito em Blender (oito rodadas de redesenho), um protótipo de estilo em superfície contínua e o teste do pacote Quaternius, que foi o que o dono do repo aprovou. Só a construção do jogo, a partir do retrato do contador tirado às 00:25 de 17/10, custou US$ 15,05: 112 chamadas do Opus, 270.653 tokens de saída, 19.187.121 de leitura de cache. O cache é o maior número e não é o custo: cada chamada reenvia o contexto acumulado e o cache evita pagá-lo cheio."
+      },
+      "totais": {
+        "tokens_entrada": 480865,
+        "tokens_saida": 1028813,
+        "tokens_novos": 1509678,
+        "tokens_cache": 89294972,
+        "tokens_totais": 90804650,
+        "usd": 54.52,
+        "chamadas_api": 550,
+        "linhas": 2001,
+        "tem_custo": true
+      },
+      "url": "games/os-funcionarios/"
+    },
     {
       "slug": "banca",
       "titulo": "BANCA",
@@ -592,30 +655,32 @@
     {
       "nome": "deepseek-flash",
       "jogos": [
-        "attention-is-all-you-kill"
+        "attention-is-all-you-kill",
+        "os-funcionarios"
       ],
-      "n_jogos": 1,
-      "tokens_novos": 1893978,
-      "tokens_cache": 159076224,
-      "chamadas_api": 656,
-      "usd": 1.03,
-      "linhas": 10709,
-      "tokens_por_linha": 176.86,
-      "linhas_por_dolar": 10397.09
+      "n_jogos": 2,
+      "tokens_novos": 2761323,
+      "tokens_cache": 188693632,
+      "chamadas_api": 856,
+      "usd": 1.43,
+      "linhas": 12710,
+      "tokens_por_linha": 217.26,
+      "linhas_por_dolar": 8888.11
     },
     {
       "nome": "claude-opus-5-5",
       "jogos": [
-        "banca"
+        "banca",
+        "os-funcionarios"
       ],
-      "n_jogos": 1,
-      "tokens_novos": 839530,
-      "tokens_cache": 316233304,
-      "chamadas_api": 1070,
-      "usd": 95.42,
-      "linhas": 18873,
-      "tokens_por_linha": 44.48,
-      "linhas_por_dolar": 197.79
+      "n_jogos": 2,
+      "tokens_novos": 1481863,
+      "tokens_cache": 375910868,
+      "chamadas_api": 1420,
+      "usd": 149.54,
+      "linhas": 20874,
+      "tokens_por_linha": 70.99,
+      "linhas_por_dolar": 139.59
     }
   ],
   "por_agente": [
@@ -658,16 +723,17 @@
     {
       "nome": "Hermes Agent (Talos)",
       "jogos": [
-        "attention-is-all-you-kill"
+        "attention-is-all-you-kill",
+        "os-funcionarios"
       ],
-      "n_jogos": 1,
-      "tokens_novos": 1893978,
-      "tokens_cache": 159076224,
-      "chamadas_api": 656,
-      "usd": 1.03,
-      "linhas": 10709,
-      "tokens_por_linha": 176.86,
-      "linhas_por_dolar": 10397.09
+      "n_jogos": 2,
+      "tokens_novos": 3403656,
+      "tokens_cache": 248371196,
+      "chamadas_api": 1206,
+      "usd": 55.55,
+      "linhas": 12710,
+      "tokens_por_linha": 267.79,
+      "linhas_por_dolar": 228.8
     },
     {
       "nome": "Oh My Pi (subagentes)",
@@ -711,16 +777,31 @@
     {
       "nome": "DeepSeek",
       "jogos": [
-        "attention-is-all-you-kill"
+        "attention-is-all-you-kill",
+        "os-funcionarios"
+      ],
+      "n_jogos": 2,
+      "tokens_novos": 2761323,
+      "tokens_cache": 188693632,
+      "chamadas_api": 856,
+      "usd": 1.43,
+      "linhas": 12710,
+      "tokens_por_linha": 217.26,
+      "linhas_por_dolar": 8888.11
+    },
+    {
+      "nome": "Anthropic (assinatura)",
+      "jogos": [
+        "os-funcionarios"
       ],
       "n_jogos": 1,
-      "tokens_novos": 1893978,
-      "tokens_cache": 159076224,
-      "chamadas_api": 656,
-      "usd": 1.03,
-      "linhas": 10709,
-      "tokens_por_linha": 176.86,
-      "linhas_por_dolar": 10397.09
+      "tokens_novos": 642333,
+      "tokens_cache": 59677564,
+      "chamadas_api": 350,
+      "usd": 54.12,
+      "linhas": 2001,
+      "tokens_por_linha": 321.01,
+      "linhas_por_dolar": 36.97
     }
   ]
 }

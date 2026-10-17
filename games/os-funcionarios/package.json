@@ -1,0 +1,6 @@
+{
+  "name": "os-funcionarios",
+  "private": true,
+  "type": "module",
+  "description": "Só existe para o Node ler os módulos do jogo como ES modules em provas.mjs. O jogo no navegador não lê este arquivo: não há build nem dependência."
+}

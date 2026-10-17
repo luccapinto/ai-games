@@ -1,0 +1,100 @@
+{
+  "esquema": 1,
+  "slug": "os-funcionarios",
+  "titulo": "OS FUNCIONÁRIOS",
+  "subtitulo": "Departamento de Recursos Não Humanos: ache os alienígenas no escritório antes das 18h",
+  "genero": "Dedução em primeira pessoa",
+  "plataforma": "Navegador, desktop (teclado e mouse)",
+  "estado": "jogavel",
+  "criado": "2026-10-17",
+  "licenca": "MIT (código) · personagens de Quaternius, CC0 e CC BY 4.0 (ver CREDITOS.md)",
+  "capa": "capa.jpg",
+  "resumo": "Cópias alienígenas estão substituindo funcionários da Interplan S.A., e elas imitam quase tudo. Você anda pelo andar em primeira pessoa, lê o memorando do RH com os boatos do dia, examina de perto, pede o crachá e elimina só os impostores: 14 sinais, de cabeça que gira para trás a uma letra trocada no crachá. Cinco dias, três falhas e você está fora.",
+  "autores": [
+    {
+      "nome": "Lucca Pinto",
+      "github": "luccapinto",
+      "site": "https://luccabuilds.com"
+    }
+  ],
+  "ia": [
+    {
+      "modelo": "claude-opus-5-5",
+      "provider": "Anthropic (assinatura)",
+      "agente": "Hermes Agent (Talos)",
+      "papel": "o jogo inteiro: kit de personagens em Blender que acabou descartado, protótipos de estilo, teste do pacote Quaternius, troca de peças entre modelos, os 14 sinais por cima da animação, escritório, IA de rotina, laço do jogo, provas e revisão visual de cada etapa",
+      "chamadas_api": 350,
+      "tokens": {
+        "entrada": 6501,
+        "saida": 635832,
+        "cache_leitura": 55903092,
+        "cache_escrita": 3774472
+      },
+      "usd_estimado": 54.12
+    },
+    {
+      "modelo": "deepseek-flash",
+      "provider": "DeepSeek",
+      "agente": "Hermes Agent (Talos)",
+      "papel": "parte do kit em Blender (a sessão trocou de modelo no meio da tarde) e a compressão de contexto da sessão longa",
+      "chamadas_api": 200,
+      "tokens": {
+        "entrada": 474364,
+        "saida": 392981,
+        "cache_leitura": 29617408,
+        "cache_escrita": 0
+      },
+      "usd_estimado": 0.4
+    }
+  ],
+  "medicao": {
+    "confianca": "estimado",
+    "metodo": "tabela session_model_usage do banco de sessões do Hermes (~/.hermes/state.db), somando a sessão do projeto e os dois subagentes dela, por modelo. Os tokens são a contabilidade do próprio Hermes; o valor em dólar é a tabela de preço do modelo, porque o Opus rodou em plano de assinatura e não há fatura por chamada",
+    "medido_em": "2026-10-17",
+    "nota": "O total (US$ 54,52) é o caminho inteiro até o jogo, e a maior parte dele não está no jogo: um kit de funcionários feito em Blender (oito rodadas de redesenho), um protótipo de estilo em superfície contínua e o teste do pacote Quaternius, que foi o que o dono do repo aprovou. Só a construção do jogo, a partir do retrato do contador tirado às 00:25 de 17/10, custou US$ 15,05: 112 chamadas do Opus, 270.653 tokens de saída, 19.187.121 de leitura de cache. O cache é o maior número e não é o custo: cada chamada reenvia o contexto acumulado e o cache evita pagá-lo cheio."
+  },
+  "stack": [
+    "JavaScript (ES modules nativos)",
+    "three.js r170 (vendorizado)",
+    "glTF dos pacotes Quaternius",
+    "Web Audio API"
+  ],
+  "tamanho": {
+    "linhas_proprias": 2001,
+    "mb": 7.2,
+    "modulos_js": 5
+  },
+  "destaques": [
+    "Oito modelos do pacote viram doze funcionários trocando peças entre eles: a cabeça de bigode do operário, sem o capacete, vai no corpo de terno do executivo. Todos usam o mesmo esqueleto, então a peça trocada anima junto",
+    "Os sinais rodam por cima da animação pronta: cabeça que gira 170 graus, pé virado, braços duros ao andar, olho que acende verde, pele molhada, vapor gelado, crachá com letra trocada. Cada um tem uma foto de prova",
+    "O memorando do RH mistura sinais verdadeiros com boatos: em todo dia, de um a dois sinais da lista não aparecem em ninguém, e atirar por boato custa 150 pontos",
+    "As 24 animações vinham repetidas em cada arquivo. Separar malha de animação levou os modelos de 9,5 MB para 6,2 MB, sem Blender: o script reempacota o binário do glTF",
+    "12 provas no Chrome sem cabeça: mil dias sorteados conferidos, uma semana inteira jogada sem erro, a demissão com três inocentes, o fim do expediente e o teclado de verdade"
+  ],
+  "arquivos_chave": [
+    {
+      "caminho": "js/dados.js",
+      "papel": "Elenco, os 14 sinais, a escala dos cinco dias e o sorteio com semente"
+    },
+    {
+      "caminho": "js/pessoas.js",
+      "papel": "Monta cada funcionário trocando peças, liga os sinais por cima da animação e faz a revelação"
+    },
+    {
+      "caminho": "js/escritorio.js",
+      "papel": "O andar, o grafo de caminhos e as caixas de colisão"
+    },
+    {
+      "caminho": "js/jogo.js",
+      "papel": "Primeira pessoa, rotina das pessoas, crachá, disparo, dias e relatório"
+    },
+    {
+      "caminho": "provas.mjs",
+      "papel": "As 12 provas"
+    },
+    {
+      "caminho": "CREDITOS.md",
+      "papel": "De onde vem cada personagem e sob qual licença"
+    }
+  ]
+}
