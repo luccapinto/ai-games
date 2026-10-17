@@ -1,5 +1,5 @@
 slug,titulo,criado,genero,estado,autor,github,modelo,provider,agente,chamadas_api,tokens_entrada,tokens_saida,tokens_novos,tokens_cache,usd_estimado,linhas_do_jogo,confianca
-os-funcionarios,OS FUNCIONÁRIOS,2026-10-17,Dedução em primeira pessoa,jogavel,Lucca Pinto,luccapinto,claude-opus-5-5,Anthropic (assinatura),Hermes Agent (Talos),345,6414,631494,637908,58602006,50.6400,2001,estimado
+os-funcionarios,OS FUNCIONÁRIOS,2026-10-17,Dedução em primeira pessoa,jogavel,Lucca Pinto,luccapinto,claude-opus-5-5,Anthropic (assinatura),Hermes Agent (Talos),350,6501,635832,642333,59677564,54.1200,2001,estimado
 os-funcionarios,OS FUNCIONÁRIOS,2026-10-17,Dedução em primeira pessoa,jogavel,Lucca Pinto,luccapinto,deepseek-flash,DeepSeek,Hermes Agent (Talos),200,474364,392981,867345,29617408,0.4000,2001,estimado
 banca,BANCA,2026-09-30,Cassino,jogavel,Lucca Pinto,luccapinto,claude-opus-5-5,Anthropic,Oh My Pi,1070,3012,836518,839530,316233304,95.4200,18873,medido
 banca,BANCA,2026-09-30,Cassino,jogavel,Lucca Pinto,luccapinto,claude-opus-5,Anthropic,Oh My Pi (subagentes),159,322,336817,337139,26326070,26.2600,18873,medido

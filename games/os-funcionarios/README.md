@@ -151,17 +151,17 @@ controle é teclado e mouse.
 
 ## Custo
 
-Medido em 2026-10-17 01:38 no banco de sessões do Hermes (`session_model_usage`),
+Medido em 2026-10-17 13:30 no banco de sessões do Hermes (`session_model_usage`),
 somando a sessão do projeto e os dois subagentes dela.
 
 | | Chamadas | Entrada | Saída | Cache lido | Cache gravado | US$ (tabela) |
 | --- | --- | --- | --- | --- | --- | --- |
-| Opus 5.5, caminho inteiro | 345 | 6.414 | 631.494 | 55.235.316 | 3.366.690 | US$ 50,64 |
+| Opus 5.5, caminho inteiro | 350 | 6.501 | 635.832 | 55.903.092 | 3.774.472 | US$ 54,12 |
 | DeepSeek Flash, caminho inteiro | 200 | 474.364 | 392.981 | 29.617.408 | 0 | US$ 0,40 |
-| **Total do caminho** | | | | | | **US$ 51,04** |
-| Opus 5.5, só o jogo | 107 | 2.169 | 266.315 | 18.519.345 | 313.100 | US$ 11,55 |
+| **Total do caminho** | | | | | | **US$ 54,52** |
+| Opus 5.5, só o jogo | 112 | 2.256 | 270.653 | 19.187.121 | 720.882 | US$ 15,03 |
 | DeepSeek Flash, só o jogo | 1 | 27.442 | 18.934 | 0 | 0 | US$ 0,02 |
-| **Total só do jogo** | | | | | | **US$ 11,57** |
+| **Total só do jogo** | | | | | | **US$ 15,05** |
 
 - **"Caminho inteiro"** inclui o kit em Blender que foi descartado, o protótipo de
   estilo e o teste do pacote. **"Só o jogo"** é a diferença do contador entre o

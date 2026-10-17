@@ -5,10 +5,10 @@
     "autores": 1,
     "modelos": 3,
     "linhas": 62137,
-    "usd": 197.34,
-    "tokens_novos": 6385900,
-    "tokens_cache": 589855012,
-    "chamadas": 3576
+    "usd": 200.82,
+    "tokens_novos": 6390325,
+    "tokens_cache": 590930570,
+    "chamadas": 3581
   },
   "jogos": [
     {
@@ -31,14 +31,14 @@
           "provider": "Anthropic (assinatura)",
           "agente": "Hermes Agent (Talos)",
           "papel": "o jogo inteiro: kit de personagens em Blender que acabou descartado, protótipos de estilo, teste do pacote Quaternius, troca de peças entre modelos, os 14 sinais por cima da animação, escritório, IA de rotina, laço do jogo, provas e revisão visual de cada etapa",
-          "chamadas_api": 345,
+          "chamadas_api": 350,
           "tokens": {
-            "entrada": 6414,
-            "saida": 631494,
-            "cache_leitura": 55235316,
-            "cache_escrita": 3366690
+            "entrada": 6501,
+            "saida": 635832,
+            "cache_leitura": 55903092,
+            "cache_escrita": 3774472
           },
-          "usd_estimado": 50.64
+          "usd_estimado": 54.12
         },
         {
           "modelo": "deepseek-flash",
@@ -59,16 +59,16 @@
         "metodo": "tabela session_model_usage do banco de sessões do Hermes (~/.hermes/state.db), somando a sessão do projeto e os dois subagentes dela, por modelo. Os tokens são a contabilidade do próprio Hermes; o valor em dólar é a tabela de preço do modelo, porque o Opus rodou em plano de assinatura e não há fatura por chamada",
         "confianca": "estimado",
         "medido_em": "2026-10-17",
-        "nota": "O total (US$ 51,04) é o caminho inteiro até o jogo, e a maior parte dele não está no jogo: um kit de funcionários feito em Blender (oito rodadas de redesenho), um protótipo de estilo em superfície contínua e o teste do pacote Quaternius, que foi o que o dono do repo aprovou. Só a construção do jogo, a partir do retrato do contador tirado às 00:25 de 17/10, custou US$ 11,57: 107 chamadas do Opus, 266.315 tokens de saída, 18.519.345 de leitura de cache. O cache é o maior número e não é o custo: cada chamada reenvia o contexto acumulado e o cache evita pagá-lo cheio."
+        "nota": "O total (US$ 54,52) é o caminho inteiro até o jogo, e a maior parte dele não está no jogo: um kit de funcionários feito em Blender (oito rodadas de redesenho), um protótipo de estilo em superfície contínua e o teste do pacote Quaternius, que foi o que o dono do repo aprovou. Só a construção do jogo, a partir do retrato do contador tirado às 00:25 de 17/10, custou US$ 15,05: 112 chamadas do Opus, 270.653 tokens de saída, 19.187.121 de leitura de cache. O cache é o maior número e não é o custo: cada chamada reenvia o contexto acumulado e o cache evita pagá-lo cheio."
       },
       "totais": {
-        "tokens_entrada": 480778,
-        "tokens_saida": 1024475,
-        "tokens_novos": 1505253,
-        "tokens_cache": 88219414,
-        "tokens_totais": 89724667,
-        "usd": 51.04,
-        "chamadas_api": 545,
+        "tokens_entrada": 480865,
+        "tokens_saida": 1028813,
+        "tokens_novos": 1509678,
+        "tokens_cache": 89294972,
+        "tokens_totais": 90804650,
+        "usd": 54.52,
+        "chamadas_api": 550,
         "linhas": 2001,
         "tem_custo": true
       },
@@ -674,13 +674,13 @@
         "os-funcionarios"
       ],
       "n_jogos": 2,
-      "tokens_novos": 1477438,
-      "tokens_cache": 374835310,
-      "chamadas_api": 1415,
-      "usd": 146.06,
+      "tokens_novos": 1481863,
+      "tokens_cache": 375910868,
+      "chamadas_api": 1420,
+      "usd": 149.54,
       "linhas": 20874,
-      "tokens_por_linha": 70.78,
-      "linhas_por_dolar": 142.91
+      "tokens_por_linha": 70.99,
+      "linhas_por_dolar": 139.59
     }
   ],
   "por_agente": [
@@ -727,13 +727,13 @@
         "os-funcionarios"
       ],
       "n_jogos": 2,
-      "tokens_novos": 3399231,
-      "tokens_cache": 247295638,
-      "chamadas_api": 1201,
-      "usd": 52.07,
+      "tokens_novos": 3403656,
+      "tokens_cache": 248371196,
+      "chamadas_api": 1206,
+      "usd": 55.55,
       "linhas": 12710,
-      "tokens_por_linha": 267.45,
-      "linhas_por_dolar": 244.09
+      "tokens_por_linha": 267.79,
+      "linhas_por_dolar": 228.8
     },
     {
       "nome": "Oh My Pi (subagentes)",
@@ -795,13 +795,13 @@
         "os-funcionarios"
       ],
       "n_jogos": 1,
-      "tokens_novos": 637908,
-      "tokens_cache": 58602006,
-      "chamadas_api": 345,
-      "usd": 50.64,
+      "tokens_novos": 642333,
+      "tokens_cache": 59677564,
+      "chamadas_api": 350,
+      "usd": 54.12,
       "linhas": 2001,
-      "tokens_por_linha": 318.79,
-      "linhas_por_dolar": 39.51
+      "tokens_por_linha": 321.01,
+      "linhas_por_dolar": 36.97
     }
   ]
 }
