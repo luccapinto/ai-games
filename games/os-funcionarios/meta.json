@@ -23,25 +23,25 @@
       "provider": "Anthropic (assinatura)",
       "agente": "Hermes Agent (Talos)",
       "papel": "o jogo inteiro: kit de personagens em Blender que acabou descartado, protótipos de estilo, teste do pacote Quaternius, troca de peças entre modelos, os 14 sinais por cima da animação, escritório, IA de rotina, laço do jogo, provas e revisão visual de cada etapa",
-      "chamadas_api": 350,
+      "chamadas_api": 421,
       "tokens": {
-        "entrada": 6501,
-        "saida": 635832,
-        "cache_leitura": 55903092,
-        "cache_escrita": 3774472
+        "entrada": 7711,
+        "saida": 786495,
+        "cache_leitura": 69067829,
+        "cache_escrita": 4347598
       },
-      "usd_estimado": 54.12
+      "usd_estimado": 64.36
     },
     {
       "modelo": "deepseek-flash",
       "provider": "DeepSeek",
       "agente": "Hermes Agent (Talos)",
       "papel": "parte do kit em Blender (a sessão trocou de modelo no meio da tarde) e a compressão de contexto da sessão longa",
-      "chamadas_api": 200,
+      "chamadas_api": 201,
       "tokens": {
-        "entrada": 474364,
-        "saida": 392981,
-        "cache_leitura": 29617408,
+        "entrada": 476015,
+        "saida": 405387,
+        "cache_leitura": 29645312,
         "cache_escrita": 0
       },
       "usd_estimado": 0.4
@@ -51,7 +51,7 @@
     "confianca": "estimado",
     "metodo": "tabela session_model_usage do banco de sessões do Hermes (~/.hermes/state.db), somando a sessão do projeto e os dois subagentes dela, por modelo. Os tokens são a contabilidade do próprio Hermes; o valor em dólar é a tabela de preço do modelo, porque o Opus rodou em plano de assinatura e não há fatura por chamada",
     "medido_em": "2026-10-17",
-    "nota": "O total (US$ 54,52) é o caminho inteiro até o jogo, e a maior parte dele não está no jogo: um kit de funcionários feito em Blender (oito rodadas de redesenho), um protótipo de estilo em superfície contínua e o teste do pacote Quaternius, que foi o que o dono do repo aprovou. Só a construção do jogo, a partir do retrato do contador tirado às 00:25 de 17/10, custou US$ 15,05: 112 chamadas do Opus, 270.653 tokens de saída, 19.187.121 de leitura de cache. O cache é o maior número e não é o custo: cada chamada reenvia o contexto acumulado e o cache evita pagá-lo cheio."
+    "nota": "O total (US$ 64,76) é o caminho inteiro até o jogo, e a maior parte dele não está no jogo: um kit de funcionários feito em Blender (oito rodadas de redesenho), um protótipo de estilo em superfície contínua e o teste do pacote Quaternius, que foi o que o dono do repo aprovou. Só a construção do jogo, a partir do retrato do contador tirado às 00:25 de 17/10, custou US$ 25,29: 183 chamadas do Opus, 421.316 tokens de saída, 32.351.858 de leitura de cache. O cache é o maior número e não é o custo: cada chamada reenvia o contexto acumulado e o cache evita pagá-lo cheio."
   },
   "stack": [
     "JavaScript (ES modules nativos)",
@@ -60,9 +60,9 @@
     "Web Audio API"
   ],
   "tamanho": {
-    "linhas_proprias": 2001,
-    "mb": 7.2,
-    "modulos_js": 5
+    "linhas_proprias": 2532,
+    "mb": 8.0,
+    "modulos_js": 6
   },
   "destaques": [
     "Oito modelos do pacote viram doze funcionários trocando peças entre eles: a cabeça de bigode do operário, sem o capacete, vai no corpo de terno do executivo. Todos usam o mesmo esqueleto, então a peça trocada anima junto",

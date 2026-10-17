@@ -25,12 +25,52 @@ export class Som {
     g.gain.linearRampToValueAtTime(pico, t0 + ataque); g.gain.exponentialRampToValueAtTime(0.0001, t0 + ataque + dura);
     no.connect(g).connect(this.mestre); return g;
   }
+  // grampeador: estalo metálico seco + "tchac" da mola
   tiro() {
     if (!this.ctx) return; const t = this.ctx.currentTime;
-    const n = this._ruido(0.4); const f = this.ctx.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 1400; f.Q.value = 0.7;
-    n.connect(f); this._env(f, t, 0.002, 0.18, 0.9); n.start(t);
-    const o = this.ctx.createOscillator(); o.type = 'square'; o.frequency.setValueAtTime(880, t); o.frequency.exponentialRampToValueAtTime(110, t + 0.15);
-    this._env(o, t, 0.002, 0.15, 0.25); o.start(t); o.stop(t + 0.2);
+    const n = this._ruido(0.2); const f = this.ctx.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 3200; f.Q.value = 1.4;
+    n.connect(f); this._env(f, t, 0.001, 0.06, 0.9); n.start(t);
+    const n2 = this._ruido(0.2); const f2 = this.ctx.createBiquadFilter(); f2.type = 'lowpass'; f2.frequency.value = 420;
+    n2.connect(f2); this._env(f2, t + 0.012, 0.002, 0.09, 0.8); n2.start(t + 0.012);
+    const o = this.ctx.createOscillator(); o.type = 'square'; o.frequency.setValueAtTime(1900, t); o.frequency.exponentialRampToValueAtTime(600, t + 0.04);
+    this._env(o, t, 0.001, 0.04, 0.12); o.start(t); o.stop(t + 0.06);
+  }
+  vazio() {
+    if (!this.ctx) return; const t = this.ctx.currentTime;
+    const o = this.ctx.createOscillator(); o.type = 'square'; o.frequency.value = 2400;
+    this._env(o, t, 0.001, 0.02, 0.08); o.start(t); o.stop(t + 0.03);
+  }
+  recarga() {
+    if (!this.ctx) return; const t = this.ctx.currentTime;
+    for (const at of [0, 0.5, 0.95]) {
+      const n = this._ruido(0.1); const f = this.ctx.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = at > 0.9 ? 1800 : 1100; f.Q.value = 2;
+      n.connect(f); this._env(f, t + at, 0.002, 0.05, 0.5); n.start(t + at);
+    }
+  }
+  impacto() {
+    if (!this.ctx) return; const t = this.ctx.currentTime;
+    const n = this._ruido(0.1); const f = this.ctx.createBiquadFilter(); f.type = 'highpass'; f.frequency.value = 2000;
+    n.connect(f); this._env(f, t + 0.03, 0.001, 0.03, 0.25); n.start(t + 0.03);
+  }
+  impactoAlien() {
+    if (!this.ctx) return; const t = this.ctx.currentTime;
+    const o = this.ctx.createOscillator(); o.type = 'sawtooth'; o.frequency.setValueAtTime(420, t); o.frequency.exponentialRampToValueAtTime(160, t + 0.25);
+    const f = this.ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 1200; o.connect(f);
+    this._env(f, t + 0.02, 0.01, 0.25, 0.22); o.start(t + 0.02); o.stop(t + 0.35);
+  }
+  morteAlien() {
+    if (!this.ctx) return; const t = this.ctx.currentTime;
+    const o = this.ctx.createOscillator(); o.type = 'sawtooth'; o.frequency.setValueAtTime(700, t); o.frequency.exponentialRampToValueAtTime(60, t + 1.1);
+    const lfo = this.ctx.createOscillator(); lfo.frequency.value = 18; const lg = this.ctx.createGain(); lg.gain.value = 60; lfo.connect(lg).connect(o.frequency);
+    const f = this.ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 1500; o.connect(f);
+    this._env(f, t, 0.02, 1.1, 0.3); o.start(t); lfo.start(t); o.stop(t + 1.2); lfo.stop(t + 1.2);
+  }
+  soco() {
+    if (!this.ctx) return; const t = this.ctx.currentTime;
+    const o = this.ctx.createOscillator(); o.type = 'sine'; o.frequency.setValueAtTime(140, t); o.frequency.exponentialRampToValueAtTime(45, t + 0.18);
+    this._env(o, t, 0.002, 0.2, 0.9); o.start(t); o.stop(t + 0.25);
+    const n = this._ruido(0.1); const f = this.ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 900;
+    n.connect(f); this._env(f, t, 0.001, 0.06, 0.5); n.start(t);
   }
   revelacao() {
     if (!this.ctx) return; const t = this.ctx.currentTime;

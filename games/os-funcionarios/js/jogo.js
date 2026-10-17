@@ -6,6 +6,7 @@ import { ELENCO, SINAL, DIAS, FALHAS_MAX, PONTOS, sortearDia, rng } from './dado
 import { Pessoa, carregarModelos } from './pessoas.js';
 import { construirEscritorio, rota, noMaisProximo, caminhoLivre, SALA } from './escritorio.js';
 import { Som } from './som.js';
+import { Arma, grampo, PENTE } from './arma.js';
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const $ = (s) => document.querySelector(s);
@@ -24,6 +25,8 @@ cena.environment = new THREE.PMREMGenerator(render).fromScene(new RoomEnvironmen
 cena.environmentIntensity = 0.45;
 const camera = new THREE.PerspectiveCamera(70, 1, 0.05, 60);
 const FOV = 70, FOV_ZOOM = 20;
+const VIDA_ALIEN = 4;          // grampos para derrubar um alienígena (o 1º só quebra o disfarce)
+const VIDA_JOGADOR = 5;        // socos que o jogador aguenta por dia
 
 const sol = new THREE.DirectionalLight(0xfff1dc, 2.3);
 sol.position.set(14, 7, -3); sol.target.position.set(0, 0, 0);
@@ -36,9 +39,16 @@ const luzRoxa = new THREE.PointLight(0xa040ff, 0, 4, 2); cena.add(luzRoxa);
 
 const nav = construirEscritorio(cena);
 
+const arma = new Arma(cena.environment);
 function ajustar() {
   const w = innerWidth, h = innerHeight;
   render.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix();
+  arma.ajustar(w / h);
+}
+function desenhar() {
+  render.render(cena, camera);
+  arma.visivel = S.tela === 'jogando';
+  arma.desenhar(render);
 }
 addEventListener('resize', ajustar); ajustar();
 
@@ -65,6 +75,23 @@ const particulas = (() => {
         lista.push({ m, v: V(Math.cos(a) * Math.cos(e), Math.sin(e) + 0.4, Math.sin(a) * Math.cos(e)).multiplyScalar(1.4 + Math.random() * 1.6), vida: 2.2, t: 0, tipo: 'caco', rot: V(Math.random(), Math.random(), Math.random()).multiplyScalar(9) });
       }
     },
+    faiscas(p, n) {
+      for (let i = 0; i < 7; i++) {
+        const m = new THREE.Mesh(geoE, new THREE.MeshBasicMaterial({ color: 0xfff1b0 }));
+        m.position.copy(p); m.scale.setScalar(0.008);
+        cena.add(m);
+        const v = n.clone().multiplyScalar(1.2).add(V((Math.random() - 0.5) * 2, Math.random() * 1.5, (Math.random() - 0.5) * 2));
+        lista.push({ m, v, vida: 0.35, t: 0, tipo: 'caco', rot: V(0, 0, 0) });
+      }
+    },
+    gosma(p) {
+      for (let i = 0; i < 12; i++) {
+        const m = new THREE.Mesh(geoV, new THREE.MeshStandardMaterial({ color: 0x9a4cff, emissive: 0x5a10c0, emissiveIntensity: 1.2, roughness: 0.3 }));
+        m.position.copy(p); m.scale.setScalar(0.012 + Math.random() * 0.012);
+        cena.add(m);
+        lista.push({ m, v: V((Math.random() - 0.5) * 2.4, 0.6 + Math.random() * 1.6, (Math.random() - 0.5) * 2.4), vida: 1.0, t: 0, tipo: 'caco', rot: V(0, 0, 0) });
+      }
+    },
     atualizar(dt) {
       for (let i = lista.length - 1; i >= 0; i--) {
         const q = lista[i]; q.t += dt;
@@ -82,13 +109,41 @@ const particulas = (() => {
   };
 })();
 
+// ------------------------------------------------------------------ grampos
+const grampos = (() => {
+  const voando = [], cravados = [];
+  return {
+    // sai da boca da arma e vai até o ponto de impacto; crava em `alvo` (Object3D) ou no cenário
+    lancar(de, ate, alvo, normal) {
+      const g = grampo(1.6);
+      g.position.copy(de); g.lookAt(ate);
+      cena.add(g);
+      voando.push({ g, de: de.clone(), ate: ate.clone(), t: 0, dur: Math.max(0.03, de.distanceTo(ate) / 55), alvo, normal });
+    },
+    atualizar(dt) {
+      for (let i = voando.length - 1; i >= 0; i--) {
+        const q = voando[i]; q.t += dt;
+        const k = Math.min(1, q.t / q.dur);
+        q.g.position.lerpVectors(q.de, q.ate, k);
+        if (k < 1) continue;
+        voando.splice(i, 1);
+        if (q.alvo) q.alvo.attach(q.g);
+        else if (q.normal) particulas.faiscas(q.ate, q.normal);
+        cravados.push(q.g);
+        if (cravados.length > 80) { const v = cravados.shift(); v.parent?.remove(v); }
+      }
+    },
+    limpar() { for (const q of voando) cena.remove(q.g); for (const g of cravados) g.parent?.remove(g); voando.length = 0; cravados.length = 0; },
+  };
+})();
+
 // ------------------------------------------------------------------ estado
 const S = {
   tela: 'carregando',       // carregando | titulo | memorando | jogando | pausa | relatorio | fim
   semente: 1, nDia: 1, pontos: 0, falhas: 0,
   plano: null, pessoas: [], t: 0, duracao: 240,
   abatidos: [], log: [],
-  jogador: { pos: V(0, 1.62, 6.2), yaw: 0, pitch: 0, zoom: false },
+  jogador: { pos: V(0, 1.62, 6.2), yaw: 0, pitch: 0, zoom: false, vida: VIDA_JOGADOR, tremor: 0 },
   teclas: {}, crachaDe: null, mira: null,
   totais: { aliens: 0, inocentes: 0, fugas: 0, tiros: 0 },
 };
@@ -104,7 +159,7 @@ function escolherDestino(p, r) {
 
 function prepararDia(forcado) {
   for (const p of S.pessoas) p.remover();
-  particulas.limpar();
+  particulas.limpar(); grampos.limpar();
   luzRoxa.intensity = 0;
   S.pessoas = []; S.abatidos = []; S.crachaDe = null;
   S.plano = forcado || sortearDia(S.nDia, S.semente);
@@ -125,12 +180,65 @@ function prepararDia(forcado) {
     S.pessoas.push(p);
   });
   S.jogador.pos.set(0, 1.62, 6.2); S.jogador.yaw = 0; S.jogador.pitch = 0;
+  S.jogador.vida = VIDA_JOGADOR; S.jogador.tremor = 0;
+  arma.pente = PENTE; arma.recarregando = 0; arma.espera = 0;
   S.log.push({ dia: S.nDia, aliens: S.plano.aliens.slice(), sinais: structuredClone(S.plano.sinaisDe) });
 }
 
 // ------------------------------------------------------------------ IA das pessoas
 const rIA = Math.random;
+// alienígena revelado: corre atrás do jogador e dá soco
+function atualizarHostil(p, dt) {
+  const j = S.jogador.pos;
+  const dj = Math.hypot(j.x - p.pos.x, j.z - p.pos.z);
+  if (p.atordoado > 0) { p.atordoado -= dt; if (p.atordoado <= 0) p.reiniciar('Run', 0.15, 1.1); return; }
+  if (p.socando > 0) {
+    p.socando -= dt;
+    virarPara(p, j, dt, 8);
+    if (!p.socou && p.socando < 0.45) {
+      p.socou = true;
+      if (dj < 1.35 && S.tela === 'jogando') levarSoco(p);
+    }
+    if (p.socando <= 0) p.reiniciar('Run', 0.15, 1.1);
+    return;
+  }
+  if (dj < 1.05) { p.socando = 0.9; p.socou = false; p.reiniciar('Punch_Right', 0.08, 1.2); return; }
+  // rota: direto se a linha está livre; senão pelos corredores
+  p._rotaT = (p._rotaT || 0) - dt;
+  if (p._rotaT <= 0 || !p._alvo) {
+    p._rotaT = 0.4;
+    const pj = V(j.x, 0, j.z);
+    if (caminhoLivre(p.pos, pj, nav.colisores, 0.18)) p._alvo = pj;
+    else {
+      const nos = rota(nav, noMaisProximo(nav, p.pos), noMaisProximo(nav, pj));
+      const prox = nos.map(i => nav.nos[i]).find(n => n.distanceTo(p.pos) > 0.5 && caminhoLivre(p.pos, n, nav.colisores, 0.1));
+      p._alvo = prox ? prox.clone() : pj;
+    }
+  }
+  const d = V(p._alvo.x - p.pos.x, 0, p._alvo.z - p.pos.z);
+  if (d.length() < 0.15) { p._rotaT = 0; return; }
+  d.normalize();
+  const vel = 2.6;
+  const novo = p.pos.clone().addScaledVector(d, vel * dt);
+  const bate = nav.colisores.some(c => novo.x > c.x0 - 0.2 && novo.x < c.x1 + 0.2 && novo.z > c.z0 - 0.2 && novo.z < c.z1 + 0.2);
+  if (!bate) p.pos.copy(novo); else p._rotaT = 0;
+  virarPara(p, null, dt, 10, Math.atan2(d.x, d.z));
+}
+
+function levarSoco(p) {
+  const j = S.jogador;
+  j.vida--; j.tremor = 0.45;
+  som.soco();
+  const f = $('#dano'); f.style.opacity = 0.75; setTimeout(() => f.style.opacity = 0, 140);
+  // empurrão para trás
+  const dir = V(j.pos.x - p.pos.x, 0, j.pos.z - p.pos.z).normalize().multiplyScalar(0.45);
+  moverComColisao(j.pos, dir);
+  aviso(j.vida > 0 ? `VOCÊ LEVOU UM SOCO · ${j.vida} de ${VIDA_JOGADOR}` : 'NOCAUTE', 'ruim');
+  atualizarHUD();
+}
+
 function atualizarIA(p, dt) {
+  if (p.estado === 'hostil') { atualizarHostil(p, dt); return; }
   if (p.estado !== 'vivo') return;
   const ia = p.ia;
   // pedido de crachá: para e vira para o jogador
@@ -169,7 +277,7 @@ function atualizarIA(p, dt) {
     if (dist < 0.12) { ia.rota.shift(); return; }
     // espera quem está na frente
     const fr = d.clone().normalize();
-    const bloqueado = S.pessoas.some(o => o !== p && o.estado === 'vivo' && o.pos.distanceTo(p.pos) < 0.7 && V().subVectors(o.pos, p.pos).dot(fr) > 0.2)
+    const bloqueado = S.pessoas.some(o => o !== p && o.alvejavel && o.pos.distanceTo(p.pos) < 0.7 && V().subVectors(o.pos, p.pos).dot(fr) > 0.2)
       || (Math.hypot(S.jogador.pos.x - p.pos.x, S.jogador.pos.z - p.pos.z) < 0.75 && V(S.jogador.pos.x - p.pos.x, 0, S.jogador.pos.z - p.pos.z).dot(fr) > 0.2);
     if (bloqueado) { p.andando = false; p.anim('Idle_Neutral', 0.3); ia.espera = (ia.espera || 0) + dt; if (ia.espera > 2.5) { p.pos.addScaledVector(V(-fr.z, 0, fr.x), 0.3 * dt); } return; }
     ia.espera = 0;
@@ -208,7 +316,11 @@ function atualizarJogador(dt) {
   const alvoFov = j.zoom ? FOV_ZOOM : FOV;
   camera.fov += (alvoFov - camera.fov) * Math.min(1, dt * 10); camera.updateProjectionMatrix();
   camera.position.copy(j.pos);
-  camera.rotation.set(j.pitch, j.yaw, 0, 'YXZ');
+  j.tremor = Math.max(0, (j.tremor || 0) - dt);
+  const tr = j.tremor * j.tremor * 0.25;
+  camera.rotation.set(j.pitch + (Math.random() - 0.5) * tr, j.yaw + (Math.random() - 0.5) * tr, (Math.random() - 0.5) * tr * 0.6, 'YXZ');
+  arma.atualizar(dt, { andando: mov.lengthSq() > 0 ? (k.ShiftLeft ? 1.5 : 1) : 0, zoom: j.zoom, giro: (j._yawAnt ?? j.yaw) - j.yaw });
+  j._yawAnt = j.yaw;
 }
 
 function moverComColisao(pos, mov) {
@@ -219,7 +331,7 @@ function moverComColisao(pos, mov) {
     novo.z = Math.max(SALA.z0 + r, Math.min(SALA.z1 - r, novo.z));
     let ok = true;
     for (const c of nav.colisores) if (novo.x > c.x0 - r && novo.x < c.x1 + r && novo.z > c.z0 - r && novo.z < c.z1 + r) { ok = false; break; }
-    if (ok) for (const p of S.pessoas) if (p.estado === 'vivo' && Math.hypot(novo.x - p.pos.x, novo.z - p.pos.z) < 0.5) { ok = false; break; }
+    if (ok) for (const p of S.pessoas) if (p.alvejavel && Math.hypot(novo.x - p.pos.x, novo.z - p.pos.z) < 0.5) { ok = false; break; }
     if (ok) pos[eixo] = novo[eixo];
   }
 }
@@ -228,38 +340,73 @@ function quemNaMira() {
   raycaster.setFromCamera({ x: 0, y: 0 }, camera);
   let melhor = null, dm = Infinity;
   for (const p of S.pessoas) { const t = p.acerto(raycaster.ray); if (t != null && t < dm) { dm = t; melhor = p; } }
+  if (melhor) { const o = obstaculo(); if (o && o.distance < dm - 0.15) return null; }
   return melhor ? { p: melhor, dist: dm } : null;
+}
+// primeira parede/mesa/divisória na linha da mira
+const _solidos = [];
+function obstaculo() {
+  if (!_solidos.length) nav.grupo.traverse(o => { if (o.isMesh && !(o.material.transparent && o.material.opacity < 0.3)) _solidos.push(o); });
+  raycaster.setFromCamera({ x: 0, y: 0 }, camera);
+  raycaster.far = 40;
+  return raycaster.intersectObjects(_solidos, false)[0] || null;
 }
 
 // ------------------------------------------------------------------ ações
 function atirar() {
   if (S.tela !== 'jogando') return null;
+  if (!arma.disparar()) {
+    if (arma.ocupada) return { acertou: null, recarregando: true };
+    som.vazio(); return { acertou: null, vazio: true };
+  }
   S.totais.tiros++;
   som.tiro();
-  flash();
+  atualizarHUD();
+  const de = arma.bocaNoMundo(camera);
   const alvo = quemNaMira();
-  if (!alvo) return { acertou: null };
+  if (!alvo) {
+    const o = obstaculo();
+    const ate = o ? o.point.clone() : camera.position.clone().add(raycaster.ray.direction.clone().multiplyScalar(30));
+    const n = o?.face ? o.face.normal.clone().transformDirection(o.object.matrixWorld) : V(0, 1, 0);
+    grampos.lancar(de, ate.addScaledVector(n, 0.004), null, n);
+    if (o) som.impacto();
+    return { acertou: null };
+  }
   const p = alvo.p;
+  const ponto = raycaster.ray.at(alvo.dist, V());
+  // crava no osso mais próximo do ponto
+  let osso = p.ossos.Chest, dOsso = Infinity;
+  for (const n of ['Head', 'Neck', 'Chest', 'Torso', 'Abdomen', 'Hips', 'UpperArmL', 'UpperArmR', 'LowerArmL', 'LowerArmR', 'UpperLegL', 'UpperLegR', 'LowerLegL', 'LowerLegR']) {
+    const b = p.ossos[n]; if (!b) continue; const d = b.getWorldPosition(V()).distanceTo(ponto); if (d < dOsso) { dOsso = d; osso = b; }
+  }
+  grampos.lancar(de, ponto, osso, null);
   fecharCracha();
-  p.atingir({ luzAlien: (q) => { luzRoxa.position.copy(q.pos).add(V(0, 1.7, 0)); luzRoxa.intensity = 6; } });
-  S.abatidos.push({ id: p.id, alien: p.alien, hora: relogio(S.t / S.duracao) });
-  if (p.alien) {
-    S.pontos += PONTOS.alien; S.totais.aliens++;
-    setTimeout(() => som.revelacao(), 300);
-    aviso(`ALIENÍGENA ELIMINADO · +${PONTOS.alien}`, 'bom');
-  } else {
+  const r = p.atingir({ vida: VIDA_ALIEN, particulas, luzAlien: (q) => { luzRoxa.position.copy(q.pos).add(V(0, 1.7, 0)); luzRoxa.intensity = 6; } });
+  if (r === 'humano') {
+    S.abatidos.push({ id: p.id, alien: false, hora: relogio(S.t / S.duracao) });
     S.pontos += PONTOS.inocente; S.falhas++; S.totais.inocentes++;
     setTimeout(() => som.inocente(), 250);
     aviso(`${p.ficha.nome.toUpperCase()} ERA HUMANO · ${PONTOS.inocente}`, 'ruim');
+  } else if (r === 'revelou') {
+    setTimeout(() => som.revelacao(), 200);
+    aviso(`É ALIENÍGENA! CONTINUE GRAMPEANDO`, 'bom');
+  } else if (r === 'feriu') {
+    particulas.gosma(ponto); som.impactoAlien();
+  } else if (r === 'morreu') {
+    particulas.gosma(ponto); som.morteAlien();
+    S.abatidos.push({ id: p.id, alien: true, hora: relogio(S.t / S.duracao) });
+    S.pontos += PONTOS.alien; S.totais.aliens++;
+    aviso(`ALIENÍGENA ELIMINADO · +${PONTOS.alien}`, 'bom');
   }
   atualizarHUD();
-  return { acertou: p.id, alien: p.alien };
+  return { acertou: p.id, alien: p.alien, resultado: r, vida: p.vida ?? null };
 }
 
 function pedirCracha() {
   if (S.tela !== 'jogando') return null;
   const alvo = quemNaMira();
   if (!alvo || alvo.dist > 4.5) { aviso('Chegue mais perto para pedir o crachá', 'neutro'); return null; }
+  if (alvo.p.estado !== 'vivo') return null;
   abrirCracha(alvo.p);
   return alvo.p.id;
 }
@@ -288,7 +435,6 @@ function fecharCracha() { S.crachaDe = null; $('#cracha').hidden = true; }
 
 let tAviso = 0;
 function aviso(txt, tipo) { const a = $('#aviso'); a.textContent = txt; a.className = 'aviso ' + tipo; a.hidden = false; tAviso = 2.6; }
-function flash() { const f = $('#flash'); f.style.opacity = 0.55; setTimeout(() => f.style.opacity = 0, 60); }
 
 // ------------------------------------------------------------------ telas
 function mostrar(id) {
@@ -324,7 +470,7 @@ function comecarExpediente() {
 
 function fimDoDia(motivo) {
   if (S.tela !== 'jogando') return;
-  const fugas = S.pessoas.filter(p => p.alien && p.estado === 'vivo');
+  const fugas = S.pessoas.filter(p => p.ativo);
   const sobra = Math.max(0, S.duracao - S.t);
   const bonus = fugas.length === 0 ? Math.floor(sobra / 60 * PONTOS.porMinutoSobrando * (540 / S.duracao)) : 0;
   S.pontos += fugas.length * PONTOS.fuga + bonus;
@@ -333,12 +479,17 @@ function fimDoDia(motivo) {
   const demitido = S.falhas >= FALHAS_MAX;
   const ultimo = S.nDia >= DIAS.length;
   $('#rel-titulo').textContent = demitido ? 'Você foi afastado do departamento' : (fugas.length ? 'Expediente encerrado' : 'Andar limpo');
-  $('#rel-motivo').textContent = motivo === 'tempo' ? 'Deu 18h. Todo mundo foi para casa, inclusive quem não devia.' : (motivo === 'falhas' ? `${FALHAS_MAX} funcionários humanos abatidos. O RH abriu uma sindicância.` : 'Todos os impostores do dia foram eliminados antes do fim do expediente.');
+  $('#rel-motivo').textContent = {
+    tempo: 'Deu 18h. Todo mundo foi para casa, inclusive quem não devia.',
+    falhas: `${FALHAS_MAX} funcionários humanos abatidos. O RH abriu uma sindicância.`,
+    nocaute: 'Você foi nocauteado no meio do andar. Quando acordou, o impostor já tinha saído pelo elevador.',
+    limpo: 'Todos os impostores do dia foram eliminados antes do fim do expediente.',
+  }[motivo];
   const linhas = [];
   for (const id of S.plano.aliens) {
     const p = S.pessoas.find(q => q.id === id);
     const sin = S.plano.sinaisDe[id].map(s => SINAL[s].nome).join(', ');
-    linhas.push(`<li class="${p.estado === 'vivo' ? 'fugiu' : 'pego'}"><b>${p.ficha.nome}</b> (${p.ficha.depto}) era alienígena — ${sin}. <em>${p.estado === 'vivo' ? 'Fugiu.' : 'Eliminado.'}</em></li>`);
+    linhas.push(`<li class="${p.ativo ? 'fugiu' : 'pego'}"><b>${p.ficha.nome}</b> (${p.ficha.depto}) era alienígena — ${sin}. <em>${p.ativo ? 'Fugiu.' : 'Eliminado.'}</em></li>`);
   }
   for (const a of S.abatidos.filter(a => !a.alien)) {
     const p = S.pessoas.find(q => q.id === a.id);
@@ -383,8 +534,11 @@ function atualizarHUD() {
   $('#hud-hora').textContent = relogio(Math.min(1, S.t / S.duracao));
   $('#hud-pontos').textContent = S.pontos;
   $('#hud-falhas').innerHTML = Array.from({ length: FALHAS_MAX }, (_, i) => `<span class="${i < S.falhas ? 'x' : ''}"></span>`).join('');
-  const vivos = S.pessoas.filter(p => p.alien && p.estado === 'vivo').length;
+  const vivos = S.pessoas.filter(p => p.ativo).length;
   $('#hud-aliens').textContent = `${vivos} impostor${vivos === 1 ? '' : 'es'} no andar`;
+  $('#hud-grampos').textContent = arma.ocupada ? 'recarregando…' : `${arma.pente} / ${PENTE}`;
+  $('#hud-grampos').classList.toggle('pouco', !arma.ocupada && arma.pente <= 3);
+  $('#hud-vida').innerHTML = Array.from({ length: VIDA_JOGADOR }, (_, i) => `<span class="${i < S.jogador.vida ? 'ok' : ''}"></span>`).join('');
 }
 
 // ------------------------------------------------------------------ entrada
@@ -402,16 +556,17 @@ document.addEventListener('mousemove', (e) => {
 canvas.addEventListener('mousedown', (e) => {
   if (S.tela !== 'jogando') return;
   if (!document.pointerLockElement) { travarMouse(); return; }
-  if (e.button === 0) atirar();
+  if (e.button === 0) { S.gatilho = true; atirar(); }
   if (e.button === 2) S.jogador.zoom = true;
 });
-addEventListener('mouseup', (e) => { if (e.button === 2) S.jogador.zoom = false; });
+addEventListener('mouseup', (e) => { if (e.button === 2) S.jogador.zoom = false; if (e.button === 0) S.gatilho = false; });
 addEventListener('contextmenu', (e) => e.preventDefault());
 addEventListener('keydown', (e) => {
   S.teclas[e.code] = true;
   if (S.tela === 'jogando') {
     if (e.code === 'KeyE') { if (S.crachaDe) fecharCracha(); else pedirCracha(); }
     if (e.code === 'KeyZ') S.jogador.zoom = true;
+    if (e.code === 'KeyR' && arma.recarregar()) { som.recarga(); atualizarHUD(); }
     if (e.code === 'Tab') { e.preventDefault(); $('#hud-memo').classList.toggle('aberto'); }
   }
 });
@@ -432,15 +587,21 @@ function passo(dt) {
     atualizarJogador(dt);
     const m = quemNaMira();
     S.mira = m?.p || null;
-    $('#dica').textContent = S.crachaDe ? '[E] devolver o crachá' : (m && m.dist < 4.5 ? '[E] pedir o crachá' : '');
+    $('#dica').textContent = S.crachaDe ? '[E] devolver o crachá' : (m && m.dist < 4.5 && m.p.estado === 'vivo' ? '[E] pedir o crachá' : (arma.pente === 0 && !arma.ocupada ? '[R] recarregar' : ''));
     $('#mira').classList.toggle('alvo', !!m);
     for (const p of S.pessoas) atualizarIA(p, dt);
+    // segurar o gatilho = grampos em sequência
+    if (S.gatilho && arma.espera <= 0 && !arma.ocupada && arma.pente > 0) atirar();
+    if (arma._estavaRec && !arma.ocupada) atualizarHUD();
+    if (!arma._estavaRec && arma.ocupada) { som.recarga(); atualizarHUD(); }
+    arma._estavaRec = arma.ocupada;
     if (S.crachaDe && S.crachaDe.pos.distanceTo(S.jogador.pos) > 6) fecharCracha();
     if (tAviso > 0) { tAviso -= dt; if (tAviso <= 0) $('#aviso').hidden = true; }
     if (Math.floor(S.t) !== Math.floor(S.t - dt)) atualizarHUD();
-    const restam = S.pessoas.filter(p => p.alien && p.estado === 'vivo').length;
-    const animando = S.pessoas.some(p => p.estado !== 'vivo' && !p.fim);
-    if (S.falhas >= FALHAS_MAX && !animando) fimDoDia('falhas');
+    const restam = S.pessoas.filter(p => p.ativo).length;
+    const animando = S.pessoas.some(p => (p.estado === 'morrendo' || p.estado === 'caindo') && !p.fim);
+    if (S.jogador.vida <= 0) { if ((S._nocaute = (S._nocaute || 0) + dt) > 1.2) { S._nocaute = 0; fimDoDia('nocaute'); } }
+    else if (S.falhas >= FALHAS_MAX && !animando) fimDoDia('falhas');
     else if (restam === 0 && !animando) fimDoDia('limpo');
     else if (S.t >= S.duracao) fimDoDia('tempo');
   } else if (S.tela !== 'carregando') {
@@ -453,18 +614,19 @@ function passo(dt) {
   for (const p of S.pessoas) p.atualizar(dt, { camera, particulas });
   luzRoxa.intensity *= Math.pow(0.25, dt);
   particulas.atualizar(dt);
+  grampos.atualizar(dt);
 }
 function quadro(agora) {
   const dt = Math.min(0.05, (agora - ultimo) / 1000); ultimo = agora;
   if (!window.__TESTE || window.__TESTE_TEMPO_REAL) passo(dt);
-  render.render(cena, camera);
+  desenhar();
   requestAnimationFrame(quadro);
 }
 
 // ------------------------------------------------------------------ início
 (async () => {
   const barra = $('#barra');
-  await carregarModelos('./modelos', (f) => barra.style.width = Math.round(f * 100) + '%');
+  await Promise.all([carregarModelos('./modelos', (f) => barra.style.width = Math.round(f * 100) + '%'), arma.carregar('./modelos/grampeador.glb')]);
   // fundo do título: o andar com gente trabalhando
   S.plano = sortearDia(1, 4242); S.nDia = 1; S.semente = 4242; prepararDia(); S.log = [];
   S.tela = 'titulo'; mostrar('titulo');
@@ -479,8 +641,12 @@ window.__jogo = {
   S, ELENCO,
   novoJogo: (s) => { novoJogo(s); return S.plano; },
   comecar: () => { comecarExpediente(); return S.tela; },
-  avancar: (seg, dt = 1 / 30) => { for (let t = 0; t < seg; t += dt) passo(dt); render.render(cena, camera); return { tela: S.tela, t: S.t }; },
-  pessoas: () => S.pessoas.map(p => ({ id: p.id, alien: p.alien, sinais: [...p.sinais], estado: p.estado, x: p.pos.x, z: p.pos.z, cracha: p.nomeNoCracha })),
+  avancar: (seg, dt = 1 / 30) => { for (let t = 0; t < seg; t += dt) passo(dt); desenhar(); return { tela: S.tela, t: S.t }; },
+  pessoas: () => S.pessoas.map(p => ({ id: p.id, alien: p.alien, sinais: [...p.sinais], estado: p.estado, vida: p.vida ?? null, x: p.pos.x, z: p.pos.z, cracha: p.nomeNoCracha })),
+  arma: () => ({ pente: arma.pente, recarregando: arma.recarregando, espera: arma.espera, visivel: arma.rig.visible }),
+  jogador: () => ({ vida: S.jogador.vida, x: S.jogador.pos.x, z: S.jogador.pos.z }),
+  recarregar: () => arma.recarregar(),
+  armaObj: arma,
   // posiciona o jogador a `dist` metros da pessoa, olhando para o peito dela
   mirar: (id, dist = 2.2, alt = 1.25) => {
     const p = S.pessoas.find(q => q.id === id);
@@ -498,16 +664,16 @@ window.__jogo = {
     S.jogador.pos.copy(pos);
     S.jogador.yaw = Math.atan2(-(p.pos.x - pos.x), -(p.pos.z - pos.z));
     S.jogador.pitch = Math.atan2(alt - 1.62, dist);
-    atualizarJogador(0); render.render(cena, camera);
+    atualizarJogador(0); desenhar();
     return quemNaMira()?.p.id || null;
   },
   olharPara: (x, y, z, px, pz) => {
     if (px != null) S.jogador.pos.set(px, 1.62, pz);
     const d = V(x, y, z).sub(S.jogador.pos);
     S.jogador.yaw = Math.atan2(-d.x, -d.z); S.jogador.pitch = Math.atan2(d.y, Math.hypot(d.x, d.z));
-    atualizarJogador(0); render.render(cena, camera); return true;
+    atualizarJogador(0); desenhar(); return true;
   },
-  zoom: (on) => { S.jogador.zoom = on; camera.fov = on ? FOV_ZOOM : FOV; camera.updateProjectionMatrix(); render.render(cena, camera); return camera.fov; },
+  zoom: (on) => { S.jogador.zoom = on; camera.fov = on ? FOV_ZOOM : FOV; camera.updateProjectionMatrix(); desenhar(); return camera.fov; },
   atirar, pedirCracha, fecharCracha,
   // dia sob medida para provas: presentes = ids; aliens = { id: [sinais] }
   diaForcado: (presentes, aliens) => {
@@ -520,6 +686,6 @@ window.__jogo = {
   andarPara: (id, x, z) => { const p = S.pessoas.find(q => q.id === id); p.ia.modo = 'andando'; p.ia.rota = [V(x, 0, z)]; p.ia.alvo = { olha: 0 }; return true; },
   proximoDia: () => { proximoDia(); return S.tela; },
   tela: () => S.tela,
-  render: () => { render.render(cena, camera); return true; },
+  render: () => { desenhar(); return true; },
   info: () => ({ calls: render.info.render.calls, tris: render.info.render.triangles, geos: render.info.memory.geometries, tex: render.info.memory.textures }),
 };

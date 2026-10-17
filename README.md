@@ -9,8 +9,8 @@ registrados ao lado.
 costs. Each game is a self-contained, playable folder that records the model that
 wrote it, the agent that drove it, and the tokens it burned.*
 
-**12 jogos** de **1 pessoa**, 62.137 linhas de código,
-6,4 M tokens novos e US$ 200,82 de API no total.
+**12 jogos** de **1 pessoa**, 62.668 linhas de código,
+6,6 M tokens novos e US$ 211,06 de API no total.
 
 👉 **[Jogar tudo](https://ai-games.luccabuilds.com/)** · **[Ver o benchmark](https://ai-games.luccabuilds.com/benchmark.html)** · **[Mandar o seu jogo](CONTRIBUTING.md)**
 
@@ -18,7 +18,7 @@ wrote it, the agent that drove it, and the tokens it burned.*
 
 | Jogo | Gênero | Quem fez | Modelo | Tokens novos | Custo | Jogar |
 | --- | --- | --- | --- | --- | --- | --- |
-| **OS FUNCIONÁRIOS** [`os-funcionarios`](games/os-funcionarios/README.md) | Dedução em primeira pessoa | Lucca Pinto | claude-opus-5-5, deepseek-flash | 1,5 M | US$ 54,52 | [jogar](https://ai-games.luccabuilds.com/games/os-funcionarios/) |
+| **OS FUNCIONÁRIOS** [`os-funcionarios`](games/os-funcionarios/README.md) | Dedução em primeira pessoa | Lucca Pinto | claude-opus-5-5, deepseek-flash | 1,7 M | US$ 64,76 | [jogar](https://ai-games.luccabuilds.com/games/os-funcionarios/) |
 | **BANCA** [`banca`](games/banca/README.md) | Cassino | Lucca Pinto | claude-opus-5-5, claude-opus-5 | 1,2 M | US$ 121,68 | [jogar](https://ai-games.luccabuilds.com/games/banca/) |
 | **TRAVESSIA** [`travessia`](games/travessia/README.md) | Mundo aberto | Lucca Pinto | claude-opus-5 | 103,0 k | US$ 1,54 | [jogar](https://ai-games.luccabuilds.com/games/travessia/) |
 | **SUBSOLO** [`subsolo`](games/subsolo/README.md) | FPS de rodadas | Lucca Pinto | claude-opus-5 | 705,0 k | US$ 8,30 | [jogar](https://ai-games.luccabuilds.com/games/subsolo/) |
@@ -36,8 +36,8 @@ wrote it, the agent that drove it, and the tokens it burned.*
 | Modelo | Jogos | Tokens novos | Cache | Custo | Linhas |
 | --- | --- | --- | --- | --- | --- |
 | claude-opus-5 | 10 | 2,1 M | 26,3 M | US$ 49,85 | 49.427 |
-| deepseek-flash | 2 | 2,8 M | 188,7 M | US$ 1,43 | 12.710 |
-| claude-opus-5-5 | 2 | 1,5 M | 375,9 M | US$ 149,54 | 20.874 |
+| deepseek-flash | 2 | 2,8 M | 188,7 M | US$ 1,43 | 13.241 |
+| claude-opus-5-5 | 2 | 1,6 M | 389,6 M | US$ 159,78 | 21.405 |
 
 Tokens novos são entrada + saída. Cache aparece em coluna separada de propósito:
 quanto do contexto vira leitura de cache depende da ferramenta que dirigiu o
@@ -116,10 +116,10 @@ O que tem dentro:
 - 12 provas no Chrome sem cabeça: mil dias sorteados conferidos, uma semana inteira jogada sem erro, a demissão com três inocentes, o fim do expediente e o teclado de verdade
 
 - **Quem fez:** Lucca Pinto
-- **Modelo:** claude-opus-5-5 via Anthropic (assinatura), dirigido por Hermes Agent (Talos) — 642,3 k tokens novos, 59,7 M de cache, 350 chamadas, US$ 54,12
-- **Modelo:** deepseek-flash via DeepSeek, dirigido por Hermes Agent (Talos) — 867,3 k tokens novos, 29,6 M de cache, 200 chamadas, US$ 0,40
-- **Custo total:** US$ 54,52 (estimado)
-- **Tamanho:** 2.001 linhas de código próprio, 7,2 MB
+- **Modelo:** claude-opus-5-5 via Anthropic (assinatura), dirigido por Hermes Agent (Talos) — 794,2 k tokens novos, 73,4 M de cache, 421 chamadas, US$ 64,36
+- **Modelo:** deepseek-flash via DeepSeek, dirigido por Hermes Agent (Talos) — 881,4 k tokens novos, 29,6 M de cache, 201 chamadas, US$ 0,40
+- **Custo total:** US$ 64,76 (estimado)
+- **Tamanho:** 2.532 linhas de código próprio, 8,0 MB
 - **Pasta:** [`games/os-funcionarios/`](games/os-funcionarios/README.md)
 
 ### BANCA
