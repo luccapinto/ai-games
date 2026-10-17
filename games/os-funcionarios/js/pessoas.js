@@ -287,6 +287,15 @@ export class Pessoa {
     this.anim('Idle', 0);
   }
 
+  // recomeça a animação mesmo que já seja a atual (golpes seguidos)
+  reiniciar(nome, fade = 0.08, escala = 1) {
+    const a = this.acoes[nome]; if (!a) return;
+    const antes = this.atual;
+    a.timeScale = escala; a.reset().play();
+    if (antes && antes !== a) antes.crossFadeTo(a, fade, false);
+    this.atual = a;
+  }
+
   anim(nome, fade = 0.25, escala = 1) {
     const a = this.acoes[nome];
     if (!a) return;
@@ -372,8 +381,12 @@ export class Pessoa {
 
   // ---- disparo
   // Cilindro vertical: distância do raio até a pessoa. Devolve a distância ao longo do raio ou null.
+  get alvejavel() { return this.estado === 'vivo' || this.estado === 'revelando' || this.estado === 'hostil'; }
+  // alienígena ainda no andar (disfarçado ou já revelado)
+  get ativo() { return this.alien && this.alvejavel; }
+
   acerto(raio) {
-    if (this.estado !== 'vivo') return null;
+    if (!this.alvejavel) return null;
     const o = raio.origin, d = raio.direction, p = this.obj.position;
     const ox = o.x - p.x, oz = o.z - p.z;
     const a = d.x * d.x + d.z * d.z, b = 2 * (ox * d.x + oz * d.z), c = ox * ox + oz * oz - this.raio * this.raio;
@@ -385,40 +398,68 @@ export class Pessoa {
     return (y > 0 && y < this.ficha.altura + 0.05) ? t : null;
   }
 
+  // Um grampo acertou. Devolve 'humano' | 'revelou' | 'feriu' | 'morreu'.
+  // Humano cai com um grampo. Alienígena: o 1º grampo só quebra o disfarce;
+  // ele aguenta `ctx.vida` grampos no total antes de cair.
   atingir(ctx) {
-    this.estado = this.alien ? 'revelando' : 'caindo';
-    this.tRev = 0; this.andando = false; this.encarando = false;
+    if (!this.alvejavel) return null;
+    this.andando = false; this.encarando = false;
     this.raiz.visible = true; this.raiz.position.x = 0;
-    this.anim('HitRecieve', 0.08);
-    if (this.alien) ctx.luzAlien(this);
+    if (!this.alien) { this.estado = 'caindo'; this.tRev = 0; this.reiniciar('HitRecieve', 0.08); return 'humano'; }
+    if (this.estado === 'vivo') {
+      this.estado = 'revelando'; this.tRev = 0; this.vida = ctx.vida - 1; this.vidaMax = ctx.vida;
+      this.reiniciar('HitRecieve', 0.08); ctx.luzAlien(this);
+      return 'revelou';
+    }
+    this.vida--;
+    this.piscarDano = 0.12;
+    if (this.vida <= 0) { this._trocarCabeca(ctx); this.estado = 'morrendo'; this.tRev = 0; this.reiniciar('Death', 0.1); return 'morreu'; }
+    this.atordoado = 0.4;
+    this.reiniciar(this.vida % 2 ? 'HitRecieve' : 'HitRecieve_2', 0.06, 1.5);
+    return 'feriu';
+  }
+
+  _trocarCabeca(ctx) {
+    if (this.cabecaAlien) return;
+    const cab = this.partes.Head;
+    this.raiz.updateMatrixWorld(true);
+    const bb = new THREE.Box3().expandByObject(cab, true);
+    const tam = bb.getSize(V()), centro = bb.getCenter(V());
+    cab.visible = false;
+    const h = cabecaAlien();
+    const s = Math.max(tam.x, tam.z) * 0.95;
+    h.scale.setScalar(s * 0.2);
+    h.position.copy(centro).add(V(0, tam.y * 0.05, 0));
+    h.quaternion.copy(this.obj.quaternion);
+    this.cena.add(h); this.ossos.Head.attach(h);
+    this.cabecaAlien = h; this._escalaAlien = h.scale.x / 0.2;
+    if (ctx?.particulas) ctx.particulas.estilhacos(centro, mat0(this.pele[0]).color);
+    for (const e of this.extras) if (e !== this.cracha && e !== this.caneca) e.visible = false;
+    for (const m of this.pele) { const mt = mat0(m); mt.color.lerp(new THREE.Color(0x8a5ad0), 0.85); mt.emissive = new THREE.Color(0x2a0a50); mt.roughness = 0.4; }
+    this._tCab = 0;
   }
 
   _atualizarRevelacao(dt, ctx) {
     this.tRev += dt;
-    if (this.estado === 'revelando') {
-      if (this.tRev > 0.32 && !this.cabecaAlien) {
-        const cab = this.partes.Head;
-        this.raiz.updateMatrixWorld(true);
-        const bb = new THREE.Box3().expandByObject(cab, true);
-        const tam = bb.getSize(V()), centro = bb.getCenter(V());
-        cab.visible = false;
-        const h = cabecaAlien();
-        const s = Math.max(tam.x, tam.z) * 0.95;
-        h.scale.setScalar(s * 0.2);
-        h.position.copy(centro).add(V(0, tam.y * 0.05, 0));
-        h.quaternion.copy(this.obj.quaternion);
-        this.cena.add(h); this.ossos.Head.attach(h);
-        this.cabecaAlien = h; this._escalaAlien = h.scale.x / 0.2;
-        if (ctx.particulas) ctx.particulas.estilhacos(centro, mat0(this.pele[0]).color);
-        for (const e of this.extras) if (e !== this.cracha && e !== this.caneca) e.visible = false;
-        for (const m of this.pele) { const mt = mat0(m); mt.color.lerp(new THREE.Color(0x8a5ad0), 0.85); mt.emissive = new THREE.Color(0x2a0a50); mt.roughness = 0.4; }
-      }
-      if (this.cabecaAlien && this.tRev < 0.6) {
-        const k = Math.min(1, (this.tRev - 0.32) / 0.22);
+    // cabeça roxa crescendo (troca aos 0,32 s do 1º grampo)
+    if (this.alien && this.estado !== 'fugiu') {
+      if (this.tRev > 0.32 || this.estado !== 'revelando') this._trocarCabeca(ctx);
+      if (this.cabecaAlien && this._tCab < 0.22) {
+        this._tCab += dt;
+        const k = Math.min(1, this._tCab / 0.22);
         this.cabecaAlien.scale.setScalar(this._escalaAlien * (0.2 + 0.8 * (1 - Math.pow(1 - k, 3))));
       }
-      if (this.tRev > 1.6 && this.atual !== this.acoes.Death) this.anim('Death', 0.2);
-      if (this.tRev > 2.4 && !this.fim) this.fim = true;
+      // pisca branco a cada grampo
+      if (this.piscarDano > 0) {
+        this.piscarDano -= dt;
+        const on = this.piscarDano > 0;
+        for (const m of this.pele) mat0(m).emissiveIntensity = on ? 3 : 1;
+      }
+    }
+    if (this.estado === 'revelando') {
+      if (this.tRev > 1.0) { this.estado = 'hostil'; this.reiniciar('Run', 0.2, 1.1); }
+    } else if (this.estado === 'morrendo') {
+      if (this.tRev > 2.6 && !this.fim) this.fim = true;
     } else if (this.estado === 'caindo') {
       if (this.tRev > 0.45 && this.atual !== this.acoes.Death) this.anim('Death', 0.15);
       if (this.tRev > 1.4 && !this.fim) this.fim = true;

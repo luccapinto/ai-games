@@ -5,6 +5,8 @@
 // 3) jogador desastrado: atira em 3 humanos no dia 1 -> AFASTADO
 // 4) tempo esgotado: ninguém atira -> aliens fogem, pontos negativos
 // 5) teclado de verdade: W anda para a frente em tempo real, colisão com mesa segura o jogador
+// 6) grampeador: arma na mão, 1 grampo derruba humano, alien aguenta 4 (o 1º só revela), pente e recarga
+// 7) alien revelado corre atrás do jogador e soca; 5 socos = nocaute
 import fs from 'node:fs';
 import path from 'node:path';
 import { launch, serve } from './ferramentas/cdp.mjs';
@@ -56,9 +58,16 @@ try {
     const ps = await J('pessoas()');
     const aliens = ps.filter(p => p.alien);
     for (const a of aliens) {
-      const mirou = await J(`mirar('${a.id}', 2.2)`);
-      const r = await J('atirar()');
-      if (mirou !== a.id || r.acertou !== a.id || !r.alien) { tudoCerto = false; console.log('  dia', d, 'mira', mirou, 'tiro', JSON.stringify(r)); }
+      let r = null, n = 0;
+      while (n < 8) {
+        const mirou = await J(`mirar('${a.id}', 2.2)`);
+        r = await J('atirar()'); n++;
+        if (r.recarregando) { await J('avancar(1.5)'); continue; }
+        if (mirou !== a.id || r.acertou !== a.id || !r.alien) { tudoCerto = false; console.log('  dia', d, 'mira', mirou, 'tiro', JSON.stringify(r)); break; }
+        if (r.resultado === 'morreu') break;
+        await J('avancar(0.3)');
+      }
+      if (r?.resultado !== 'morreu') { tudoCerto = false; console.log('  dia', d, a.id, 'não morreu', JSON.stringify(r)); }
       await J('avancar(0.4)');
     }
     await J('avancar(4)');
@@ -111,6 +120,42 @@ try {
   const dentro = await b.eval(`(() => { const { x, z } = window.__jogo.S.jogador.pos; return x > -9 && x < 9.5 && z > -6 && z < 8; })()`);
   prova('teclado: colisão segura o jogador dentro da sala', dentro, `x ${p2.x.toFixed(2)} z ${p2.z.toFixed(2)}`);
   await b.eval('window.__TESTE_TEMPO_REAL = false');
+
+  // ---------------------------------------------------------- 6) grampeador
+  await J('diaForcado(["rafael","marcia","jorge"], { marcia: ["olho"] })');
+  await J('posicionar("rafael", 1.9, 1.2, 0)'); await J('posicionar("marcia", -1.4, 1.2, 0)'); await J('posicionar("jorge", 5.0, -2.4, 0)');
+  await J('avancar(0.3)');
+  const a0 = await J('arma()');
+  prova('arma: grampeador na mão, pente cheio', a0.visivel && a0.pente === 12, JSON.stringify(a0));
+  await J('mirar("marcia", 2.5)'); const t1 = await J('atirar()'); await J('avancar(0.5)');
+  const m1 = (await J('pessoas()')).find(p => p.id === 'marcia');
+  prova('alien: o 1º grampo só arranca o disfarce (não morre direto)', t1.resultado === 'revelou' && m1.estado !== 'morrendo' && m1.vida === 3, JSON.stringify(t1) + ' ' + m1.estado);
+  const res = [];
+  for (let i = 0; i < 3; i++) { await J('mirar("marcia", 2.5)'); res.push((await J('atirar()')).resultado); await J('avancar(0.3)'); }
+  prova('alien: cai no 4º grampo', res.join(',') === 'feriu,feriu,morreu', res.join(','));
+  const a1 = await J('arma()');
+  prova('arma: cada grampo gasta 1 do pente', a1.pente === 8, `pente ${a1.pente}`);
+  await J('mirar("rafael", 2.5)'); const th = await J('atirar()');
+  prova('humano: cai com 1 grampo', th.resultado === 'humano', JSON.stringify(th));
+  await J('diaForcado(["rafael","marcia"], { marcia: ["olho"] })'); await J('avancar(0.2)');
+  await b.eval('(() => { const j = window.__jogo.S.jogador; j.pos.set(0, 1.62, 6.2); j.yaw = 0; j.pitch = 1.2; return 1; })()');
+  for (let i = 0; i < 12; i++) { await J('atirar()'); await J('avancar(0.3)'); }
+  const a2 = await J('arma()');
+  prova('arma: pente vazio recarrega sozinho', a2.recarregando > 0 || a2.pente === 12, JSON.stringify(a2));
+  await J('avancar(2)');
+  prova('arma: recarga devolve 12 grampos', (await J('arma()')).pente === 12);
+
+  // ---------------------------------------------------------- 7) alien revelado ataca
+  await J('diaForcado(["rafael","marcia"], { marcia: ["olho"] })');
+  await J('posicionar("rafael", -6.2, 4.9, 0)'); await J('posicionar("marcia", 1.9, -2.4, 0)');
+  await J('avancar(0.2)');
+  await J('mirar("marcia", 4)'); const r7 = await J('atirar()');
+  let socado = false;
+  for (let i = 0; i < 20 && !socado; i++) { await J('avancar(0.5)'); socado = (await J('jogador()')).vida < 5; }
+  prova('alien revelado corre até o jogador e soca', r7.resultado === 'revelou' && socado, JSON.stringify(r7) + ' ' + JSON.stringify(await J('jogador()')));
+  await J('avancar(12)');
+  const t7 = await J('tela()'); const mot = await b.eval('document.querySelector("#rel-motivo").textContent');
+  prova('5 socos = nocaute, o dia acaba', t7 === 'relatorio' && /nocaute/i.test(mot), `${t7} · ${mot.slice(0, 60)}`);
 
   const erros = b.logs.filter(l => /exception/i.test(l.type) || /Uncaught|TypeError|ReferenceError/.test(l.text));
   prova('nenhuma exceção no console', erros.length === 0, erros.slice(0, 3).map(e => e.text.slice(0, 200)).join(' | '));

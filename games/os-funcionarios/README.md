@@ -2,8 +2,8 @@
 
 **Departamento de Recursos Não Humanos.** Cópias alienígenas estão substituindo
 funcionários da Interplan S.A., 7º andar, e elas imitam quase tudo. Quase. Você
-anda pelo escritório em primeira pessoa, observa, pede o crachá e elimina só os
-impostores. Um humano abatido é uma falha. Três falhas e você está fora.
+anda pelo escritório em primeira pessoa com um grampeador na mão, observa, pede o
+crachá e grampeia só os impostores. Um humano abatido é uma falha. Três falhas e você está fora.
 
 - **[Jogar](https://ai-games.luccabuilds.com/games/os-funcionarios/)** ou abra
   `index.html` desta pasta servido por HTTP (ver [Rodar](#rodar))
@@ -24,7 +24,8 @@ derruba um humano.
 | mouse | olhar |
 | botão direito ou `Z` | examinar de perto (zoom) |
 | `E` | pedir o crachá e comparar com a ficha do RH |
-| clique | eliminar quem está na mira |
+| clique | disparar o grampeador (segure para rajada) |
+| `R` | recarregar (12 grampos por pente) |
 | `Tab` | abrir o memorando |
 | `Esc` | pausa |
 
@@ -38,6 +39,11 @@ andar enche e os sinais ficam mais finos:
 | 3 | 8 | 2 | 1 | preste atenção |
 | 4 | 9 | 2 | 1 | preste atenção ou só de perto |
 | 5 | 10 | 3 | 1 | qualquer um |
+
+**O grampeador.** Um grampo derruba um humano. No alienígena, o primeiro grampo só
+arranca o disfarce: a cabeça vira a roxa e ele corre para cima de você dando soco.
+Ele aguenta mais três grampos. Cinco socos e você é nocauteado, e o dia acaba com
+o impostor fugindo. Então atirar não termina a dúvida: começa a briga.
 
 Alien eliminado vale 100. Humano abatido tira 150 e conta uma falha. Alien que
 chega às 18h vivo foge e tira 50. Limpar o andar cedo dá bônus por minuto que
@@ -83,7 +89,16 @@ restaura a pose desses ossos antes de animar.
 **Arquivo menor sem Blender.** Cada `.glb` do pacote carrega as mesmas 24
 animações. `preparar_modelos.py` (fora desta pasta, no repo de trabalho) reempacota
 o binário do glTF à mão: malha e materiais em `modelos/pessoas/`, o esqueleto e as
-oito animações usadas uma vez só em `animacoes.glb`. De 9,5 MB para 6,2 MB.
+dez animações usadas uma vez só em `animacoes.glb`. De 9,5 MB para 6,2 MB.
+
+**A arma é nossa.** O grampeador é o nível 1 ("Grampeador Improvisado") do kit
+O GRAMPEADOR, que fizemos em Blender por código para outro teste: peças modulares,
+texturas assadas. `preparar_arma.py` tira só as peças do nível 1, descarta as
+tangentes e reduz as texturas para 512 px (5,7 MB do kit inteiro para 590 KB). Ela é
+desenhada numa segunda cena por cima do escritório, para nunca atravessar parede
+nem mesa, com balanço ao andar, coice e recarga. O grampo é um U de arame que voa
+da ponta e fica cravado no osso mais perto de onde acertou, ou solta faísca na
+parede.
 
 **O alienígena é procedural.** A cabeça roxa, com olho amendoado e brilho, é
 geometria do código, e aparece no lugar da cabeça humana no meio da revelação. O
@@ -105,7 +120,7 @@ As provas abrem o jogo num Chrome sem cabeça e jogam por uma API de teste
 (`window.__jogo`):
 
 ```bash
-node provas.mjs                     # 12 provas
+node provas.mjs                     # 21 provas
 cd ferramentas && node sinais.mjs   # uma foto de cada sinal, em fotos/sinais/
 ```
 
@@ -138,6 +153,9 @@ pessoas, escritório, laço do jogo, som, provas, nessa ordem. O que deu trabalh
 - **Cabeça que não voltava.** É o bug dos ossos descrito acima. A foto do sinal
   mostrava a nuca nos dois quadros, e só medindo a posição do olho a cada quadro
   ficou claro que o giro se acumulava.
+- **O alienígena morria direto.** Na primeira versão um clique eliminava
+  qualquer um, e o dono do repo reclamou com razão. Agora o primeiro grampo só
+  revela, e o alien luta. Veio junto com a arma visível, que também faltava.
 - **O jogador começava olhando para a parede.** Foi a prova do teclado de verdade
   que pegou: segurar `W` andava para trás. A direção inicial estava invertida.
 
@@ -151,17 +169,17 @@ controle é teclado e mouse.
 
 ## Custo
 
-Medido em 2026-10-17 13:30 no banco de sessões do Hermes (`session_model_usage`),
+Medido em 2026-10-17 15:47 no banco de sessões do Hermes (`session_model_usage`),
 somando a sessão do projeto e os dois subagentes dela.
 
 | | Chamadas | Entrada | Saída | Cache lido | Cache gravado | US$ (tabela) |
 | --- | --- | --- | --- | --- | --- | --- |
-| Opus 5.5, caminho inteiro | 350 | 6.501 | 635.832 | 55.903.092 | 3.774.472 | US$ 54,12 |
-| DeepSeek Flash, caminho inteiro | 200 | 474.364 | 392.981 | 29.617.408 | 0 | US$ 0,40 |
-| **Total do caminho** | | | | | | **US$ 54,52** |
-| Opus 5.5, só o jogo | 112 | 2.256 | 270.653 | 19.187.121 | 720.882 | US$ 15,03 |
-| DeepSeek Flash, só o jogo | 1 | 27.442 | 18.934 | 0 | 0 | US$ 0,02 |
-| **Total só do jogo** | | | | | | **US$ 15,05** |
+| Opus 5.5, caminho inteiro | 421 | 7.711 | 786.495 | 69.067.829 | 4.347.598 | US$ 64,36 |
+| DeepSeek Flash, caminho inteiro | 201 | 476.015 | 405.387 | 29.645.312 | 0 | US$ 0,40 |
+| **Total do caminho** | | | | | | **US$ 64,76** |
+| Opus 5.5, só o jogo | 183 | 3.466 | 421.316 | 32.351.858 | 1.294.008 | US$ 25,27 |
+| DeepSeek Flash, só o jogo | 2 | 29.093 | 31.340 | 27.904 | 0 | US$ 0,02 |
+| **Total só do jogo** | | | | | | **US$ 25,29** |
 
 - **"Caminho inteiro"** inclui o kit em Blender que foi descartado, o protótipo de
   estilo e o teste do pacote. **"Só o jogo"** é a diferença do contador entre o
@@ -173,4 +191,4 @@ somando a sessão do projeto e os dois subagentes dela.
 - **Máquina:** tudo rodou num servidor doméstico (i7-7500U, 16 GB, GPU Intel HD 620),
   sem GPU na nuvem. Blender, Chrome sem cabeça e as provas rodaram ali, com prioridade
   baixa. Não houve outro gasto além dos tokens.
-- **Tamanho publicado:** 7.2 MB, dos quais 6,2 MB são os modelos e 0,7 MB o three.js.
+- **Tamanho publicado:** 8.0 MB, dos quais 6,2 MB são os modelos e 0,7 MB o three.js.

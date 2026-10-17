@@ -11,6 +11,7 @@
 <body>
 <canvas id="tela"></canvas>
 <div id="flash"></div>
+<div id="dano"></div>
 
 <!-- HUD -->
 <div id="hud" hidden>
@@ -21,11 +22,15 @@
     <span id="hud-aliens"></span>
     <span class="dir"><span id="hud-pontos">0</span> pts <span id="hud-falhas" title="Falhas"></span></span>
   </div>
+  <div class="base">
+    <div id="hud-vida" title="Saúde"></div>
+    <div class="municao"><span class="rot">GRAMPOS</span> <b id="hud-grampos">12 / 12</b></div>
+  </div>
   <div id="hud-memo"><b>Memorando <kbd>Tab</kbd></b><ul id="hud-memo-lista"></ul></div>
   <div id="dica"></div>
   <div id="aviso" class="aviso" hidden></div>
   <div class="teclas">
-    <kbd>WASD</kbd> andar · <kbd>Shift</kbd> correr · <kbd>botão direito</kbd>/<kbd>Z</kbd> examinar · <kbd>E</kbd> crachá · <kbd>clique</kbd> eliminar · <kbd>Esc</kbd> pausa
+    <kbd>WASD</kbd> andar · <kbd>Shift</kbd> correr · <kbd>botão direito</kbd>/<kbd>Z</kbd> examinar · <kbd>E</kbd> crachá · <kbd>clique</kbd> grampear · <kbd>R</kbd> recarregar · <kbd>Esc</kbd> pausa
   </div>
 </div>
 
@@ -55,7 +60,9 @@
       <li><kbd>WASD</kbd> anda, <kbd>mouse</kbd> olha, <kbd>Shift</kbd> corre</li>
       <li><kbd>botão direito</kbd> ou <kbd>Z</kbd> examina de perto (zoom)</li>
       <li><kbd>E</kbd> pede o crachá e compara com a ficha do RH</li>
-      <li><kbd>clique</kbd> elimina quem estiver na mira</li>
+      <li><kbd>clique</kbd> dispara o grampeador (segure para rajada), <kbd>R</kbd> recarrega</li>
+      <li>Um grampo derruba um humano. No alienígena, o primeiro só arranca o disfarce:
+        ele parte para cima de você e aguenta mais três</li>
       <li><kbd>Tab</kbd> abre o memorando com os sinais do dia</li>
     </ul>
     <button id="btn-comecar">Bater o ponto</button>

@@ -28,8 +28,13 @@ modelagem é dele.
 [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Modificado: recolorido,
 sem as animações embutidas (ficaram no `animacoes.glb` compartilhado).
 
-`animacoes.glb` tem só o esqueleto comum e oito das 24 animações que vêm em todos
-esses modelos (CC0).
+`animacoes.glb` tem só o esqueleto comum e dez das 24 animações que vêm em todos
+esses modelos (CC0), incluindo correr e socar, usadas pelo alienígena revelado.
+
+## Arma
+
+`modelos/grampeador.glb` é o nível 1 do kit **O GRAMPEADOR**, feito por nós em
+Blender por código (mesmo autor e licença do código do jogo).
 
 Os modelos estão aqui **dentro do jogo**, como parte dele, e não como pacote de
 assets. Para usar os personagens em outro projeto, baixe da fonte: o site do

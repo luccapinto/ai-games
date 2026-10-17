@@ -3,6 +3,7 @@
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; overflow: hidden; background: #0d1014; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; color: #fff; }
 #tela { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+#dano { position: fixed; inset: 0; pointer-events: none; opacity: 0; transition: opacity .25s; background: radial-gradient(ellipse at center, transparent 45%, rgba(170,0,0,.75)); }
 #flash { position: fixed; inset: 0; background: #fff; opacity: 0; pointer-events: none; transition: opacity .12s; }
 kbd { display: inline-block; padding: 1px 6px; border-radius: 4px; background: rgba(255,255,255,.16); border: 1px solid rgba(255,255,255,.3); font: 600 .85em ui-monospace, monospace; }
 
@@ -27,6 +28,13 @@ kbd { display: inline-block; padding: 1px 6px; border-radius: 4px; background: r
 .aviso.bom { background: rgba(80,30,140,.88); box-shadow: 0 0 30px #a040ff; }
 .aviso.ruim { background: rgba(150,25,20,.9); }
 .aviso.neutro { background: rgba(0,0,0,.6); font-size: 16px; font-weight: 600; }
+.base { position: absolute; left: 22px; bottom: 40px; display: flex; flex-direction: column; align-items: flex-start; gap: 8px; text-shadow: 0 1px 3px #000; }
+.municao { font: 700 15px ui-monospace, monospace; letter-spacing: .06em; }
+.municao .rot { opacity: .7; font-size: 12px; }
+#hud-grampos { font-size: 26px; }
+#hud-grampos.pouco { color: #ff8a6a; }
+#hud-vida span { display: inline-block; width: 22px; height: 8px; margin-right: 4px; border-radius: 2px; background: #fff3; }
+#hud-vida span.ok { background: #6fd18d; }
 .teclas { position: absolute; bottom: 10px; left: 0; right: 0; text-align: center; font-size: 13px; opacity: .78; text-shadow: 0 1px 2px #000; }
 
 /* crachá */

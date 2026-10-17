@@ -4,11 +4,11 @@
     "jogos": 12,
     "autores": 1,
     "modelos": 3,
-    "linhas": 62137,
-    "usd": 200.82,
-    "tokens_novos": 6390325,
-    "tokens_cache": 590930570,
-    "chamadas": 3581
+    "linhas": 62668,
+    "usd": 211.06,
+    "tokens_novos": 6556255,
+    "tokens_cache": 604696337,
+    "chamadas": 3653
   },
   "jogos": [
     {
@@ -31,25 +31,25 @@
           "provider": "Anthropic (assinatura)",
           "agente": "Hermes Agent (Talos)",
           "papel": "o jogo inteiro: kit de personagens em Blender que acabou descartado, protótipos de estilo, teste do pacote Quaternius, troca de peças entre modelos, os 14 sinais por cima da animação, escritório, IA de rotina, laço do jogo, provas e revisão visual de cada etapa",
-          "chamadas_api": 350,
+          "chamadas_api": 421,
           "tokens": {
-            "entrada": 6501,
-            "saida": 635832,
-            "cache_leitura": 55903092,
-            "cache_escrita": 3774472
+            "entrada": 7711,
+            "saida": 786495,
+            "cache_leitura": 69067829,
+            "cache_escrita": 4347598
           },
-          "usd_estimado": 54.12
+          "usd_estimado": 64.36
         },
         {
           "modelo": "deepseek-flash",
           "provider": "DeepSeek",
           "agente": "Hermes Agent (Talos)",
           "papel": "parte do kit em Blender (a sessão trocou de modelo no meio da tarde) e a compressão de contexto da sessão longa",
-          "chamadas_api": 200,
+          "chamadas_api": 201,
           "tokens": {
-            "entrada": 474364,
-            "saida": 392981,
-            "cache_leitura": 29617408,
+            "entrada": 476015,
+            "saida": 405387,
+            "cache_leitura": 29645312,
             "cache_escrita": 0
           },
           "usd_estimado": 0.4
@@ -59,17 +59,17 @@
         "metodo": "tabela session_model_usage do banco de sessões do Hermes (~/.hermes/state.db), somando a sessão do projeto e os dois subagentes dela, por modelo. Os tokens são a contabilidade do próprio Hermes; o valor em dólar é a tabela de preço do modelo, porque o Opus rodou em plano de assinatura e não há fatura por chamada",
         "confianca": "estimado",
         "medido_em": "2026-10-17",
-        "nota": "O total (US$ 54,52) é o caminho inteiro até o jogo, e a maior parte dele não está no jogo: um kit de funcionários feito em Blender (oito rodadas de redesenho), um protótipo de estilo em superfície contínua e o teste do pacote Quaternius, que foi o que o dono do repo aprovou. Só a construção do jogo, a partir do retrato do contador tirado às 00:25 de 17/10, custou US$ 15,05: 112 chamadas do Opus, 270.653 tokens de saída, 19.187.121 de leitura de cache. O cache é o maior número e não é o custo: cada chamada reenvia o contexto acumulado e o cache evita pagá-lo cheio."
+        "nota": "O total (US$ 64,76) é o caminho inteiro até o jogo, e a maior parte dele não está no jogo: um kit de funcionários feito em Blender (oito rodadas de redesenho), um protótipo de estilo em superfície contínua e o teste do pacote Quaternius, que foi o que o dono do repo aprovou. Só a construção do jogo, a partir do retrato do contador tirado às 00:25 de 17/10, custou US$ 25,29: 183 chamadas do Opus, 421.316 tokens de saída, 32.351.858 de leitura de cache. O cache é o maior número e não é o custo: cada chamada reenvia o contexto acumulado e o cache evita pagá-lo cheio."
       },
       "totais": {
-        "tokens_entrada": 480865,
-        "tokens_saida": 1028813,
-        "tokens_novos": 1509678,
-        "tokens_cache": 89294972,
-        "tokens_totais": 90804650,
-        "usd": 54.52,
-        "chamadas_api": 550,
-        "linhas": 2001,
+        "tokens_entrada": 483726,
+        "tokens_saida": 1191882,
+        "tokens_novos": 1675608,
+        "tokens_cache": 103060739,
+        "tokens_totais": 104736347,
+        "usd": 64.76,
+        "chamadas_api": 622,
+        "linhas": 2532,
         "tem_custo": true
       },
       "url": "games/os-funcionarios/"
@@ -659,13 +659,13 @@
         "os-funcionarios"
       ],
       "n_jogos": 2,
-      "tokens_novos": 2761323,
-      "tokens_cache": 188693632,
-      "chamadas_api": 856,
+      "tokens_novos": 2775380,
+      "tokens_cache": 188721536,
+      "chamadas_api": 857,
       "usd": 1.43,
-      "linhas": 12710,
-      "tokens_por_linha": 217.26,
-      "linhas_por_dolar": 8888.11
+      "linhas": 13241,
+      "tokens_por_linha": 209.61,
+      "linhas_por_dolar": 9259.44
     },
     {
       "nome": "claude-opus-5-5",
@@ -674,13 +674,13 @@
         "os-funcionarios"
       ],
       "n_jogos": 2,
-      "tokens_novos": 1481863,
-      "tokens_cache": 375910868,
-      "chamadas_api": 1420,
-      "usd": 149.54,
-      "linhas": 20874,
-      "tokens_por_linha": 70.99,
-      "linhas_por_dolar": 139.59
+      "tokens_novos": 1633736,
+      "tokens_cache": 389648731,
+      "chamadas_api": 1491,
+      "usd": 159.78,
+      "linhas": 21405,
+      "tokens_por_linha": 76.32,
+      "linhas_por_dolar": 133.97
     }
   ],
   "por_agente": [
@@ -727,13 +727,13 @@
         "os-funcionarios"
       ],
       "n_jogos": 2,
-      "tokens_novos": 3403656,
-      "tokens_cache": 248371196,
-      "chamadas_api": 1206,
-      "usd": 55.55,
-      "linhas": 12710,
-      "tokens_por_linha": 267.79,
-      "linhas_por_dolar": 228.8
+      "tokens_novos": 3569586,
+      "tokens_cache": 262136963,
+      "chamadas_api": 1278,
+      "usd": 65.79,
+      "linhas": 13241,
+      "tokens_por_linha": 269.59,
+      "linhas_por_dolar": 201.26
     },
     {
       "nome": "Oh My Pi (subagentes)",
@@ -781,13 +781,13 @@
         "os-funcionarios"
       ],
       "n_jogos": 2,
-      "tokens_novos": 2761323,
-      "tokens_cache": 188693632,
-      "chamadas_api": 856,
+      "tokens_novos": 2775380,
+      "tokens_cache": 188721536,
+      "chamadas_api": 857,
       "usd": 1.43,
-      "linhas": 12710,
-      "tokens_por_linha": 217.26,
-      "linhas_por_dolar": 8888.11
+      "linhas": 13241,
+      "tokens_por_linha": 209.61,
+      "linhas_por_dolar": 9259.44
     },
     {
       "nome": "Anthropic (assinatura)",
@@ -795,13 +795,13 @@
         "os-funcionarios"
       ],
       "n_jogos": 1,
-      "tokens_novos": 642333,
-      "tokens_cache": 59677564,
-      "chamadas_api": 350,
-      "usd": 54.12,
-      "linhas": 2001,
-      "tokens_por_linha": 321.01,
-      "linhas_por_dolar": 36.97
+      "tokens_novos": 794206,
+      "tokens_cache": 73415427,
+      "chamadas_api": 421,
+      "usd": 64.36,
+      "linhas": 2532,
+      "tokens_por_linha": 313.67,
+      "linhas_por_dolar": 39.34
     }
   ]
 }
