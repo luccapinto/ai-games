@@ -9,7 +9,7 @@
   "criado": "2026-10-17",
   "licenca": "MIT (código) · personagens de Quaternius, CC0 e CC BY 4.0 (ver CREDITOS.md)",
   "capa": "capa.jpg",
-  "resumo": "Cópias alienígenas estão substituindo funcionários da Interplan S.A., e elas imitam quase tudo. Você anda pelo andar em primeira pessoa, lê o memorando do RH com os boatos do dia, examina de perto, pede o crachá e elimina só os impostores: 14 sinais, de cabeça que gira para trás a uma letra trocada no crachá. Cinco dias, três falhas e você está fora.",
+  "resumo": "Cópias alienígenas estão substituindo funcionários da Interplan S.A., e elas imitam quase tudo. Você anda pelo andar em primeira pessoa, lê o memorando do RH (que diz quantos relatos são verdadeiros e quantos são boato), examina de perto, pede o crachá e elimina só os impostores: 14 sinais, de cabeça que gira para trás a uma letra trocada no crachá. Entre os dias, a verba do almoxarifado sobe o grampeador por seis níveis, com escolha de ramo. Cinco dias, três falhas e você está fora.",
   "autores": [
     {
       "nome": "Lucca Pinto",
@@ -60,21 +60,22 @@
     "Web Audio API"
   ],
   "tamanho": {
-    "linhas_proprias": 2532,
-    "mb": 8.0,
+    "linhas_proprias": 3477,
+    "mb": 9.3,
     "modulos_js": 6
   },
   "destaques": [
     "Oito modelos do pacote viram doze funcionários trocando peças entre eles: a cabeça de bigode do operário, sem o capacete, vai no corpo de terno do executivo. Todos usam o mesmo esqueleto, então a peça trocada anima junto",
-    "Os sinais rodam por cima da animação pronta: cabeça que gira 170 graus, pé virado, braços duros ao andar, olho que acende verde, pele molhada, vapor gelado, crachá com letra trocada. Cada um tem uma foto de prova",
-    "O memorando do RH mistura sinais verdadeiros com boatos: em todo dia, de um a dois sinais da lista não aparecem em ninguém, e atirar por boato custa 150 pontos",
-    "As 24 animações vinham repetidas em cada arquivo. Separar malha de animação levou os modelos de 9,5 MB para 6,2 MB, sem Blender: o script reempacota o binário do glTF",
-    "12 provas no Chrome sem cabeça: mil dias sorteados conferidos, uma semana inteira jogada sem erro, a demissão com três inocentes, o fim do expediente e o teclado de verdade"
+    "Os sinais rodam por cima da animação pronta: cabeça que gira 170 graus, canela torcida, braços duros ao andar, olho que acende verde, pele molhada, vapor gelado, crachá com letra trocada. Uma prova cega com um humano ao lado, a 2,5 m sem zoom, acertou 14 de 14 na terceira rodada",
+    "Todo impostor é achável: 200 expedientes simulados conferem que cada sinal que vai e volta aparece pelo menos 6 vezes e 30 s no dia, e o memorando diz quantos relatos são boato",
+    "O grampeador é o kit O GRAMPEADOR em seis níveis num glb só, com vértices quantizados: o almoxarifado vende o próximo nível entre os dias, o ramo escolhido no nível 3 trava o 4, e as peças trocam na mão com animação",
+    "A caneca é segurada de verdade: IK de dois ossos no braço, dedos fechados na alça e gole até a boca; uma prova mede a caneca a menos de 3 cm da palma, parada e andando",
+    "34 provas no Chrome sem cabeça: mil dias sorteados, uma semana jogada sem erro, a demissão, o teclado de verdade, a caneca na mão, o almoxarifado até o nível 4 e a estatística dos sinais"
   ],
   "arquivos_chave": [
     {
       "caminho": "js/dados.js",
-      "papel": "Elenco, os 14 sinais, a escala dos cinco dias e o sorteio com semente"
+      "papel": "Elenco, os 14 sinais e o ritmo deles, a escala dos cinco dias, os níveis e preços do grampeador e o sorteio com semente"
     },
     {
       "caminho": "js/pessoas.js",
@@ -86,11 +87,11 @@
     },
     {
       "caminho": "js/jogo.js",
-      "papel": "Primeira pessoa, rotina das pessoas, crachá, disparo, dias e relatório"
+      "papel": "Primeira pessoa, rotina das pessoas, crachá, disparo, dias, relatório e almoxarifado"
     },
     {
       "caminho": "provas.mjs",
-      "papel": "As 12 provas"
+      "papel": "As 34 provas, da caneca na mão à estatística de 200 expedientes"
     },
     {
       "caminho": "CREDITOS.md",

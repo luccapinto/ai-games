@@ -588,13 +588,16 @@ function telaAlmoxarifado() {
   mostrar('almoxarifado');
 }
 function fichaArma(n, antes) {
-  const d = (k, melhor) => antes && n[k] !== antes[k] ? ` <em class="${melhor(n[k], antes[k]) ? 'mais' : 'menos'}">(${antes[k]} → ${n[k]})</em>` : '';
-  const maior = (a, b) => a > b, menor = (a, b) => a < b;
+  const num = (v, casas) => v.toFixed(casas).replace('.', ',');
+  const gps = (c) => num(1 / c, 1);                        // cadência em grampos por segundo
+  // (antes → agora), verde se melhorou
+  const d = (a, b, melhor, f) => antes && a !== b ? ` <em class="${melhor ? 'mais' : 'menos'}">(${f(a)} → ${f(b)})</em>` : '';
+  const v = (k, menorMelhor, f) => antes ? d(antes[k], n[k], menorMelhor ? n[k] < antes[k] : n[k] > antes[k], f) : '';
   return `<ul class="ficha-arma">
-    <li>Pente: ${n.pente} grampos${d('pente', maior)}</li>
-    <li>Cadência: ${(1 / n.cadencia).toFixed(1)} grampos/s${antes && n.cadencia !== antes.cadencia ? ` <em class="${n.cadencia < antes.cadencia ? 'mais' : 'menos'}">(${(1 / antes.cadencia).toFixed(1)} → ${(1 / n.cadencia).toFixed(1)})</em>` : ''}</li>
-    <li>Recarga: ${n.recarga.toFixed(2).replace('.', ',')} s${d('recarga', menor)}</li>
-    <li>Derruba um alien com ${n.grampos} grampo${n.grampos > 1 ? 's' : ''}${d('grampos', menor)}</li>
+    <li>Pente: ${n.pente} grampos${v('pente', false, String)}</li>
+    <li>Cadência: ${gps(n.cadencia)} grampos/s${v('cadencia', true, gps)}</li>
+    <li>Recarga: ${num(n.recarga, 2)} s${v('recarga', true, (x) => num(x, 2))}</li>
+    <li>Derruba um alien com ${n.grampos} grampo${n.grampos > 1 ? 's' : ''}${v('grampos', true, String)}</li>
     <li>Coice: ${n.coice < 1 ? 'leve' : n.coice > 1.5 ? 'forte' : 'normal'}</li></ul>`;
 }
 // compra o nível `id`: precisa ser o próximo do nível atual (ramo travado) e caber na verba

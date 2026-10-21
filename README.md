@@ -9,7 +9,7 @@ registrados ao lado.
 costs. Each game is a self-contained, playable folder that records the model that
 wrote it, the agent that drove it, and the tokens it burned.*
 
-**12 jogos** de **1 pessoa**, 62.668 linhas de código,
+**12 jogos** de **1 pessoa**, 63.613 linhas de código,
 6,6 M tokens novos e US$ 211,06 de API no total.
 
 👉 **[Jogar tudo](https://ai-games.luccabuilds.com/)** · **[Ver o benchmark](https://ai-games.luccabuilds.com/benchmark.html)** · **[Mandar o seu jogo](CONTRIBUTING.md)**
@@ -36,8 +36,8 @@ wrote it, the agent that drove it, and the tokens it burned.*
 | Modelo | Jogos | Tokens novos | Cache | Custo | Linhas |
 | --- | --- | --- | --- | --- | --- |
 | claude-opus-5 | 10 | 2,1 M | 26,3 M | US$ 49,85 | 49.427 |
-| deepseek-flash | 2 | 2,8 M | 188,7 M | US$ 1,43 | 13.241 |
-| claude-opus-5-5 | 2 | 1,6 M | 389,6 M | US$ 159,78 | 21.405 |
+| deepseek-flash | 2 | 2,8 M | 188,7 M | US$ 1,43 | 14.186 |
+| claude-opus-5-5 | 2 | 1,6 M | 389,6 M | US$ 159,78 | 22.350 |
 
 Tokens novos são entrada + saída. Cache aparece em coluna separada de propósito:
 quanto do contexto vira leitura de cache depende da ferramenta que dirigiu o
@@ -105,21 +105,22 @@ ordem de grandeza maior.
 
 ### OS FUNCIONÁRIOS
 
-Cópias alienígenas estão substituindo funcionários da Interplan S.A., e elas imitam quase tudo. Você anda pelo andar em primeira pessoa, lê o memorando do RH com os boatos do dia, examina de perto, pede o crachá e elimina só os impostores: 14 sinais, de cabeça que gira para trás a uma letra trocada no crachá. Cinco dias, três falhas e você está fora.
+Cópias alienígenas estão substituindo funcionários da Interplan S.A., e elas imitam quase tudo. Você anda pelo andar em primeira pessoa, lê o memorando do RH (que diz quantos relatos são verdadeiros e quantos são boato), examina de perto, pede o crachá e elimina só os impostores: 14 sinais, de cabeça que gira para trás a uma letra trocada no crachá. Entre os dias, a verba do almoxarifado sobe o grampeador por seis níveis, com escolha de ramo. Cinco dias, três falhas e você está fora.
 
 O que tem dentro:
 
 - Oito modelos do pacote viram doze funcionários trocando peças entre eles: a cabeça de bigode do operário, sem o capacete, vai no corpo de terno do executivo. Todos usam o mesmo esqueleto, então a peça trocada anima junto
-- Os sinais rodam por cima da animação pronta: cabeça que gira 170 graus, pé virado, braços duros ao andar, olho que acende verde, pele molhada, vapor gelado, crachá com letra trocada. Cada um tem uma foto de prova
-- O memorando do RH mistura sinais verdadeiros com boatos: em todo dia, de um a dois sinais da lista não aparecem em ninguém, e atirar por boato custa 150 pontos
-- As 24 animações vinham repetidas em cada arquivo. Separar malha de animação levou os modelos de 9,5 MB para 6,2 MB, sem Blender: o script reempacota o binário do glTF
-- 12 provas no Chrome sem cabeça: mil dias sorteados conferidos, uma semana inteira jogada sem erro, a demissão com três inocentes, o fim do expediente e o teclado de verdade
+- Os sinais rodam por cima da animação pronta: cabeça que gira 170 graus, canela torcida, braços duros ao andar, olho que acende verde, pele molhada, vapor gelado, crachá com letra trocada. Uma prova cega com um humano ao lado, a 2,5 m sem zoom, acertou 14 de 14 na terceira rodada
+- Todo impostor é achável: 200 expedientes simulados conferem que cada sinal que vai e volta aparece pelo menos 6 vezes e 30 s no dia, e o memorando diz quantos relatos são boato
+- O grampeador é o kit O GRAMPEADOR em seis níveis num glb só, com vértices quantizados: o almoxarifado vende o próximo nível entre os dias, o ramo escolhido no nível 3 trava o 4, e as peças trocam na mão com animação
+- A caneca é segurada de verdade: IK de dois ossos no braço, dedos fechados na alça e gole até a boca; uma prova mede a caneca a menos de 3 cm da palma, parada e andando
+- 34 provas no Chrome sem cabeça: mil dias sorteados, uma semana jogada sem erro, a demissão, o teclado de verdade, a caneca na mão, o almoxarifado até o nível 4 e a estatística dos sinais
 
 - **Quem fez:** Lucca Pinto
 - **Modelo:** claude-opus-5-5 via Anthropic (assinatura), dirigido por Hermes Agent (Talos) — 794,2 k tokens novos, 73,4 M de cache, 421 chamadas, US$ 64,36
 - **Modelo:** deepseek-flash via DeepSeek, dirigido por Hermes Agent (Talos) — 881,4 k tokens novos, 29,6 M de cache, 201 chamadas, US$ 0,40
 - **Custo total:** US$ 64,76 (estimado)
-- **Tamanho:** 2.532 linhas de código próprio, 8,0 MB
+- **Tamanho:** 3.477 linhas de código próprio, 9,3 MB
 - **Pasta:** [`games/os-funcionarios/`](games/os-funcionarios/README.md)
 
 ### BANCA

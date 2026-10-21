@@ -167,7 +167,7 @@ try {
   await J('posicionar("marcia", -6.2, 4.9, 0)'); await J('posicionar("rafael", 7, -2.4, 0)');
   await J('posicionar("bruno", -8.0, 1.2, 0)'); await J('andarPara("bruno", 7.6, 1.2)');
   await J('avancar(1)');
-  let piorFolga = 0, piorDedo = 0, menosEmPe = 1, andou = 0;
+  let piorFolga = 0, piorDedo = 0, menosEmPe = 1, amostrasAndando = 0;
   for (let i = 0; i < 16; i++) {
     await J('avancar(0.25)');
     for (const id of ['marcia', 'bruno']) {
@@ -175,9 +175,9 @@ try {
       piorFolga = Math.max(piorFolga, c.folga); piorDedo = Math.max(piorDedo, c.dedos);
       if (c.bebendo === 0) menosEmPe = Math.min(menosEmPe, c.emPe);
     }
-    if (await b.eval('window.__jogo.S.pessoas.find(p => p.id === "bruno").andando')) andou++;
+    if (await b.eval('window.__jogo.S.pessoas.find(p => p.id === "bruno").andando')) amostrasAndando++;
   }
-  prova('caneca: encostada na palma, em pé e andando (< 3 cm)', piorFolga < 0.03 && andou >= 12, `folga máx ${(piorFolga * 100).toFixed(1)} cm · ${andou}/16 amostras andando`);
+  prova('caneca: encostada na palma, em pé e andando (< 3 cm)', piorFolga < 0.03 && amostrasAndando >= 12, `folga máx ${(piorFolga * 100).toFixed(1)} cm · ${amostrasAndando}/16 amostras andando`);
   prova('caneca: dedos fechados em volta dela e caneca em pé', piorDedo < 0.03 && menosEmPe > 0.9, `ponta do dedo a ${(piorDedo * 100).toFixed(1)} cm da parede · em pé ${menosEmPe.toFixed(2)}`);
   await J('gole("marcia")'); await J('avancar(1.3)');
   const g = await J('caneca("marcia")');
