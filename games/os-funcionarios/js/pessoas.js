@@ -619,8 +619,12 @@ export class Pessoa {
     const andando = this.andando;
     if (andando) { if (this.sinais.has('re')) this.vis.add('re'); if (this.sinais.has('bracos')) this.vis.add('bracos'); }
     // sinal: braços parados ao andar
-    if (this.sinais.has('bracos') && andando)
+    // (duros na pose de repouso e um pouco afastados do corpo, como um boneco de vitrine)
+    if (this.sinais.has('bracos') && andando) {
       for (const [n, q] of Object.entries(this.repousoBracos)) this.ossos[n].quaternion.slerp(q, 0.92);
+      const F = V(0, 0, 1).applyQuaternion(this.obj.quaternion);
+      this._girarOssoEixo('UpperArmL', F, 0.24); this._girarOssoEixo('UpperArmR', F, -0.24);
+    }
     // sinal: pé virado para trás: a canela gira meia volta em torno dela mesma e leva o pé junto
     if (this.sinais.has('pe')) {
       const o = this.ossos;
