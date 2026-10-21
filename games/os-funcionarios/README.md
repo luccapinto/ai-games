@@ -89,7 +89,10 @@ restaura a pose desses ossos antes de animar.
 **Arquivo menor sem Blender.** Cada `.glb` do pacote carrega as mesmas 24
 animações. `preparar_modelos.py` (fora desta pasta, no repo de trabalho) reempacota
 o binário do glTF à mão: malha e materiais em `modelos/pessoas/`, o esqueleto e as
-dez animações usadas uma vez só em `animacoes.glb`. De 9,5 MB para 6,2 MB.
+dez animações usadas uma vez só em `animacoes.glb` (homens) e `animacoes_mulher.glb`
+(mulheres). De 9,5 MB para 6,4 MB. São dois arquivos porque os modelos femininos do
+pacote têm outra orientação de repouso no tronco, nos braços e nas pernas: a animação
+do esqueleto masculino tocada nelas fazia as funcionárias andarem com o braço para trás.
 
 **A arma é nossa.** O grampeador é o nível 1 ("Grampeador Improvisado") do kit
 O GRAMPEADOR, que fizemos em Blender por código para outro teste: peças modulares,

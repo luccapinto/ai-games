@@ -26,10 +26,10 @@ modelagem é dele.
 
 **Suit** por Quaternius, via Poly Pizza, sob
 [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Modificado: recolorido,
-sem as animações embutidas (ficaram no `animacoes.glb` compartilhado).
+sem as animações embutidas (ficaram no `animacoes_mulher.glb` compartilhado).
 
-`animacoes.glb` tem só o esqueleto comum e dez das 24 animações que vêm em todos
-esses modelos (CC0), incluindo correr e socar, usadas pelo alienígena revelado.
+`animacoes.glb` (do Business Man) e `animacoes_mulher.glb` (do Animated Woman casual)
+têm só o esqueleto e dez das 24 animações que vêm em todos esses modelos (CC0), incluindo correr e socar, usadas pelo alienígena revelado.
 
 ## Arma
 
