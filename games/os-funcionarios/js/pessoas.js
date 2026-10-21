@@ -10,20 +10,27 @@ const CIMA = V(0, 1, 0);
 const loader = new GLTFLoader();
 const cache = {};
 const prontos = {};      // url -> gltf já carregado
+// Os modelos femininos do pacote têm outra orientação de repouso nos ossos do tronco,
+// braços e pernas: a animação do esqueleto masculino tocada nelas joga o braço para trás.
+// Por isso cada esqueleto tem o seu arquivo de animações.
 let ANIMS = null;
+const esqueletoDe = (ficha) => ficha.base.startsWith('mulher_') ? 'mulher' : 'homem';
 
 const carregar = (url) => cache[url] || (cache[url] = loader.loadAsync(url).then(g => (prontos[url] = g)));
 
 // Baixa todos os modelos que o elenco usa. progresso(0..1)
 export async function carregarModelos(base, progresso = () => {}) {
-  const nomes = new Set(['animacoes']);
+  const nomes = new Set(['animacoes', 'animacoes_mulher']);
   for (const p of ELENCO) { nomes.add('pessoas/' + p.base); for (const d of Object.values(p.trocas || {})) nomes.add('pessoas/' + d); }
   let feitos = 0;
   await Promise.all([...nomes].map(async n => {
     await carregar(`${base}/${n}.glb`);
     progresso(++feitos / nomes.size);
   }));
-  ANIMS = (await carregar(`${base}/animacoes.glb`)).animations;
+  ANIMS = {
+    homem: (await carregar(`${base}/animacoes.glb`)).animations,
+    mulher: (await carregar(`${base}/animacoes_mulher.glb`)).animations,
+  };
   return nomes.size;
 }
 
@@ -209,7 +216,7 @@ export class Pessoa {
     raiz.scale.setScalar(ficha.altura / ((ymax - ymin) * 1.10));
     this.mixer = new THREE.AnimationMixer(raiz);
     this.acoes = {};
-    for (const c of ANIMS) this.acoes[c.name] = this.mixer.clipAction(c);
+    for (const c of ANIMS[esqueletoDe(ficha)]) this.acoes[c.name] = this.mixer.clipAction(c);
     this.acoes.Death.setLoop(THREE.LoopOnce); this.acoes.Death.clampWhenFinished = true;
     this.acoes.HitRecieve.setLoop(THREE.LoopOnce); this.acoes.HitRecieve.clampWhenFinished = true;
     this.atual = null;
