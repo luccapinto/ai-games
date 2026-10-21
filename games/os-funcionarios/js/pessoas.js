@@ -218,9 +218,9 @@ function brilhoDosOlhos(p, frente, lado) {
   for (const v of vs) lados[v.clone().sub(centro).dot(lado) < 0 ? 0 : 1].push(v);
   return lados.filter(l => l.length).map(l => {
     const pos = l.reduce((a, v) => a.add(v), V()).multiplyScalar(1 / l.length);
-    const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: texBrilho(), color: 0x46ff86, blending: THREE.AdditiveBlending,
+    const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: texBrilho(), color: 0x1cff58, blending: THREE.AdditiveBlending,
       transparent: true, depthWrite: false, opacity: 0 }));
-    s.scale.setScalar(0.05);
+    s.scale.setScalar(0.045);
     s.position.copy(pos).addScaledVector(frente, 0.015);
     return s;
   });
@@ -295,8 +295,19 @@ function mirarOsso(b, de, para) {
   b.quaternion.copy(wquat(b.parent).invert().multiply(dq.multiply(wquat(b))));
 }
 
+// sombra de contato: disco escuro de borda suave no chão, debaixo de cada pessoa
+const GEO_SOMBRA = new THREE.PlaneGeometry(0.95, 0.95);
+const MAT_SOMBRA = (() => {
+  const c = document.createElement('canvas'); c.width = c.height = 64;
+  const g = c.getContext('2d');
+  const gr = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+  gr.addColorStop(0, 'rgba(0,0,0,0.55)'); gr.addColorStop(0.45, 'rgba(0,0,0,0.38)'); gr.addColorStop(1, 'rgba(0,0,0,0)');
+  g.fillStyle = gr; g.fillRect(0, 0, 64, 64);
+  return new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false });
+})();
+
 // ossos que os ajustes procedurais mexem por cima da animação (restaurados a cada quadro)
-const MEXIDOS = ['Root', 'Neck', 'Head', 'FootR', 'ShoulderL', 'UpperArmL', 'LowerArmL', 'WristL', 'ShoulderR', 'UpperArmR', 'LowerArmR', 'WristR',
+const MEXIDOS = ['Root', 'Neck', 'Head', 'FootR', 'LowerLegR', 'ShoulderL', 'UpperArmL', 'LowerArmL', 'WristL', 'ShoulderR', 'UpperArmR', 'LowerArmR', 'WristR',
   ...OSSOS_MAO('R'), ...OSSOS_MAO('L')];
 // sinais que estão à mostra o tempo todo (os outros vão e voltam ou dependem de andar/encarar)
 const SEMPRE = ['pe', 'sombra', 'caneca', 'costura', 'foto', 'nome', 'pele'];
@@ -335,6 +346,10 @@ export class Pessoa {
     // pose de referência dos braços (para o sinal "anda sem balançar os braços")
     this._posarRepouso();
     this._prepararMaos();
+    // sombra de contato sob os pés (a luz do teto): quem não tem sombra fica sem ela também
+    this.sombraPe = new THREE.Mesh(GEO_SOMBRA, MAT_SOMBRA);
+    this.sombraPe.rotation.x = -Math.PI / 2; this.sombraPe.position.y = 0.006; this.sombraPe.renderOrder = -1;
+    this.obj.add(this.sombraPe);
     this.raio = 0.28;
   }
 
@@ -519,7 +534,7 @@ export class Pessoa {
       novo.name = mt.name;
       if (Array.isArray(m.material)) m.material[0] = novo; else m.material = novo;
     }
-    if (this.sinais.has('sombra')) this.raiz.traverse(m => { if (m.isMesh) m.castShadow = false; });
+    if (this.sinais.has('sombra')) { this.raiz.traverse(m => { if (m.isMesh) m.castShadow = false; }); this.sombraPe.visible = false; }
     this.anim('Idle', 0);
   }
 
@@ -593,8 +608,11 @@ export class Pessoa {
     // sinal: braços parados ao andar
     if (this.sinais.has('bracos') && andando)
       for (const [n, q] of Object.entries(this.repousoBracos)) this.ossos[n].quaternion.slerp(q, 0.92);
-    // sinal: pé virado
-    if (this.sinais.has('pe')) this._girarOssoMundo('FootR', Math.PI);
+    // sinal: pé virado para trás: a canela gira meia volta em torno dela mesma e leva o pé junto
+    if (this.sinais.has('pe')) {
+      const o = this.ossos;
+      this._girarOssoEixo('LowerLegR', wpos(o.FootR).sub(wpos(o.LowerLegR)).normalize(), Math.PI);
+    }
     // caneca, gole de café, mãos no teclado
     this._bracos(dt);
     // cabeça: alienígena gira além do limite; humano olha para o jogador às vezes

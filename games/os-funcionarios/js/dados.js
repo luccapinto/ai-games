@@ -90,7 +90,7 @@ export const SINAIS = [
   { id: 'olho', nome: 'Olhos brilhando verde', nivel: 'media',
     dica: 'Os olhos acendem verde de tempos em tempos.' },
   { id: 'pe', nome: 'Pé virado para trás', nivel: 'media',
-    dica: 'Um dos sapatos aponta para trás.' },
+    dica: 'A perna direita é torcida no joelho: o sapato aponta para trás.' },
   { id: 'sombra', nome: 'Não tem sombra', nivel: 'media',
     dica: 'A luz da janela passa por ele: não há sombra no chão.' },
   { id: 'bracos', nome: 'Anda sem balançar os braços', nivel: 'media',
@@ -122,7 +122,7 @@ export const RITMO = {
   encara: { ciclo: 9, dura: 3.2 },     // encara sozinho, além de quando é encarado (antes só quando encarado)
 };
 // Quem anda de ré ou sem balançar os braços só mostra o sinal andando: fica pouco na mesa.
-export const PARADO = { mesa: [10, 28], outro: [4, 11], andarilho: { mesa: [3, 7], outro: [2, 4] } };
+export const PARADO = { mesa: [10, 28], outro: [4, 11], andarilho: { mesa: [6, 12], outro: [3, 7] } };
 
 // ---------------------------------------------------------------- dias
 // segundos = duração do expediente (09h às 18h).

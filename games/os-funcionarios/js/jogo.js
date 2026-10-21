@@ -58,12 +58,14 @@ const particulas = (() => {
   const geoV = new THREE.SphereGeometry(1, 8, 6);
   const geoE = new THREE.TetrahedronGeometry(1, 0);
   return {
+    // baforada gelada: nuvem branco-azulada, mais densa e maior que antes, para ler a 2,5 m
     vapor(p, f) {
-      for (let i = 0; i < 6; i++) {
-        const m = new THREE.Mesh(geoV, new THREE.MeshStandardMaterial({ color: 0xffffff, transparent: true, opacity: 0.55, roughness: 1, depthWrite: false }));
-        m.position.copy(p); m.scale.setScalar(0.01);
+      for (let i = 0; i < 10; i++) {
+        const m = new THREE.Mesh(geoV, new THREE.MeshStandardMaterial({ color: 0xe8f4ff, emissive: 0x8fc4ff, emissiveIntensity: 0.3,
+          transparent: true, opacity: 0.8, roughness: 1, depthWrite: false }));
+        m.position.copy(p); m.scale.setScalar(0.015);
         cena.add(m);
-        lista.push({ m, v: f.clone().multiplyScalar(0.25 + Math.random() * 0.15).add(V((Math.random() - 0.5) * 0.08, 0.05 + Math.random() * 0.05, (Math.random() - 0.5) * 0.08)), vida: 1.6 + i * 0.08, t: -i * 0.05, tipo: 'vapor' });
+        lista.push({ m, v: f.clone().multiplyScalar(0.3 + Math.random() * 0.2).add(V((Math.random() - 0.5) * 0.1, 0.04 + Math.random() * 0.06, (Math.random() - 0.5) * 0.1)), vida: 1.5 + i * 0.05, t: -i * 0.04, tipo: 'vapor' });
       }
     },
     estilhacos(p, cor) {
@@ -97,7 +99,7 @@ const particulas = (() => {
         const q = lista[i]; q.t += dt;
         if (q.t < 0) continue;
         q.m.position.addScaledVector(q.v, dt);
-        if (q.tipo === 'vapor') { q.m.scale.setScalar(0.01 + q.t * 0.045); q.m.material.opacity = 0.38 * (1 - q.t / q.vida); q.v.multiplyScalar(0.97); }
+        if (q.tipo === 'vapor') { q.m.scale.setScalar(0.015 + q.t * 0.06); q.m.material.opacity = 0.7 * Math.pow(Math.max(0, 1 - q.t / q.vida), 0.7); q.v.multiplyScalar(Math.pow(0.4, dt)); }
         else {
           q.v.y -= 9.8 * dt; q.m.rotation.x += q.rot.x * dt; q.m.rotation.y += q.rot.y * dt;
           if (q.m.position.y < 0.01) { q.m.position.y = 0.01; q.v.set(0, 0, 0); q.rot.set(0, 0, 0); }
@@ -251,7 +253,7 @@ function atualizarIA(p, dt) {
   if (p.sinais.has('encara')) {
     const olhado = S.mira === p && camera.position.distanceTo(p.pos) < 9;
     p._olhado = olhado ? (p._olhado || 0) + dt : Math.max(0, (p._olhado || 0) - dt * 0.5);
-    const sozinho = (p.t % RITMO.encara.ciclo) > RITMO.encara.ciclo - RITMO.encara.dura && dj < 10;
+    const sozinho = (p.t % RITMO.encara.ciclo) > RITMO.encara.ciclo - RITMO.encara.dura;   // de qualquer ponto do andar
     p.encarando = p._olhado > 1.2 || sozinho;
     if (p.encarando) { p.andando = false; p.teclado = null; p.anim('Idle_Neutral', 0.15); virarPara(p, S.jogador.pos, dt, 2.5); return; }
   }
@@ -273,7 +275,7 @@ function atualizarIA(p, dt) {
     } else {
       p.teclado = null;
       // conversa: duas pessoas paradas perto uma da outra se viram e se olham
-      const papo = S.pessoas.find(o => o !== p && o.estado === 'vivo' && o.ia?.modo === 'parado' && o.ia.alvo !== o.mesa && o.pos.distanceTo(p.pos) < 2.2);
+      const papo = !ia.alvo?.fixo && S.pessoas.find(o => o !== p && o.estado === 'vivo' && o.ia?.modo === 'parado' && o.ia.alvo !== o.mesa && !o.ia.alvo?.fixo && o.pos.distanceTo(p.pos) < 2.2);
       if (papo) { virarPara(p, papo.pos, dt, 3); olhar = olhar || papo.pos; }
       const mexe = ['impressora', 'armario', 'cafe', 'agua'].includes(ia.alvo?.tipo) && (p.t + p.fase) % 7 < 3;
       p.anim(mexe && !papo ? 'Interact' : 'Idle_Neutral', 0.35);
@@ -472,6 +474,9 @@ function abrirCracha(p) {
   g.fillStyle = '#111'; g.font = 'bold 19px sans-serif'; g.fillText(ficha.nome, 124, 40);
   g.font = '16px sans-serif'; g.fillText(ficha.cargo, 124, 66); g.fillText(ficha.depto, 124, 88);
   g.fillStyle = '#7a1f1f'; g.font = 'bold 14px sans-serif'; g.fillText('FICHA FUNCIONAL · RH', 124, 128);
+  // os dois nomes, um embaixo do outro, em maiúsculas e letra de largura fixa: a letra trocada fica na mesma coluna
+  $('#nome-cracha').textContent = p.nomeNoCracha;
+  $('#nome-ficha').textContent = ficha.nome;
   $('#cracha').hidden = false;
   som.papel();
 }
@@ -492,6 +497,12 @@ function telaMemorando() {
   $('#memo-dia').textContent = `Dia ${S.nDia} de ${DIAS.length}`;
   $('#memo-qtd').textContent = d.aliens === 1 ? 'UM impostor' : `${d.aliens} impostores`;
   $('#memo-pessoas').textContent = `${d.pessoas} funcionários no andar hoje.`;
+  // memorando honesto: diz quantos relatos são verdadeiros (as iscas continuam, mas contadas)
+  const total = S.plano.memorando.length, falsos = S.plano.iscas.length, verdade = total - falsos;
+  const porAlien = d.sinais === 1 ? 'um sinal' : `${d.sinais} sinais`;
+  $('#memo-aviso').innerHTML = `A segurança recebeu ${total} relatos. <b>${verdade} foram confirmados</b>` +
+    (falsos ? ` e <b>${falsos} ${falsos === 1 ? 'é boato' : 'são boatos'}</b>: não aparecem em ninguém hoje.` : '.') +
+    ` Cada impostor tem ${porAlien} da lista, e nenhum sinal se repete entre impostores.`;
   preencherSinais($('#memo-sinais'));
   mostrar('memorando');
 }
@@ -507,6 +518,7 @@ function preencherSinais(ul) {
 
 function comecarExpediente() {
   S.tela = 'jogando'; mostrar(null); atualizarHUD();
+  $('#hud-memo-conta').textContent = `${S.plano.memorando.length - S.plano.iscas.length} de ${S.plano.memorando.length} verdadeiros`;
   $('#hud-memo-lista').innerHTML = S.plano.memorando.map(id => `<li>${SINAL[id].nome}</li>`).join('');
   travarMouse();
   som.campainha();
@@ -728,7 +740,26 @@ window.__jogo = {
   tempoPessoa: (id, t) => { S.pessoas.find(q => q.id === id).t = t; return t; },
   caneca: (id) => S.pessoas.find(q => q.id === id).medirCaneca(),
   gole: (id) => { const p = S.pessoas.find(q => q.id === id); p._proxGole = 0; p._gole = 0; return true; },
-  posicionar: (id, x, z, yaw) => { const p = S.pessoas.find(q => q.id === id); p.pos.set(x, 0, z); p.obj.rotation.y = yaw; p.ia.modo = 'parado'; p.ia.ate = 1e9; p.ia.alvo = { olha: yaw }; return true; },
+  // Simula o expediente inteiro do dia `n` da semana `semente` (jogador parado na entrada, ninguém
+  // atira) e mede, para cada alien e cada sinal dele, quantos segundos e quantas vezes o sinal
+  // esteve à mostra (Pessoa.vis). Para a prova estatística.
+  medirSinais: (n, semente, dt = 0.1) => {
+    S.semente = semente; S.nDia = n; prepararDia(); S.tela = 'jogando';
+    const med = {};
+    for (const p of S.pessoas) if (p.alien) med[p.id] = Object.fromEntries([...p.sinais].map(s => [s, { seg: 0, vezes: 0, antes: false }]));
+    while (S.tela === 'jogando') {
+      passo(dt);
+      for (const p of S.pessoas) if (med[p.id]) for (const s in med[p.id]) {
+        const m = med[p.id][s], agora = p.vis.has(s);
+        if (agora) { m.seg += dt; if (!m.antes) m.vezes++; }
+        m.antes = agora;
+      }
+    }
+    S.log.pop();
+    return { dia: n, semente, duracao: S.duracao, aliens: Object.entries(med).map(([id, ss]) => ({ id, sinais: Object.fromEntries(Object.entries(ss).map(([s, m]) => [s, { seg: +m.seg.toFixed(1), vezes: m.vezes }])) })) };
+  },
+  // põe a pessoa parada num ponto, virada para `yaw`, sem conversar nem sair dali (provas e fotos)
+  posicionar: (id, x, z, yaw) => { const p = S.pessoas.find(q => q.id === id); p.pos.set(x, 0, z); p.obj.rotation.y = yaw; p.ia.modo = 'parado'; p.ia.ate = 1e9; p.ia.alvo = { olha: yaw, fixo: true }; return true; },
   andarPara: (id, x, z) => { const p = S.pessoas.find(q => q.id === id); p.ia.modo = 'andando'; p.ia.rota = [V(x, 0, z)]; p.ia.alvo = { olha: 0 }; return true; },
   // congela a pessoa numa animação, no ponto `frac` (0..1) do clipe; a IA para de mexer nela
   pose: (id, anim, frac, x, z, yaw, andando = false) => {
@@ -741,6 +772,9 @@ window.__jogo = {
   },
   proximoDia: () => { proximoDia(); return S.tela; },
   tela: () => S.tela,
+  // x da cabeça da pessoa na tela (-1 = borda esquerda, 1 = direita)
+  naTela: (id) => { const p = S.pessoas.find(q => q.id === id); camera.updateMatrixWorld(); return p.ossos.Head.getWorldPosition(V()).project(camera).x; },
+  pessoa: (id) => S.pessoas.find(q => q.id === id),
   render: () => { desenhar(); return true; },
   info: () => ({ calls: render.info.render.calls, tris: render.info.render.triangles, geos: render.info.memory.geometries, tex: render.info.memory.textures }),
 };
