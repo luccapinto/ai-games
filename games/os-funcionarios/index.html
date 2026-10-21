@@ -25,6 +25,7 @@
   <div class="base">
     <div id="hud-vida" title="Saúde"></div>
     <div class="municao"><span class="rot">GRAMPOS</span> <b id="hud-grampos">12 / 12</b></div>
+    <div id="hud-arma" class="municao rot">L1 · Grampeador Improvisado</div>
   </div>
   <div id="hud-memo"><b>Memorando <kbd>Tab</kbd></b> <span id="hud-memo-conta"></span><ul id="hud-memo-lista"></ul></div>
   <div id="dica"></div>
@@ -97,7 +98,19 @@
     <p id="rel-motivo"></p>
     <ul id="rel-lista" class="rel"></ul>
     <p class="placar"><span id="rel-pontos"></span> · <span id="rel-falhas"></span></p>
+    <p id="rel-verba" class="verba"></p>
     <button id="rel-seguir">Próximo dia</button>
+  </div>
+</section>
+
+<section id="almoxarifado" class="tela" hidden>
+  <div class="caixa">
+    <p class="sobre">Almoxarifado · subsolo</p>
+    <h2>Verba: <span id="alm-verba"></span></h2>
+    <p class="sub">A verba é o que você ganhou nos dias da semana. Na próxima semana o grampeador volta ao nível 1.</p>
+    <div id="alm-atual" class="alm-atual"></div>
+    <div id="alm-opcoes" class="alm-opcoes"></div>
+    <button id="alm-seguir">Próximo dia</button>
   </div>
 </section>
 

@@ -76,3 +76,17 @@ button.sec { background: #555; margin-left: 8px; }
 .rel .inocente { color: var(--vermelho); }
 .rel .isca { opacity: .7; font-style: italic; }
 .placar { font-weight: 700; font-size: 18px; }
+.verba { font-weight: 700; color: #1f5a2a; }
+#hud-arma { font-size: 12px; opacity: .8; }
+/* almoxarifado: a caixa fica à esquerda; à direita o grampeador na mão */
+#almoxarifado { justify-content: flex-start; background: linear-gradient(90deg, rgba(10,14,20,.88) 0 52%, rgba(10,14,20,0) 70%); }
+#almoxarifado .caixa { max-width: 600px; margin-left: 2vw; }
+.alm-atual { padding: 10px 14px; border-radius: 8px; background: #ffffff10; }
+.alm-opcoes { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 10px; margin-top: 10px; }
+.alm-opcoes .opcao { padding: 10px 14px; border-radius: 8px; border: 1px solid #c9a8ff55; background: #2a1d4022; }
+.alm-opcoes .opcao.cara { opacity: .55; }
+.alm-opcoes h3 { margin: 0 0 4px; font-size: 15px; }
+.alm-opcoes button { margin-top: 6px; }
+.ficha-arma { margin: 6px 0 0; padding-left: 18px; font-size: 13px; line-height: 1.6; }
+.ficha-arma em { font-style: normal; font-weight: 700; } .ficha-arma em.mais { color: #6fd18d; } .ficha-arma em.menos { color: #ff8a6a; }
+.ramo { margin: 4px 0 0; font-size: 12px; color: #ffcf6a; }

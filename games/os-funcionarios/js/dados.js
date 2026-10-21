@@ -136,6 +136,23 @@ export const DIAS = [
 export const FALHAS_MAX = 3;
 export const PONTOS = { alien: 100, inocente: -150, fuga: -50, porMinutoSobrando: 20 };
 
+// ---------------------------------------------------------------- grampeador
+// Níveis do kit O GRAMPEADOR. id = variante do kit (as peças vêm do glb). Comprados no almoxarifado
+// entre um dia e outro, com a verba do dia (os pontos ganhos naquele dia, se positivos).
+// No nível 3 se escolhe o ramo, e ele define o nível 4.
+//   pente: grampos por pente · cadencia: s entre grampos · recarga: s
+//   grampos: quantos grampos derrubam um alien (o 1º sempre revela) · coice: força do coice
+export const ARMA = {
+  L1: { nome: 'Grampeador Improvisado', nivel: 1, de: null, preco: 0, pente: 12, cadencia: 0.26, recarga: 1.35, grampos: 4, coice: 1.0 },
+  L2: { nome: 'Grampeador Modificado', nivel: 2, de: 'L1', preco: 150, pente: 16, cadencia: 0.2, recarga: 1.1, grampos: 3, coice: 1.0 },
+  L3C: { nome: 'Industrial · Cadência', nivel: 3, ramo: 'C', de: 'L2', preco: 250, pente: 30, cadencia: 0.11, recarga: 1.25, grampos: 3, coice: 0.7 },
+  L3I: { nome: 'Industrial · Impacto', nivel: 3, ramo: 'I', de: 'L2', preco: 250, pente: 10, cadencia: 0.34, recarga: 0.95, grampos: 2, coice: 1.9 },
+  L4C: { nome: 'Protótipo Proibido · Cadência', nivel: 4, ramo: 'C', de: 'L3C', preco: 350, pente: 48, cadencia: 0.07, recarga: 1.0, grampos: 2, coice: 0.6 },
+  L4I: { nome: 'Protótipo Proibido · Impacto', nivel: 4, ramo: 'I', de: 'L3I', preco: 350, pente: 8, cadencia: 0.4, recarga: 0.85, grampos: 1, coice: 2.6 },
+};
+// o que dá para comprar a partir do nível `atual` (no 2 aparecem os dois ramos; depois, só o do ramo)
+export const proximosNiveis = (atual) => Object.keys(ARMA).filter(id => ARMA[id].de === atual);
+
 // ---------------------------------------------------------------- sorteio
 export function rng(semente) {               // mulberry32
   let a = semente >>> 0;

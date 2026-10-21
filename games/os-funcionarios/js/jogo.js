@@ -2,11 +2,11 @@
 // memorando do RH, crachá, disparo, revelação e relatório.
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
-import { ELENCO, SINAL, DIAS, FALHAS_MAX, PONTOS, RITMO, PARADO, sortearDia, rng } from './dados.js';
+import { ELENCO, SINAL, DIAS, FALHAS_MAX, PONTOS, RITMO, PARADO, ARMA, proximosNiveis, sortearDia, rng } from './dados.js';
 import { Pessoa, carregarModelos, VEL_HOSTIL } from './pessoas.js';
 import { construirEscritorio, rota, noMaisProximo, caminhoLivre, SALA } from './escritorio.js';
 import { Som } from './som.js';
-import { Arma, grampo, PENTE } from './arma.js';
+import { Arma, grampo } from './arma.js';
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const $ = (s) => document.querySelector(s);
@@ -25,7 +25,7 @@ cena.environment = new THREE.PMREMGenerator(render).fromScene(new RoomEnvironmen
 cena.environmentIntensity = 0.45;
 const camera = new THREE.PerspectiveCamera(70, 1, 0.05, 60);
 const FOV = 70, FOV_ZOOM = 20;
-const VIDA_ALIEN = 4;          // grampos para derrubar um alienígena (o 1º só quebra o disfarce)
+const RECUO = 0.022;           // rad de coice na câmera por grampo (vezes o coice do nível)
 const VIDA_JOGADOR = 5;        // socos que o jogador aguenta por dia
 
 const sol = new THREE.DirectionalLight(0xfff1dc, 2.3);
@@ -47,7 +47,7 @@ function ajustar() {
 }
 function desenhar() {
   render.render(cena, camera);
-  arma.visivel = S.tela === 'jogando' && !S.semArma;      // semArma: folhas de pose sem a arma na frente
+  arma.visivel = (S.tela === 'jogando' || S.tela === 'almoxarifado') && !S.semArma;   // semArma: folhas de pose
   arma.desenhar(render);
 }
 addEventListener('resize', ajustar); ajustar();
@@ -141,8 +141,8 @@ const grampos = (() => {
 
 // ------------------------------------------------------------------ estado
 const S = {
-  tela: 'carregando',       // carregando | titulo | memorando | jogando | pausa | relatorio | fim
-  semente: 1, nDia: 1, pontos: 0, falhas: 0,
+  tela: 'carregando',       // carregando | titulo | memorando | jogando | pausa | relatorio | almoxarifado | fim
+  semente: 1, nDia: 1, pontos: 0, falhas: 0, verba: 0, pontosAntes: 0,
   plano: null, pessoas: [], t: 0, duracao: 240,
   abatidos: [], log: [],
   jogador: { pos: V(0, 1.62, 6.2), yaw: 0, pitch: 0, zoom: false, vida: VIDA_JOGADOR, tremor: 0 },
@@ -166,6 +166,7 @@ function prepararDia(forcado) {
   S.pessoas = []; S.abatidos = []; S.crachaDe = null;
   S.plano = forcado || sortearDia(S.nDia, S.semente);
   const r = rng(S.semente * 31 + S.nDia);
+  rIA = rng(S.semente * 131 + S.nDia * 7 + 1);     // a IA do dia também segue a semente (simulações repetíveis)
   S.duracao = S.plano.dia.segundos; S.t = 0;
   const mesas = nav.pontos.filter(q => q.tipo === 'mesa');
   const livres = mesas.slice().sort(() => r() - 0.5);
@@ -180,17 +181,19 @@ function prepararDia(forcado) {
     p.ia = { modo: 'parado', ate: 2 + r() * 10, rota: [], alvo: p.mesa };
     p.ritmo = 0.8 + r() * 0.2;        // cada um anda num passo (e a animação acompanha, sem deslizar)
     p.fase = r() * 30;                 // fase das pausas na mesa
+    p.t = r() * 100;                   // relógio próprio (ritmo dos sinais que vão e voltam)
     p.mixer.setTime(r() * 3);
     S.pessoas.push(p);
   });
   S.jogador.pos.set(0, 1.62, 6.2); S.jogador.yaw = 0; S.jogador.pitch = 0;
   S.jogador.vida = VIDA_JOGADOR; S.jogador.tremor = 0;
-  arma.pente = PENTE; arma.recarregando = 0; arma.espera = 0;
+  arma.pente = arma.cfg.pente; arma.recarregando = 0; arma.espera = 0;
+  S.pontosAntes = S.pontos;            // a verba do dia = o que se ganhou hoje
   S.log.push({ dia: S.nDia, aliens: S.plano.aliens.slice(), sinais: structuredClone(S.plano.sinaisDe) });
 }
 
 // ------------------------------------------------------------------ IA das pessoas
-const rIA = Math.random;
+let rIA = Math.random;                 // trocado por um sorteio com semente a cada dia (prepararDia)
 // alienígena revelado: corre atrás do jogador e dá soco
 function atualizarHostil(p, dt) {
   const j = S.jogador.pos;
@@ -363,8 +366,9 @@ function atualizarJogador(dt) {
   camera.fov += (alvoFov - camera.fov) * Math.min(1, dt * 10); camera.updateProjectionMatrix();
   camera.position.copy(j.pos);
   j.tremor = Math.max(0, (j.tremor || 0) - dt);
+  j.recuo = (j.recuo || 0) * Math.pow(0.0005, dt);     // coice do grampeador: a mira sobe e volta
   const tr = j.tremor * j.tremor * 0.25;
-  camera.rotation.set(j.pitch + (Math.random() - 0.5) * tr, j.yaw + (Math.random() - 0.5) * tr, (Math.random() - 0.5) * tr * 0.6, 'YXZ');
+  camera.rotation.set(j.pitch + j.recuo + (Math.random() - 0.5) * tr, j.yaw + (Math.random() - 0.5) * tr, (Math.random() - 0.5) * tr * 0.6, 'YXZ');
   arma.atualizar(dt, { andando: mov.lengthSq() > 0 ? (k.ShiftLeft ? 1.5 : 1) : 0, zoom: j.zoom, giro: (j._yawAnt ?? j.yaw) - j.yaw });
   j._yawAnt = j.yaw;
 }
@@ -406,6 +410,7 @@ function atirar() {
     som.vazio(); return { acertou: null, vazio: true };
   }
   S.totais.tiros++;
+  S.jogador.recuo = (S.jogador.recuo || 0) + RECUO * arma.cfg.coice;
   som.tiro();
   atualizarHUD();
   const de = arma.bocaNoMundo(camera);
@@ -427,7 +432,7 @@ function atirar() {
   }
   grampos.lancar(de, ponto, osso, null);
   fecharCracha();
-  const r = p.atingir({ vida: VIDA_ALIEN, particulas, luzAlien: (q) => { luzRoxa.position.copy(q.pos).add(V(0, 1.7, 0)); luzRoxa.intensity = 6; } });
+  const r = p.atingir({ vida: arma.cfg.grampos, particulas, luzAlien: (q) => { luzRoxa.position.copy(q.pos).add(V(0, 1.7, 0)); luzRoxa.intensity = 6; } });
   if (r === 'humano') {
     S.abatidos.push({ id: p.id, alien: false, hora: relogio(S.t / S.duracao) });
     S.pontos += PONTOS.inocente; S.falhas++; S.totais.inocentes++;
@@ -530,6 +535,8 @@ function fimDoDia(motivo) {
   const sobra = Math.max(0, S.duracao - S.t);
   const bonus = fugas.length === 0 ? Math.floor(sobra / 60 * PONTOS.porMinutoSobrando * (540 / S.duracao)) : 0;
   S.pontos += fugas.length * PONTOS.fuga + bonus;
+  const ganho = Math.max(0, S.pontos - S.pontosAntes);
+  S.verba += ganho;
   S.totais.fugas += fugas.length;
   S.tela = 'relatorio'; fecharCracha(); soltarMouse();
   const demitido = S.falhas >= FALHAS_MAX;
@@ -556,9 +563,51 @@ function fimDoDia(motivo) {
   $('#rel-lista').innerHTML = linhas.join('');
   $('#rel-pontos').textContent = `${S.pontos} pontos${bonus ? ` (bônus de pontualidade +${bonus})` : ''}${fugas.length ? ` · ${fugas.length} fuga(s) ${fugas.length * PONTOS.fuga}` : ''}`;
   $('#rel-falhas').textContent = `Falhas: ${S.falhas} de ${FALHAS_MAX}`;
-  $('#rel-seguir').textContent = demitido || ultimo ? 'Ver o resultado final' : `Dia ${S.nDia + 1}`;
+  $('#rel-verba').textContent = `Verba do almoxarifado: +${ganho} hoje · ${S.verba} disponível`;
+  $('#rel-seguir').textContent = demitido || ultimo ? 'Ver o resultado final' : 'Ir ao almoxarifado';
   S.fimDeJogo = demitido || ultimo;
   mostrar('relatorio');
+}
+
+// ------------------------------------------------------------------ almoxarifado
+// Entre um dia e outro: gasta a verba para subir o grampeador de nível. No nível 3 escolhe o ramo.
+function telaAlmoxarifado() {
+  S.tela = 'almoxarifado';
+  const atual = ARMA[arma.nivel];
+  $('#alm-verba').textContent = `${S.verba}`;
+  $('#alm-atual').innerHTML = `<b>${arma.nivel}</b> ${atual.nome}${fichaArma(atual)}`;
+  const opcoes = proximosNiveis(arma.nivel);
+  $('#alm-opcoes').innerHTML = opcoes.length ? opcoes.map(id => {
+    const n = ARMA[id], pode = S.verba >= n.preco;
+    const aviso = n.nivel === 3 ? '<p class="ramo">Escolha definitiva: o ramo define o nível 4.</p>' : '';
+    return `<div class="opcao${pode ? '' : ' cara'}"><h3>${id} · ${n.nome}</h3>${fichaArma(n, atual)}${aviso}
+      <button data-comprar="${id}" ${pode ? '' : 'disabled'}>Comprar · ${n.preco}</button></div>`;
+  }).join('') : '<p>Este é o último nível do grampeador.</p>';
+  for (const b of document.querySelectorAll('[data-comprar]')) b.onclick = () => { comprar(b.dataset.comprar); };
+  $('#alm-seguir').textContent = `Dia ${S.nDia + 1}`;
+  mostrar('almoxarifado');
+}
+function fichaArma(n, antes) {
+  const d = (k, melhor) => antes && n[k] !== antes[k] ? ` <em class="${melhor(n[k], antes[k]) ? 'mais' : 'menos'}">(${antes[k]} → ${n[k]})</em>` : '';
+  const maior = (a, b) => a > b, menor = (a, b) => a < b;
+  return `<ul class="ficha-arma">
+    <li>Pente: ${n.pente} grampos${d('pente', maior)}</li>
+    <li>Cadência: ${(1 / n.cadencia).toFixed(1)} grampos/s${antes && n.cadencia !== antes.cadencia ? ` <em class="${n.cadencia < antes.cadencia ? 'mais' : 'menos'}">(${(1 / antes.cadencia).toFixed(1)} → ${(1 / n.cadencia).toFixed(1)})</em>` : ''}</li>
+    <li>Recarga: ${n.recarga.toFixed(2).replace('.', ',')} s${d('recarga', menor)}</li>
+    <li>Derruba um alien com ${n.grampos} grampo${n.grampos > 1 ? 's' : ''}${d('grampos', menor)}</li>
+    <li>Coice: ${n.coice < 1 ? 'leve' : n.coice > 1.5 ? 'forte' : 'normal'}</li></ul>`;
+}
+// compra o nível `id`: precisa ser o próximo do nível atual (ramo travado) e caber na verba
+function comprar(id) {
+  const n = ARMA[id];
+  if (!n || n.de !== arma.nivel) return { ok: false, motivo: 'fora do caminho', nivel: arma.nivel };
+  if (S.verba < n.preco) return { ok: false, motivo: 'verba', nivel: arma.nivel };
+  S.verba -= n.preco;
+  arma.aplicar(id, true);
+  som.recarga();
+  if (S.tela === 'almoxarifado') telaAlmoxarifado();
+  atualizarHUD();
+  return { ok: true, nivel: id, verba: S.verba };
 }
 
 function telaFinal() {
@@ -576,7 +625,8 @@ function telaFinal() {
 
 function novoJogo(semente) {
   S.semente = semente ?? (Math.floor(Math.random() * 1e6) + 1);
-  S.nDia = 1; S.pontos = 0; S.falhas = 0; S.log = []; S.fimDeJogo = false;
+  S.nDia = 1; S.pontos = 0; S.falhas = 0; S.log = []; S.fimDeJogo = false; S.verba = 0;
+  arma.aplicar('L1');                  // o upgrade vale a semana; nova semana começa no nível 1
   S.totais = { aliens: 0, inocentes: 0, fugas: 0, tiros: 0 };
   prepararDia(); telaMemorando();
 }
@@ -592,7 +642,8 @@ function atualizarHUD() {
   $('#hud-falhas').innerHTML = Array.from({ length: FALHAS_MAX }, (_, i) => `<span class="${i < S.falhas ? 'x' : ''}"></span>`).join('');
   const vivos = S.pessoas.filter(p => p.ativo).length;
   $('#hud-aliens').textContent = `${vivos} impostor${vivos === 1 ? '' : 'es'} no andar`;
-  $('#hud-grampos').textContent = arma.ocupada ? 'recarregando…' : `${arma.pente} / ${PENTE}`;
+  $('#hud-grampos').textContent = arma.ocupada ? (arma.troca > 0 ? 'trocando…' : 'recarregando…') : `${arma.pente} / ${arma.cfg.pente}`;
+  $('#hud-arma').textContent = `${arma.nivel} · ${ARMA[arma.nivel].nome}`;
   $('#hud-grampos').classList.toggle('pouco', !arma.ocupada && arma.pente <= 3);
   $('#hud-vida').innerHTML = Array.from({ length: VIDA_JOGADOR }, (_, i) => `<span class="${i < S.jogador.vida ? 'ok' : ''}"></span>`).join('');
 }
@@ -632,7 +683,8 @@ $('#btn-comecar').onclick = () => { som.ligar(); novoJogo(); };
 $('#btn-expediente').onclick = () => comecarExpediente();
 $('#btn-continuar').onclick = () => { S.tela = 'jogando'; mostrar(null); travarMouse(); };
 $('#btn-desistir').onclick = () => { S.tela = 'titulo'; mostrar('titulo'); };
-$('#rel-seguir').onclick = () => proximoDia();
+$('#rel-seguir').onclick = () => { if (S.fimDeJogo) telaFinal(); else telaAlmoxarifado(); };
+$('#alm-seguir').onclick = () => proximoDia();
 $('#btn-denovo').onclick = () => novoJogo();
 
 // ------------------------------------------------------------------ laço
@@ -660,6 +712,10 @@ function passo(dt) {
     else if (S.falhas >= FALHAS_MAX && !animando) fimDoDia('falhas');
     else if (restam === 0 && !animando) fimDoDia('limpo');
     else if (S.t >= S.duracao) fimDoDia('tempo');
+  } else if (S.tela === 'almoxarifado') {
+    // almoxarifado: o grampeador fica na mão, na frente do escritório parado (a troca de nível aparece)
+    camera.position.copy(S.jogador.pos); camera.rotation.set(S.jogador.pitch, S.jogador.yaw, 0, 'YXZ');
+    arma.atualizar(dt);
   } else if (S.tela !== 'carregando') {
     // vitrine: câmera passeia devagar pelo andar atrás dos menus
     const a = performance.now() / 1000 * 0.05;
@@ -699,7 +755,12 @@ window.__jogo = {
   comecar: () => { comecarExpediente(); return S.tela; },
   avancar: (seg, dt = 1 / 30) => { for (let t = 0; t < seg; t += dt) passo(dt); desenhar(); return { tela: S.tela, t: S.t }; },
   pessoas: () => S.pessoas.map(p => ({ id: p.id, alien: p.alien, sinais: [...p.sinais], estado: p.estado, vida: p.vida ?? null, x: p.pos.x, z: p.pos.z, cracha: p.nomeNoCracha })),
-  arma: () => ({ pente: arma.pente, recarregando: arma.recarregando, espera: arma.espera, visivel: arma.rig.visible }),
+  arma: () => ({ pente: arma.pente, recarregando: arma.recarregando, espera: arma.espera, visivel: arma.rig.visible, nivel: arma.nivel, troca: arma.troca, pecas: arma.pecasVisiveis() }),
+  economia: () => ({ verba: S.verba, pontos: S.pontos, nivel: arma.nivel, opcoes: proximosNiveis(arma.nivel), tela: S.tela }),
+  comprar: (id) => comprar(id),
+  almoxarifado: () => telaAlmoxarifado(),
+  darVerba: (n) => { S.verba += n; return S.verba; },
+  nivel: (id, animar = false) => { arma.aplicar(id, animar); atualizarHUD(); return arma.nivel; },
   jogador: () => ({ vida: S.jogador.vida, x: S.jogador.pos.x, z: S.jogador.pos.z }),
   recarregar: () => arma.recarregar(),
   armaObj: arma,
@@ -740,11 +801,11 @@ window.__jogo = {
   tempoPessoa: (id, t) => { S.pessoas.find(q => q.id === id).t = t; return t; },
   caneca: (id) => S.pessoas.find(q => q.id === id).medirCaneca(),
   gole: (id) => { const p = S.pessoas.find(q => q.id === id); p._proxGole = 0; p._gole = 0; return true; },
-  // Simula o expediente inteiro do dia `n` da semana `semente` (jogador parado na entrada, ninguém
-  // atira) e mede, para cada alien e cada sinal dele, quantos segundos e quantas vezes o sinal
-  // esteve à mostra (Pessoa.vis). Para a prova estatística.
+  // Simula o expediente inteiro do dia `n` da semana `semente` (jogador parado na entrada olhando
+  // para o teto, sem mirar ninguém nem atirar) e mede, para cada alien e cada sinal dele, quantos
+  // segundos e quantas vezes o sinal esteve à mostra (Pessoa.vis). Para a prova estatística.
   medirSinais: (n, semente, dt = 0.1) => {
-    S.semente = semente; S.nDia = n; prepararDia(); S.tela = 'jogando';
+    S.semente = semente; S.nDia = n; prepararDia(); S.tela = 'jogando'; S.jogador.pitch = 1.3;
     const med = {};
     for (const p of S.pessoas) if (p.alien) med[p.id] = Object.fromEntries([...p.sinais].map(s => [s, { seg: 0, vezes: 0, antes: false }]));
     while (S.tela === 'jogando') {

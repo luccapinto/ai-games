@@ -731,8 +731,8 @@ export class Pessoa {
   }
 
   // Um grampo acertou. Devolve 'humano' | 'revelou' | 'feriu' | 'morreu'.
-  // Humano cai com um grampo. Alienígena: o 1º grampo só quebra o disfarce;
-  // ele aguenta `ctx.vida` grampos no total antes de cair.
+  // Humano cai com um grampo. Alienígena: aguenta `ctx.vida` grampos no total antes de cair; o 1º
+  // quebra o disfarce (com vida 1, o mesmo grampo revela e derruba: devolve 'morreu').
   atingir(ctx) {
     if (!this.alvejavel) return null;
     this.andando = false; this.encarando = false;
@@ -740,8 +740,10 @@ export class Pessoa {
     if (this.caneca) this.caneca.visible = true;
     if (!this.alien) { this.estado = 'caindo'; this.tRev = 0; this.reiniciar('HitRecieve', 0.08); return 'humano'; }
     if (this.estado === 'vivo') {
-      this.estado = 'revelando'; this.tRev = 0; this.vida = ctx.vida - 1; this.vidaMax = ctx.vida;
-      this.reiniciar('HitRecieve', 0.08); ctx.luzAlien(this);
+      this.vida = ctx.vida - 1; this.vidaMax = ctx.vida; this.tRev = 0; ctx.luzAlien(this);
+      if (this.vida <= 0) { this._trocarCabeca(ctx); this.estado = 'morrendo'; this.reiniciar('Death', 0.1); return 'morreu'; }
+      this.estado = 'revelando';
+      this.reiniciar('HitRecieve', 0.08);
       return 'revelou';
     }
     this.vida--;
