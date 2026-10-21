@@ -133,17 +133,31 @@ function corDoCabelo(ficha) {
 }
 const OUTRO_CABELO = ['#d8b46a', '#b8452e', '#121010', '#e9e4dc', '#6a7f3a'];
 
-function caneca() {
+// Caneca branca com faixa vermelha na boca e o café escuro rente à borda: de cabeça para baixo
+// (sinal) a faixa fica embaixo, o fundo branco em cima e o café aparece pendurado, sem cair.
+function caneca(invertida) {
   const g = new THREE.Group();
-  const corpo = new THREE.Mesh(new THREE.CylinderGeometry(0.042, 0.038, 0.1, 18, 1, true),
-    new THREE.MeshStandardMaterial({ color: 0xf2efe8, roughness: 0.5, side: THREE.DoubleSide }));
-  const fundo = new THREE.Mesh(new THREE.CircleGeometry(0.038, 18), corpo.material);
-  fundo.rotation.x = Math.PI / 2; fundo.position.y = -0.05;
-  const cafe = new THREE.Mesh(new THREE.CircleGeometry(0.039, 18), new THREE.MeshStandardMaterial({ color: 0x3b2314, roughness: 0.25 }));
-  cafe.rotation.x = -Math.PI / 2; cafe.position.y = 0.035; cafe.name = 'cafe';
-  const alca = new THREE.Mesh(new THREE.TorusGeometry(0.026, 0.008, 6, 12, Math.PI), corpo.material);
-  alca.position.set(0.045, 0, 0); alca.rotation.z = -Math.PI / 2;
-  g.add(corpo, fundo, cafe, alca);
+  const branco = new THREE.MeshStandardMaterial({ color: 0xf2efe8, roughness: 0.5, side: THREE.DoubleSide });
+  const vermelho = new THREE.MeshStandardMaterial({ color: 0xc8302a, roughness: 0.5, side: THREE.DoubleSide });
+  const marrom = new THREE.MeshStandardMaterial({ color: 0x2e1a0e, roughness: 0.2 });
+  const H = 0.11, R = CANECA_R, r = CANECA_R * 0.9;
+  const corpo = new THREE.Mesh(new THREE.CylinderGeometry(R * 0.985, r, H * 0.72, 20, 1, true), branco);
+  corpo.position.y = -H * 0.14;
+  const faixa = new THREE.Mesh(new THREE.CylinderGeometry(R, R * 0.985, H * 0.28, 20, 1, true), vermelho);
+  faixa.position.y = H * 0.36;
+  const fundo = new THREE.Mesh(new THREE.CircleGeometry(r, 20), branco);
+  fundo.rotation.x = Math.PI / 2; fundo.position.y = -H / 2;
+  const cafe = new THREE.Mesh(new THREE.CircleGeometry(R * 0.97, 20), marrom);
+  cafe.rotation.x = -Math.PI / 2; cafe.position.y = H / 2 - 0.006; cafe.name = 'cafe';
+  const alca = new THREE.Mesh(new THREE.TorusGeometry(0.03, 0.009, 6, 12, Math.PI), branco);
+  alca.position.set(R + 0.003, 0, 0); alca.rotation.z = -Math.PI / 2;
+  g.add(corpo, faixa, fundo, cafe, alca);
+  if (invertida) {
+    // o café não cai: fica um menisco escuro estufado para fora da boca
+    const gota = new THREE.Mesh(new THREE.SphereGeometry(R * 0.96, 18, 8, 0, Math.PI * 2, 0, Math.PI / 2), marrom);
+    gota.scale.y = 0.45; gota.position.y = H / 2 - 0.004;
+    g.add(gota);
+  }
   g.traverse(m => { if (m.isMesh) m.castShadow = true; });
   return g;
 }
@@ -263,7 +277,7 @@ function cabecaAlien() {
 // pulso): as juntas que dobram são 2, 3 e 4. No polegar, 1, 2 e 3.
 const FALANGES = { Index: [2, 3, 4], Middle: [2, 3, 4], Ring: [2, 3, 4], Pinky: [2, 3, 4], Thumb: [1, 2, 3] };
 const OSSOS_MAO = (s) => Object.entries(FALANGES).flatMap(([d, js]) => js.map(j => d + j + s));
-const CANECA_R = 0.042;                 // raio da caneca
+const CANECA_R = 0.046;                 // raio da caneca
 // ângulo de cada falange (graus), da junta da palma para a ponta
 const DOBRA = {
   caneca: { dedo: [62, 70, 48], polegar: [28, 34, 30] },
@@ -513,9 +527,8 @@ export class Pessoa {
     this.cracha = cracha;
     // caneca na mão direita: fica na cena e é posta na palma a cada quadro (_canecaNaMao)
     if (this.ficha.caneca) {
-      const c = caneca();
       this.canecaInvertida = this.sinais.has('caneca');
-      if (this.canecaInvertida) c.getObjectByName('cafe').visible = false;
+      const c = caneca(this.canecaInvertida);
       this.cena.add(c); this.extras.push(c);
       this.caneca = c;
       this._dobrar('R', 'caneca', 1); this._canecaNaMao();

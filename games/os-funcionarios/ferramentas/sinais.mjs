@@ -67,10 +67,12 @@ try {
     }
     if (c.t != null) for (const id of fila) await J(`tempoPessoa('${id}', ${c.t})`);
     if (c.vapor) await b.eval(`(window.__jogo.pessoa('${alien}')._vapor = 0, 1)`);
+    // o jogador já está onde a foto vai ser tirada (quem encara procura o jogador)
+    const camera = () => c.anda ? J(`olharPara(6.2, ${c.alt}, -2.4, 6.2, -4.9)`) : J(`olharPara(7.5, ${c.alt ?? 1.2}, -2.4, 5.0, -2.4)`);
+    await camera();
     await J(`avancar(${c.avanca ?? 0.5})`);
     if (!c.perto) {
-      if (c.anda) await J(`olharPara(6.2, ${c.alt}, -2.4, 6.2, -4.9)`);
-      else await J(`olharPara(7.5, ${c.alt}, -2.4, 5.0, -2.4)`);
+      await camera();
       const xs = await Promise.all(fila.map(id => J(`naTela('${id}')`)));
       const lado = xs[fila.indexOf(alien)] < xs[fila.indexOf(controle)] ? 'esquerda' : 'direita';
       verdade[s.id] = lado;
