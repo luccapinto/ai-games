@@ -82,35 +82,47 @@ export const ELENCO = [
 // 'sutil' (só com o zoom do examinador, de perto).
 export const SINAIS = [
   { id: 'cabeca', nome: 'Gira a cabeça além do limite', nivel: 'obvia',
-    dica: 'De vez em quando vira a cabeça quase toda para trás.' },
+    dica: 'A cada poucos segundos vira a cabeça quase toda para trás.' },
   { id: 're', nome: 'Anda de ré', nivel: 'obvia',
-    dica: 'As pernas andam para trás enquanto o corpo vai para a frente.' },
+    dica: 'Anda de costas pelo escritório, como um filme rebobinando.' },
   { id: 'falha', nome: 'Falha na imagem', nivel: 'obvia',
-    dica: 'Some e volta num piscar de olhos.' },
+    dica: 'De tempos em tempos pisca, treme para o lado e muda de cor.' },
   { id: 'olho', nome: 'Olhos brilhando verde', nivel: 'media',
-    dica: 'O olho acende verde por um instante.' },
+    dica: 'Os olhos acendem verde de tempos em tempos.' },
   { id: 'pe', nome: 'Pé virado para trás', nivel: 'media',
-    dica: 'Um dos sapatos aponta para o lado errado.' },
+    dica: 'A perna direita é torcida no joelho: o sapato aponta para trás.' },
   { id: 'sombra', nome: 'Não tem sombra', nivel: 'media',
-    dica: 'A luz da janela passa por ele.' },
+    dica: 'Não há sombra debaixo dos pés, nem da luz do teto nem da janela.' },
   { id: 'bracos', nome: 'Anda sem balançar os braços', nivel: 'media',
-    dica: 'Os braços ficam colados no corpo quando anda.' },
+    dica: 'Anda muito, com os braços duros e um pouco abertos, sem balançar.' },
   { id: 'vapor', nome: 'Respira vapor gelado', nivel: 'media',
     dica: 'Sai fumaça branca da boca, com o ar-condicionado desligado.' },
   { id: 'caneca', nome: 'Caneca de cabeça para baixo', nivel: 'media', requer: 'caneca',
     dica: 'Carrega o café de boca para baixo, e não cai nada.' },
   { id: 'encara', nome: 'Encara de volta', nivel: 'media',
-    dica: 'Para tudo e encara quem fica olhando para ele.' },
+    dica: 'De vez em quando para tudo, vira o corpo e fica encarando você.' },
   { id: 'costura', nome: 'Costura no pescoço', nivel: 'sutil',
-    dica: 'Uma linha de pontos em volta do pescoço, logo acima da gola.' },
+    dica: 'Uma cicatriz costurada em volta do pescoço, logo abaixo do queixo.' },
   { id: 'foto', nome: 'Foto do crachá não confere', nivel: 'sutil',
-    dica: 'O cabelo da foto do crachá é de outra cor.' },
+    dica: 'O cabelo da foto do crachá é de outra cor que o da ficha do RH.' },
   { id: 'nome', nome: 'Nome errado no crachá', nivel: 'sutil',
-    dica: 'O nome do crachá tem uma letra trocada.' },
+    dica: 'O nome do crachá tem uma letra trocada: compare com a ficha do RH.' },
   { id: 'pele', nome: 'Pele molhada', nivel: 'sutil',
     dica: 'A pele brilha como se estivesse molhada.' },
 ];
 export const SINAL = Object.fromEntries(SINAIS.map(s => [s.id, s]));
+
+// Ritmo dos sinais que vão e voltam (segundos). Cada alien tem a sua fase.
+// ciclo = de quanto em quanto tempo o sinal volta; dura = quanto tempo ele fica à mostra.
+export const RITMO = {
+  cabeca: { ciclo: 6, dura: 2.8 },     // antes: 2 s a cada 9 s
+  olho: { ciclo: 4, dura: 1.6 },       // antes: 0,7 s a cada 6,5 s
+  falha: { ciclo: 4.5, dura: 0.75 },   // antes: 0,15 s a cada 7 s
+  vapor: { ciclo: 1.6, dura: 1.2 },    // uma baforada a cada 1,6 s (antes 2,4 a 3,4 s)
+  encara: { ciclo: 9, dura: 3.2 },     // encara sozinho, além de quando é encarado (antes só quando encarado)
+};
+// Quem anda de ré ou sem balançar os braços só mostra o sinal andando: fica pouco na mesa.
+export const PARADO = { mesa: [10, 28], outro: [4, 11], andarilho: { mesa: [6, 12], outro: [3, 7] } };
 
 // ---------------------------------------------------------------- dias
 // segundos = duração do expediente (09h às 18h).
@@ -123,6 +135,23 @@ export const DIAS = [
 ];
 export const FALHAS_MAX = 3;
 export const PONTOS = { alien: 100, inocente: -150, fuga: -50, porMinutoSobrando: 20 };
+
+// ---------------------------------------------------------------- grampeador
+// Níveis do kit O GRAMPEADOR. id = variante do kit (as peças vêm do glb). Comprados no almoxarifado
+// entre um dia e outro, com a verba do dia (os pontos ganhos naquele dia, se positivos).
+// No nível 3 se escolhe o ramo, e ele define o nível 4.
+//   pente: grampos por pente · cadencia: s entre grampos · recarga: s
+//   grampos: quantos grampos derrubam um alien (o 1º sempre revela) · coice: força do coice
+export const ARMA = {
+  L1: { nome: 'Grampeador Improvisado', nivel: 1, de: null, preco: 0, pente: 12, cadencia: 0.26, recarga: 1.35, grampos: 4, coice: 1.0 },
+  L2: { nome: 'Grampeador Modificado', nivel: 2, de: 'L1', preco: 150, pente: 16, cadencia: 0.2, recarga: 1.1, grampos: 3, coice: 1.0 },
+  L3C: { nome: 'Industrial · Cadência', nivel: 3, ramo: 'C', de: 'L2', preco: 250, pente: 30, cadencia: 0.11, recarga: 1.25, grampos: 3, coice: 0.7 },
+  L3I: { nome: 'Industrial · Impacto', nivel: 3, ramo: 'I', de: 'L2', preco: 250, pente: 10, cadencia: 0.34, recarga: 0.95, grampos: 2, coice: 1.9 },
+  L4C: { nome: 'Protótipo Proibido · Cadência', nivel: 4, ramo: 'C', de: 'L3C', preco: 350, pente: 48, cadencia: 0.07, recarga: 1.0, grampos: 2, coice: 0.6 },
+  L4I: { nome: 'Protótipo Proibido · Impacto', nivel: 4, ramo: 'I', de: 'L3I', preco: 350, pente: 8, cadencia: 0.4, recarga: 0.85, grampos: 1, coice: 2.6 },
+};
+// o que dá para comprar a partir do nível `atual` (no 2 aparecem os dois ramos; depois, só o do ramo)
+export const proximosNiveis = (atual) => Object.keys(ARMA).filter(id => ARMA[id].de === atual);
 
 // ---------------------------------------------------------------- sorteio
 export function rng(semente) {               // mulberry32
@@ -161,8 +190,10 @@ export function sortearDia(nDia, semente) {
   return { dia: d, presentes: presentes.map(p => p.id), aliens, sinaisDe, memorando, iscas };
 }
 
-// Erros de digitação para o sinal "nome errado no crachá" (troca de uma letra parecida).
-const PARECIDAS = { a: 'o', o: 'a', e: 'c', c: 'e', i: 'l', l: 'i', r: 'n', n: 'r', u: 'v', s: 'z', d: 'b', t: 'f', m: 'n' };
+// Erros de digitação para o sinal "nome errado no crachá": troca uma letra por outra de desenho
+// diferente, que se lê também em maiúscula (o painel do crachá compara os nomes em maiúsculas).
+// Pares quase iguais em fonte sem serifa (i/l, c/e, u/v) ficaram de fora: o jogador passava batido.
+const PARECIDAS = { a: 'o', o: 'u', e: 'a', i: 'e', l: 't', r: 'n', n: 'm', u: 'o', s: 'z', d: 't', t: 'd', m: 'n', c: 'g', g: 'c', b: 'd', y: 'i', f: 't', p: 'b', w: 'v' };
 export function nomeErrado(nome, r = Math.random) {
   const primeiro = nome.split(' ')[0];
   const idx = [];

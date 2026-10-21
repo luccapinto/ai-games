@@ -13,10 +13,11 @@ crachá e grampeia só os impostores. Um humano abatido é uma falha. Três falh
 
 ## Como se joga
 
-Cada dia começa com um **memorando do RH**: quantos impostores há no andar e uma
-lista de sinais que a segurança recebeu. Nem todo sinal da lista é verdade: de um
-a dois são boatos e não aparecem em ninguém naquele dia. Quem atira por boato
-derruba um humano.
+Cada dia começa com um **memorando do RH**: quantos impostores há no andar e os
+relatos que a segurança recebeu. O memorando é honesto sobre a lista: diz quantos
+relatos foram confirmados e quantos são boato ("A segurança recebeu 3 relatos. 2
+foram confirmados e 1 é boato"), mas não diz qual é qual. O boato não aparece em ninguém naquele dia.
+Quem atira por boato derruba um humano. O mesmo número fica no canto da tela (`Tab`).
 
 | Tecla | Ação |
 | --- | --- |
@@ -25,7 +26,7 @@ derruba um humano.
 | botão direito ou `Z` | examinar de perto (zoom) |
 | `E` | pedir o crachá e comparar com a ficha do RH |
 | clique | disparar o grampeador (segure para rajada) |
-| `R` | recarregar (12 grampos por pente) |
+| `R` | recarregar (o pente depende do nível do grampeador) |
 | `Tab` | abrir o memorando |
 | `Esc` | pausa |
 
@@ -42,30 +43,55 @@ andar enche e os sinais ficam mais finos:
 
 **O grampeador.** Um grampo derruba um humano. No alienígena, o primeiro grampo só
 arranca o disfarce: a cabeça vira a roxa e ele corre para cima de você dando soco.
-Ele aguenta mais três grampos. Cinco socos e você é nocauteado, e o dia acaba com
-o impostor fugindo. Então atirar não termina a dúvida: começa a briga.
+No nível 1 ele aguenta mais três grampos. Cinco socos e você é nocauteado, e o dia
+acaba com o impostor fugindo. Então atirar não termina a dúvida: começa a briga.
 
 Alien eliminado vale 100. Humano abatido tira 150 e conta uma falha. Alien que
 chega às 18h vivo foge e tira 50. Limpar o andar cedo dá bônus por minuto que
 sobrou.
 
+**O almoxarifado.** Depois do relatório de cada dia você desce ao almoxarifado. A
+verba é o que você ganhou no dia (se o saldo do dia foi positivo) e acumula na
+semana. Com ela o grampeador sobe de nível; as peças trocam na sua mão, com uma
+animação curta. No nível 3 você escolhe o ramo, cadência ou impacto, e ele decide o
+nível 4: não dá para voltar. Uma semana nova começa no nível 1, sem verba.
+
+| Nível | Nome | Preço | Pente | Grampos/s | Recarga | Grampos para derrubar | Coice |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| L1 | Grampeador Improvisado | — | 12 | 3,8 | 1,35 s | 4 | normal |
+| L2 | Grampeador Modificado | 150 | 16 | 5,0 | 1,10 s | 3 | normal |
+| L3C | Industrial · Cadência | 250 | 30 | 9,1 | 1,25 s | 3 | leve |
+| L3I | Industrial · Impacto | 250 | 10 | 2,9 | 0,95 s | 2 | forte |
+| L4C | Protótipo Proibido · Cadência | 350 | 48 | 14,3 | 1,00 s | 2 | leve |
+| L4I | Protótipo Proibido · Impacto | 350 | 8 | 2,5 | 0,85 s | 1 (revela e derruba) | muito forte |
+
+Os números moram em `ARMA`, em `js/dados.js`. Os preços somam 750. Os dias 1 a 4
+têm 6 impostores (600 pontos) e o bônus de quem limpa o andar na metade do
+expediente fica perto de 90 por dia: quem joga bem compra o nível 4 antes do dia 5
+(a prova 9 joga assim e chega com 195 de sobra). Quem só acerta, sem bônus, chega
+ao nível 3.
+
 ## Os 14 sinais
+
+Todo sinal que vai e volta aparece várias vezes por expediente, e os sinais "de
+longe" e "atenção" se veem a 2,5 m sem zoom. A prova 10 simula 200 expedientes e
+confere isso para cada sinal de cada impostor (ver "Por dentro").
 
 | Sinal | Nível | O que você vê |
 | --- | --- | --- |
-| Gira a cabeça além do limite | longe | vira a cabeça quase toda para trás, de vez em quando |
-| Anda de ré | longe | as pernas andam para trás enquanto o corpo vai para a frente |
-| Falha na imagem | longe | some e volta num piscar |
-| Olhos brilhando verde | atenção | o olho acende verde por um instante |
-| Pé virado para trás | atenção | um sapato aponta para o lado errado |
-| Não tem sombra | atenção | a luz da janela passa por ele |
-| Anda sem balançar os braços | atenção | braços colados no corpo ao andar |
-| Respira vapor gelado | atenção | fumaça branca da boca |
-| Caneca de cabeça para baixo | atenção | carrega o café de boca para baixo |
-| Encara de volta | atenção | para tudo e encara quem fica olhando |
-| Costura no pescoço | perto | linha de pontos logo acima da gola |
+| Gira a cabeça além do limite | longe | vira a cabeça quase toda para trás por 2,8 s, a cada 6 s |
+| Anda de ré | longe | anda de costas para onde vai; fica pouco tempo parado |
+| Falha na imagem | longe | a cada 4,5 s some, salta para o lado e pisca em ciano e magenta por 0,75 s |
+| Olhos brilhando verde | atenção | os olhos acendem verde, com brilho, por 1,6 s a cada 4 s |
+| Pé virado para trás | atenção | a canela direita é torcida: o sapato aponta para trás |
+| Não tem sombra | atenção | nem a sombra de contato debaixo dos pés, nem a da janela |
+| Anda sem balançar os braços | atenção | anda muito, com os braços duros e um pouco abertos |
+| Respira vapor gelado | atenção | baforada branca azulada da boca a cada 1,6 s |
+| Caneca de cabeça para baixo | atenção | a faixa vermelha da boca da caneca fica embaixo, e o café não cai |
+| Encara de volta | atenção | a cada 9 s para tudo e vira para você; também congela quando você o encara |
+| Costura no pescoço | perto | cicatriz vermelho-escura com pontos pretos em volta do pescoço |
 | Foto do crachá não confere | perto | o cabelo da foto é de outra cor |
-| Nome errado no crachá | perto | uma letra trocada no nome |
+| Nome errado no crachá | perto | uma letra trocada; o crachá mostra os dois nomes lado a lado, em maiúsculas |
 | Pele molhada | perto | a pele brilha como se estivesse molhada |
 
 ## Por dentro
@@ -94,14 +120,39 @@ dez animações usadas uma vez só em `animacoes.glb` (homens) e `animacoes_mulh
 pacote têm outra orientação de repouso no tronco, nos braços e nas pernas: a animação
 do esqueleto masculino tocada nelas fazia as funcionárias andarem com o braço para trás.
 
-**A arma é nossa.** O grampeador é o nível 1 ("Grampeador Improvisado") do kit
-O GRAMPEADOR, que fizemos em Blender por código para outro teste: peças modulares,
-texturas assadas. `preparar_arma.py` tira só as peças do nível 1, descarta as
-tangentes e reduz as texturas para 512 px (5,7 MB do kit inteiro para 590 KB). Ela é
+**A arma é nossa.** O grampeador é o kit O GRAMPEADOR, que fizemos em Blender por
+código para outro teste: peças modulares, texturas assadas, seis níveis. Um
+`grampeador.glb` traz as 31 peças de todos os níveis; o jogo liga as do nível
+atual pelo nome do nó, e a lista de peças de cada nível vai dentro do arquivo.
+`preparar_arma.py` descarta as tangentes, reduz as texturas para 512 px e quantiza
+os vértices (`KHR_mesh_quantization`: posição em int16, normal em int8, UV em
+uint16): 5,7 MB do kit inteiro para 1,8 MB (antes, só o nível 1: 590 KB). Ela é
 desenhada numa segunda cena por cima do escritório, para nunca atravessar parede
-nem mesa, com balanço ao andar, coice e recarga. O grampo é um U de arame que voa
-da ponta e fica cravado no osso mais perto de onde acertou, ou solta faísca na
-parede.
+nem mesa, com balanço ao andar, coice (que também levanta a mira), recarga e troca
+de nível: a arma desce, as peças trocam e sobem uma a uma. No nível 4 os
+fragmentos flutuam e o núcleo pulsa. O grampo é um U de arame que voa da ponta e
+fica cravado no osso mais perto de onde acertou, ou solta faísca na parede.
+
+**A caneca é segurada de verdade.** Os braços de quem carrega caneca são
+procedurais por cima da animação: IK de dois ossos leva a mão direita à frente do
+corpo, os dedos fecham em volta da alça (as falanges que dobram são a 2ª, a 3ª e a
+4ª: a 1ª do pacote é o metacarpo) e a caneca é posta na palma a cada quadro. De 8
+a 30 s a pessoa toma um gole: a mão sobe até a boca e a cabeça inclina. Na mesa,
+as pessoas digitam no teclado (quem tem caneca, só com a esquerda).
+
+**O escritório anda no próprio ritmo.** Cada pessoa anda num passo dela, e a
+velocidade vem do comprimento medido da passada de cada esqueleto, então os pés não
+deslizam. Na mesa digitam uns 8 s e param para olhar o vizinho; duas pessoas
+paradas perto viram uma para a outra e conversam; quem está na impressora, no
+armário, no café ou na água mexe nas coisas. A IA de cada dia segue a semente
+do dia, então uma simulação se repete igual.
+
+**A prova estatística dos sinais.** Cada pessoa marca, a cada quadro, quais
+sinais estão à mostra (`Pessoa.vis`). `__jogo.medirSinais(dia, semente)` simula o
+expediente inteiro com o jogador parado na entrada e soma segundos e aparições de
+cada sinal de cada impostor. Em 200 expedientes (40 semanas), todo sinal que vai e
+volta apareceu pelo menos 6 vezes e 30 s no dia, e todo sinal fixo, o dia inteiro.
+Os números de cada rodada ficam em `fotos/prova_estatistica.txt`.
 
 **O alienígena é procedural.** A cabeça roxa, com olho amendoado e brilho, é
 geometria do código, e aparece no lugar da cabeça humana no meio da revelação. O
@@ -123,8 +174,12 @@ As provas abrem o jogo num Chrome sem cabeça e jogam por uma API de teste
 (`window.__jogo`):
 
 ```bash
-node provas.mjs                     # 21 provas
-cd ferramentas && node sinais.mjs   # uma foto de cada sinal, em fotos/sinais/
+node provas.mjs                     # 34 provas
+cd ferramentas && node sinais.mjs   # fotos dos sinais a distância de jogo, alien ao lado de um humano
+CEGO=1 SEMENTE=303 node sinais.mjs  # prova cega: não diz de que lado está o alien (resposta em verdade.json)
+node poses.mjs                      # todas as animações nos dois esqueletos, folha de contato
+node armas.mjs                      # os 6 níveis do grampeador na mão, a troca e o almoxarifado
+node video.mjs                      # quadros do vídeo de demonstração
 ```
 
 Em Linux com GPU Intel, o Chrome sem cabeça precisa de WebGL por ANGLE
@@ -165,6 +220,26 @@ pessoas, escritório, laço do jogo, som, provas, nessa ordem. O que deu trabalh
 Cada etapa visual passou por foto e revisão: as 14 provas de sinal foram refeitas
 três vezes até todos aparecerem.
 
+**A segunda rodada: todo impostor achável e o grampeador que cresce.** Jogando, o
+dono do repo notou três coisas: o memorando listava boatos sem dizer quantos, vários
+sinais duravam um piscar ou só se viam colado na pessoa, e a caneca flutuava na mão
+aberta. O que mudou:
+
+- **Memorando honesto.** Agora diz quantos relatos são verdadeiros. As trocas de
+  letra do nome errado que sumiam na fonte do crachá (i/l, c/e, u/v) saíram, e o
+  crachá aberto compara os dois nomes em maiúsculas.
+- **Sinais mais frequentes e mais fortes** (tabela acima): olho com brilho, falha
+  com salto e cor, cabeça mais longa, vapor mais denso, encarada sem precisar ser
+  encarado, ré andando de costas, sombra de contato que o impostor não tem, canela
+  torcida, caneca com faixa vermelha e cicatriz costurada que segue o pescoço.
+- **Prova cega com controle.** `sinais.mjs` põe o impostor ao lado de um humano, a
+  2,5 m sem zoom (sinais de longe e de atenção) ou a 1,5 m com zoom (de perto), sorteia
+  o lado e não diz qual é. Três rodadas: 12/14 (caneca no chute e uma falha da
+  ferramenta no "encara"), 14/14 com braços incerto, 14/14 depois de abrir os braços.
+- **Varredura das animações** (`poses.mjs`): o soco do esqueleto masculino girava o
+  corpo inteiro uns 70 graus; agora o giro da raiz fica em 20.
+- **Almoxarifado e seis níveis do grampeador**, descritos acima.
+
 **O que ficou de fora.** O olho do pacote é pintado e não tem pálpebra, então os
 sinais de piscar do kit antigo não entraram. Dedo a mais e sombra atrasada também
 ficaram de fora. De perto, o rosto do pacote é facetado. No celular não roda: o
@@ -194,4 +269,5 @@ somando a sessão do projeto e os dois subagentes dela.
 - **Máquina:** tudo rodou num servidor doméstico (i7-7500U, 16 GB, GPU Intel HD 620),
   sem GPU na nuvem. Blender, Chrome sem cabeça e as provas rodaram ali, com prioridade
   baixa. Não houve outro gasto além dos tokens.
-- **Tamanho publicado:** 8.0 MB, dos quais 6,2 MB são os modelos e 0,7 MB o three.js.
+- **Tamanho publicado:** 9,3 MB (era 8,0 MB antes do grampeador em seis níveis), dos
+  quais 8,2 MB são os modelos (1,8 MB o grampeador) e 0,8 MB o three.js.

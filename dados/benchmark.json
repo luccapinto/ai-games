@@ -4,7 +4,7 @@
     "jogos": 12,
     "autores": 1,
     "modelos": 3,
-    "linhas": 62668,
+    "linhas": 63613,
     "usd": 211.06,
     "tokens_novos": 6556255,
     "tokens_cache": 604696337,
@@ -69,7 +69,7 @@
         "tokens_totais": 104736347,
         "usd": 64.76,
         "chamadas_api": 622,
-        "linhas": 2532,
+        "linhas": 3477,
         "tem_custo": true
       },
       "url": "games/os-funcionarios/"
@@ -663,9 +663,9 @@
       "tokens_cache": 188721536,
       "chamadas_api": 857,
       "usd": 1.43,
-      "linhas": 13241,
-      "tokens_por_linha": 209.61,
-      "linhas_por_dolar": 9259.44
+      "linhas": 14186,
+      "tokens_por_linha": 195.64,
+      "linhas_por_dolar": 9920.28
     },
     {
       "nome": "claude-opus-5-5",
@@ -678,9 +678,9 @@
       "tokens_cache": 389648731,
       "chamadas_api": 1491,
       "usd": 159.78,
-      "linhas": 21405,
-      "tokens_por_linha": 76.32,
-      "linhas_por_dolar": 133.97
+      "linhas": 22350,
+      "tokens_por_linha": 73.1,
+      "linhas_por_dolar": 139.88
     }
   ],
   "por_agente": [
@@ -731,9 +731,9 @@
       "tokens_cache": 262136963,
       "chamadas_api": 1278,
       "usd": 65.79,
-      "linhas": 13241,
-      "tokens_por_linha": 269.59,
-      "linhas_por_dolar": 201.26
+      "linhas": 14186,
+      "tokens_por_linha": 251.63,
+      "linhas_por_dolar": 215.63
     },
     {
       "nome": "Oh My Pi (subagentes)",
@@ -785,9 +785,9 @@
       "tokens_cache": 188721536,
       "chamadas_api": 857,
       "usd": 1.43,
-      "linhas": 13241,
-      "tokens_por_linha": 209.61,
-      "linhas_por_dolar": 9259.44
+      "linhas": 14186,
+      "tokens_por_linha": 195.64,
+      "linhas_por_dolar": 9920.28
     },
     {
       "nome": "Anthropic (assinatura)",
@@ -799,9 +799,9 @@
       "tokens_cache": 73415427,
       "chamadas_api": 421,
       "usd": 64.36,
-      "linhas": 2532,
-      "tokens_por_linha": 313.67,
-      "linhas_por_dolar": 39.34
+      "linhas": 3477,
+      "tokens_por_linha": 228.42,
+      "linhas_por_dolar": 54.02
     }
   ]
 }

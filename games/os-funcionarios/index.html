@@ -25,8 +25,9 @@
   <div class="base">
     <div id="hud-vida" title="Saúde"></div>
     <div class="municao"><span class="rot">GRAMPOS</span> <b id="hud-grampos">12 / 12</b></div>
+    <div id="hud-arma" class="municao rot">L1 · Grampeador Improvisado</div>
   </div>
-  <div id="hud-memo"><b>Memorando <kbd>Tab</kbd></b><ul id="hud-memo-lista"></ul></div>
+  <div id="hud-memo"><b>Memorando <kbd>Tab</kbd></b> <span id="hud-memo-conta"></span><ul id="hud-memo-lista"></ul></div>
   <div id="dica"></div>
   <div id="aviso" class="aviso" hidden></div>
   <div class="teclas">
@@ -38,6 +39,7 @@
 <div id="cracha" hidden>
   <div><h3>Crachá que ele(a) está usando</h3><canvas id="cracha-img" width="384" height="240"></canvas></div>
   <div><h3>Ficha do RH</h3><canvas id="ficha-img" width="384" height="150"></canvas></div>
+  <table id="cracha-nomes"><tr><th>No crachá</th><td id="nome-cracha"></td></tr><tr><th>Na ficha</th><td id="nome-ficha"></td></tr></table>
   <p>Compare o nome e a foto. <kbd>E</kbd> devolve.</p>
 </div>
 
@@ -75,7 +77,7 @@
     <p class="cabecalho">MEMORANDO INTERNO · CONFIDENCIAL · <span id="memo-dia"></span></p>
     <h2>Hoje temos <span id="memo-qtd"></span> no andar.</h2>
     <p id="memo-pessoas"></p>
-    <p>Relatos recebidos pela segurança. <b>Nem todo boato é verdade</b>: alguns sinais da lista não vão aparecer hoje.</p>
+    <p id="memo-aviso"></p>
     <ul id="memo-sinais" class="sinais"></ul>
     <button id="btn-expediente">Começar o expediente</button>
   </div>
@@ -96,7 +98,19 @@
     <p id="rel-motivo"></p>
     <ul id="rel-lista" class="rel"></ul>
     <p class="placar"><span id="rel-pontos"></span> · <span id="rel-falhas"></span></p>
+    <p id="rel-verba" class="verba"></p>
     <button id="rel-seguir">Próximo dia</button>
+  </div>
+</section>
+
+<section id="almoxarifado" class="tela" hidden>
+  <div class="caixa">
+    <p class="sobre">Almoxarifado · subsolo</p>
+    <h2>Verba: <span id="alm-verba"></span></h2>
+    <p class="sub">A verba é o que você ganhou nos dias da semana. Na próxima semana o grampeador volta ao nível 1.</p>
+    <div id="alm-atual" class="alm-atual"></div>
+    <div id="alm-opcoes" class="alm-opcoes"></div>
+    <button id="alm-seguir">Próximo dia</button>
   </div>
 </section>
 
