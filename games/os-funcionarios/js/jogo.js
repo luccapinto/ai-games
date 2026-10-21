@@ -2,8 +2,8 @@
 // memorando do RH, crachá, disparo, revelação e relatório.
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
-import { ELENCO, SINAL, DIAS, FALHAS_MAX, PONTOS, sortearDia, rng } from './dados.js';
-import { Pessoa, carregarModelos } from './pessoas.js';
+import { ELENCO, SINAL, DIAS, FALHAS_MAX, PONTOS, RITMO, PARADO, sortearDia, rng } from './dados.js';
+import { Pessoa, carregarModelos, VEL_HOSTIL } from './pessoas.js';
 import { construirEscritorio, rota, noMaisProximo, caminhoLivre, SALA } from './escritorio.js';
 import { Som } from './som.js';
 import { Arma, grampo, PENTE } from './arma.js';
@@ -47,7 +47,7 @@ function ajustar() {
 }
 function desenhar() {
   render.render(cena, camera);
-  arma.visivel = S.tela === 'jogando';
+  arma.visivel = S.tela === 'jogando' && !S.semArma;      // semArma: folhas de pose sem a arma na frente
   arma.desenhar(render);
 }
 addEventListener('resize', ajustar); ajustar();
@@ -175,7 +175,9 @@ function prepararDia(forcado) {
     p.obj.updateMatrixWorld(true);
     const alien = S.plano.aliens.includes(id);
     p.vestir({ alien, sinais: alien ? S.plano.sinaisDe[id] : [] }, r);
-    p.ia = { modo: 'parado', ate: 2 + r() * 10, rota: [], alvo: null };
+    p.ia = { modo: 'parado', ate: 2 + r() * 10, rota: [], alvo: p.mesa };
+    p.ritmo = 0.8 + r() * 0.2;        // cada um anda num passo (e a animação acompanha, sem deslizar)
+    p.fase = r() * 30;                 // fase das pausas na mesa
     p.mixer.setTime(r() * 3);
     S.pessoas.push(p);
   });
@@ -191,7 +193,7 @@ const rIA = Math.random;
 function atualizarHostil(p, dt) {
   const j = S.jogador.pos;
   const dj = Math.hypot(j.x - p.pos.x, j.z - p.pos.z);
-  if (p.atordoado > 0) { p.atordoado -= dt; if (p.atordoado <= 0) p.reiniciar('Run', 0.15, 1.1); return; }
+  if (p.atordoado > 0) { p.atordoado -= dt; if (p.atordoado <= 0) p.reiniciar('Run', 0.15, p.escalaCorrida); return; }
   if (p.socando > 0) {
     p.socando -= dt;
     virarPara(p, j, dt, 8);
@@ -199,7 +201,7 @@ function atualizarHostil(p, dt) {
       p.socou = true;
       if (dj < 1.35 && S.tela === 'jogando') levarSoco(p);
     }
-    if (p.socando <= 0) p.reiniciar('Run', 0.15, 1.1);
+    if (p.socando <= 0) p.reiniciar('Run', 0.15, p.escalaCorrida);
     return;
   }
   if (dj < 1.05) { p.socando = 0.9; p.socou = false; p.reiniciar('Punch_Right', 0.08, 1.2); return; }
@@ -218,7 +220,7 @@ function atualizarHostil(p, dt) {
   const d = V(p._alvo.x - p.pos.x, 0, p._alvo.z - p.pos.z);
   if (d.length() < 0.15) { p._rotaT = 0; return; }
   d.normalize();
-  const vel = 2.6;
+  const vel = VEL_HOSTIL;
   const novo = p.pos.clone().addScaledVector(d, vel * dt);
   const bate = nav.colisores.some(c => novo.x > c.x0 - 0.2 && novo.x < c.x1 + 0.2 && novo.z > c.z0 - 0.2 && novo.z < c.z1 + 0.2);
   if (!bate) p.pos.copy(novo); else p._rotaT = 0;
@@ -240,26 +242,43 @@ function levarSoco(p) {
 function atualizarIA(p, dt) {
   if (p.estado === 'hostil') { atualizarHostil(p, dt); return; }
   if (p.estado !== 'vivo') return;
+  if (p.ia.modo === 'roteiro') return;          // provas/folhas controlam a pessoa
   const ia = p.ia;
   // pedido de crachá: para e vira para o jogador
-  if (S.crachaDe === p) { p.andando = false; p.anim('Idle_Neutral', 0.25); virarPara(p, S.jogador.pos, dt, 6); return; }
-  // "encara de volta": congela enquanto é observado
+  if (S.crachaDe === p) { p.andando = false; p.teclado = null; p.anim('Idle_Neutral', 0.25); virarPara(p, S.jogador.pos, dt, 6); return; }
+  // "encara de volta": congela enquanto é observado, e de tempos em tempos encara sozinho
+  const dj = Math.hypot(S.jogador.pos.x - p.pos.x, S.jogador.pos.z - p.pos.z);
   if (p.sinais.has('encara')) {
     const olhado = S.mira === p && camera.position.distanceTo(p.pos) < 9;
     p._olhado = olhado ? (p._olhado || 0) + dt : Math.max(0, (p._olhado || 0) - dt * 0.5);
-    p.encarando = p._olhado > 1.2;
-    if (p.encarando) { p.andando = false; p.anim('Idle_Neutral', 0.15); virarPara(p, S.jogador.pos, dt, 2.5); return; }
+    const sozinho = (p.t % RITMO.encara.ciclo) > RITMO.encara.ciclo - RITMO.encara.dura && dj < 10;
+    p.encarando = p._olhado > 1.2 || sozinho;
+    if (p.encarando) { p.andando = false; p.teclado = null; p.anim('Idle_Neutral', 0.15); virarPara(p, S.jogador.pos, dt, 2.5); return; }
   }
   // olhada natural para o jogador quando ele chega perto (humanos e aliens)
-  const dj = Math.hypot(S.jogador.pos.x - p.pos.x, S.jogador.pos.z - p.pos.z);
   if (dj < 3.2 && !ia.olhando && rIA() < dt * 0.25) ia.olhando = 1.5 + rIA() * 1.5;
-  if (ia.olhando) { ia.olhando -= dt; p.olhar = ia.olhando > 0 && dj < 4.5 ? S.jogador.pos : null; if (ia.olhando <= 0) { ia.olhando = 0; p.olhar = null; } }
+  if (ia.olhando) ia.olhando = Math.max(0, ia.olhando - dt);
+  let olhar = ia.olhando > 0 && dj < 4.5 ? S.jogador.pos : null;
 
   if (ia.modo === 'parado') {
     p.andando = false;
     if (ia.alvo) virarPara(p, null, dt, 4, ia.alvo.olha);
-    const naMesa = ia.alvo === p.mesa || !ia.alvo;
-    p.anim(naMesa ? (Math.floor(p.t / 4 + p.id.length) % 3 === 0 ? 'Interact' : 'Idle') : 'Idle_Neutral', 0.35, naMesa ? 0.6 : 1);
+    const naMesa = ia.alvo === p.mesa;
+    if (naMesa) {
+      // trabalha: digita uns 8 s, para uns 3 s e olha para o lado (vizinho mais perto)
+      const digitando = (p.t + p.fase) % 11 < 8;
+      p.teclado = digitando ? tecladoDe(p.mesa) : null;
+      if (!digitando && !olhar) olhar = S.pessoas.filter(o => o !== p && o.alvejavel).sort((a, b) => a.pos.distanceTo(p.pos) - b.pos.distanceTo(p.pos))[0]?.pos || null;
+      p.anim('Idle', 0.35, 0.6);
+    } else {
+      p.teclado = null;
+      // conversa: duas pessoas paradas perto uma da outra se viram e se olham
+      const papo = S.pessoas.find(o => o !== p && o.estado === 'vivo' && o.ia?.modo === 'parado' && o.ia.alvo !== o.mesa && o.pos.distanceTo(p.pos) < 2.2);
+      if (papo) { virarPara(p, papo.pos, dt, 3); olhar = olhar || papo.pos; }
+      const mexe = ['impressora', 'armario', 'cafe', 'agua'].includes(ia.alvo?.tipo) && (p.t + p.fase) % 7 < 3;
+      p.anim(mexe && !papo ? 'Interact' : 'Idle_Neutral', 0.35);
+    }
+    p.olhar = olhar;
     ia.ate -= dt;
     if (ia.ate <= 0) {
       const destino = escolherDestino(p, rIA);
@@ -267,27 +286,52 @@ function atualizarIA(p, dt) {
       const de = noMaisProximo(nav, p.pos);
       const nos = rota(nav, de, destino.no);
       ia.rota = [...nos.filter(i => nav.nos[i]).map(i => nav.nos[i].clone()), destino.p.clone()];
-      ia.alvo = destino; ia.modo = 'andando';
+      ia.alvo = destino; ia.modo = 'andando'; p.teclado = null;
     }
   } else {
+    p.olhar = olhar;
     const alvo = ia.rota[0];
-    if (!alvo) { ia.modo = 'parado'; ia.ate = ia.alvo === p.mesa ? 10 + rIA() * 18 : 4 + rIA() * 7; return; }
+    if (!alvo) {
+      // quem anda de ré ou com os braços duros só mostra o sinal andando: fica menos tempo parado
+      const t = (p.sinais.has('re') || p.sinais.has('bracos')) ? PARADO.andarilho : PARADO;
+      const [a, b] = ia.alvo === p.mesa ? t.mesa : t.outro;
+      ia.modo = 'parado'; ia.ate = a + rIA() * (b - a); return;
+    }
     const d = V(alvo.x - p.pos.x, 0, alvo.z - p.pos.z);
     const dist = d.length();
     if (dist < 0.12) { ia.rota.shift(); return; }
-    // espera quem está na frente
-    const fr = d.clone().normalize();
-    const bloqueado = S.pessoas.some(o => o !== p && o.alvejavel && o.pos.distanceTo(p.pos) < 0.7 && V().subVectors(o.pos, p.pos).dot(fr) > 0.2)
-      || (Math.hypot(S.jogador.pos.x - p.pos.x, S.jogador.pos.z - p.pos.z) < 0.75 && V(S.jogador.pos.x - p.pos.x, 0, S.jogador.pos.z - p.pos.z).dot(fr) > 0.2);
-    if (bloqueado) { p.andando = false; p.anim('Idle_Neutral', 0.3); ia.espera = (ia.espera || 0) + dt; if (ia.espera > 2.5) { p.pos.addScaledVector(V(-fr.z, 0, fr.x), 0.3 * dt); } return; }
+    // desvia de quem está na frente andando de lado (o corpo vira para onde vai: não desliza);
+    // o jogador na frente faz esperar; preso por muito tempo, escolhe outro destino
+    let fr = d.clone().normalize();
+    const frente = (o) => o.distanceTo(p.pos) < 0.7 && V().subVectors(o, p.pos).setY(0).dot(fr) > 0.2;
+    const jogadorNaFrente = frente(V(S.jogador.pos.x, 0, S.jogador.pos.z));
+    const outro = S.pessoas.find(o => o !== p && o.alvejavel && frente(o.pos));
+    if (outro && !jogadorNaFrente) {
+      const lado = V(-fr.z, 0, fr.x);
+      if (V().subVectors(outro.pos, p.pos).dot(lado) > 0) lado.negate();
+      const desvio = fr.clone().addScaledVector(lado, 1.3).normalize();
+      const livre = (dir) => !nav.colisores.some(c => { const q = p.pos.clone().addScaledVector(dir, 0.35); return q.x > c.x0 - 0.15 && q.x < c.x1 + 0.15 && q.z > c.z0 - 0.15 && q.z < c.z1 + 0.15; });
+      if (livre(desvio)) fr = desvio;
+      else { const outroLado = fr.clone().addScaledVector(lado, -1.3).normalize(); fr = livre(outroLado) ? outroLado : null; }
+    }
+    if (jogadorNaFrente || !fr) {
+      p.andando = false; p.anim('Idle_Neutral', 0.3); ia.espera = (ia.espera || 0) + dt;
+      if (ia.espera > 4) { ia.espera = 0; ia.modo = 'parado'; ia.ate = 0.5 + rIA(); ia.alvo = null; }
+      return;
+    }
     ia.espera = 0;
     p.andando = true;
+    // anda de ré: o corpo vira de costas para onde vai e o passo toca ao contrário
     const re = p.sinais.has('re');
-    p.anim('Walk', 0.25, re ? -1 : 1);
-    const vel = 1.05;
-    p.pos.addScaledVector(fr, Math.min(dist, vel * dt));
-    virarPara(p, null, dt, 7, Math.atan2(fr.x, fr.z));
+    p.anim('Walk', 0.25, (re ? -1 : 1) * p.ritmo);
+    p.pos.addScaledVector(fr, Math.min(dist, p.velPasso * p.ritmo * dt));
+    virarPara(p, null, dt, 7, Math.atan2(fr.x, fr.z) + (re ? Math.PI : 0));
   }
+}
+
+// ponto do teclado da mesa (onde as mãos de quem trabalha ficam)
+function tecladoDe(m) {
+  return m._teclado || (m._teclado = V(m.p.x + Math.sin(m.olha) * 0.40, 1.045, m.p.z + Math.cos(m.olha) * 0.40));
 }
 
 function virarPara(p, ponto, dt, k, yawAlvo) {
@@ -684,6 +728,15 @@ window.__jogo = {
   tempoPessoa: (id, t) => { S.pessoas.find(q => q.id === id).t = t; return t; },
   posicionar: (id, x, z, yaw) => { const p = S.pessoas.find(q => q.id === id); p.pos.set(x, 0, z); p.obj.rotation.y = yaw; p.ia.modo = 'parado'; p.ia.ate = 1e9; p.ia.alvo = { olha: yaw }; return true; },
   andarPara: (id, x, z) => { const p = S.pessoas.find(q => q.id === id); p.ia.modo = 'andando'; p.ia.rota = [V(x, 0, z)]; p.ia.alvo = { olha: 0 }; return true; },
+  // congela a pessoa numa animação, no ponto `frac` (0..1) do clipe; a IA para de mexer nela
+  pose: (id, anim, frac, x, z, yaw, andando = false) => {
+    const p = S.pessoas.find(q => q.id === id);
+    p.ia.modo = 'roteiro'; p.andando = andando;
+    p.pos.set(x, 0, z); p.obj.rotation.y = yaw;
+    p.mixer.stopAllAction();
+    const a = p.acoes[anim]; a.reset().play(); a.timeScale = 0; a.time = frac * a.getClip().duration; p.atual = a;
+    return a.getClip().duration;
+  },
   proximoDia: () => { proximoDia(); return S.tela; },
   tela: () => S.tela,
   render: () => { desenhar(); return true; },
