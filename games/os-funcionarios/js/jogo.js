@@ -726,6 +726,8 @@ window.__jogo = {
     S.nDia = 1; prepararDia(plano); S.tela = 'jogando'; mostrar(null); atualizarHUD(); return S.pessoas.length;
   },
   tempoPessoa: (id, t) => { S.pessoas.find(q => q.id === id).t = t; return t; },
+  caneca: (id) => S.pessoas.find(q => q.id === id).medirCaneca(),
+  gole: (id) => { const p = S.pessoas.find(q => q.id === id); p._proxGole = 0; p._gole = 0; return true; },
   posicionar: (id, x, z, yaw) => { const p = S.pessoas.find(q => q.id === id); p.pos.set(x, 0, z); p.obj.rotation.y = yaw; p.ia.modo = 'parado'; p.ia.ate = 1e9; p.ia.alvo = { olha: yaw }; return true; },
   andarPara: (id, x, z) => { const p = S.pessoas.find(q => q.id === id); p.ia.modo = 'andando'; p.ia.rota = [V(x, 0, z)]; p.ia.alvo = { olha: 0 }; return true; },
   // congela a pessoa numa animação, no ponto `frac` (0..1) do clipe; a IA para de mexer nela

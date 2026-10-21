@@ -545,6 +545,24 @@ export class Pessoa {
 
   get pos() { return this.obj.position; }
 
+  // medidas da caneca na mão (para a prova): folga palma-caneca, distância das pontas dos dedos
+  // à parede da caneca, se está em pé e a distância até a boca
+  medirCaneca() {
+    const c = this.caneca; if (!c) return null;
+    this.raiz.updateMatrixWorld(true);
+    const H = quadroMao(this.ossos, 'R');
+    const eixo = V(0, this.canecaInvertida ? -1 : 1, 0).applyQuaternion(c.quaternion);
+    const aoEixo = (p) => { const d = p.sub(c.position); return d.addScaledVector(eixo, -d.dot(eixo)).length(); };
+    const pontas = ['Index4R', 'Middle4R', 'Ring4R'].map(n => aoEixo(wpos(this.ossos[n])) - CANECA_R);
+    return {
+      folga: H.palma.distanceTo(c.position) - CANECA_R,
+      dedos: Math.max(...pontas),
+      emPe: eixo.y,
+      boca: wpos(this.ossos.Head).distanceTo(c.position),
+      bebendo: this.bebendo || 0,
+    };
+  }
+
   // ---- cada quadro: animação + sinais por cima da animação
   atualizar(dt, ctx) {
     this.t += dt;

@@ -7,6 +7,7 @@
 // 5) teclado de verdade: W anda para a frente em tempo real, colisão com mesa segura o jogador
 // 6) grampeador: arma na mão, 1 grampo derruba humano, alien aguenta 4 (o 1º só revela), pente e recarga
 // 7) alien revelado corre atrás do jogador e soca; 5 socos = nocaute
+// 8) caneca na mão: encostada na palma (< 3 cm), dedos fechados nela e em pé, parado e andando; gole leva à boca
 import fs from 'node:fs';
 import path from 'node:path';
 import { launch, serve } from './ferramentas/cdp.mjs';
@@ -156,6 +157,27 @@ try {
   await J('avancar(12)');
   const t7 = await J('tela()'); const mot = await b.eval('document.querySelector("#rel-motivo").textContent');
   prova('5 socos = nocaute, o dia acaba', t7 === 'relatorio' && /nocaute/i.test(mot), `${t7} · ${mot.slice(0, 60)}`);
+
+  // ---------------------------------------------------------- 8) caneca na mão
+  await J('diaForcado(["marcia", "bruno", "rafael"], { rafael: ["sombra"] })');
+  await J('posicionar("marcia", -6.2, 4.9, 0)'); await J('posicionar("rafael", 7, -2.4, 0)');
+  await J('posicionar("bruno", -8.0, 1.2, 0)'); await J('andarPara("bruno", 7.6, 1.2)');
+  await J('avancar(1)');
+  let piorFolga = 0, piorDedo = 0, menosEmPe = 1, andou = 0;
+  for (let i = 0; i < 16; i++) {
+    await J('avancar(0.25)');
+    for (const id of ['marcia', 'bruno']) {
+      const c = await J(`caneca("${id}")`);
+      piorFolga = Math.max(piorFolga, c.folga); piorDedo = Math.max(piorDedo, c.dedos);
+      if (c.bebendo === 0) menosEmPe = Math.min(menosEmPe, c.emPe);
+    }
+    if (await b.eval('window.__jogo.S.pessoas.find(p => p.id === "bruno").andando')) andou++;
+  }
+  prova('caneca: encostada na palma, em pé e andando (< 3 cm)', piorFolga < 0.03 && andou >= 12, `folga máx ${(piorFolga * 100).toFixed(1)} cm · ${andou}/16 amostras andando`);
+  prova('caneca: dedos fechados em volta dela e caneca em pé', piorDedo < 0.03 && menosEmPe > 0.9, `ponta do dedo a ${(piorDedo * 100).toFixed(1)} cm da parede · em pé ${menosEmPe.toFixed(2)}`);
+  await J('gole("marcia")'); await J('avancar(1.3)');
+  const g = await J('caneca("marcia")');
+  prova('caneca: no gole a mão leva a caneca à boca', g.bebendo > 0.95 && g.boca < 0.25 && g.folga < 0.03, JSON.stringify(g));
 
   const erros = b.logs.filter(l => /exception/i.test(l.type) || /Uncaught|TypeError|ReferenceError/.test(l.text));
   prova('nenhuma exceção no console', erros.length === 0, erros.slice(0, 3).map(e => e.text.slice(0, 200)).join(' | '));
